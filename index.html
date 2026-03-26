@@ -6,144 +6,242 @@
 <title>Kay - Kashian Bros AI</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',-apple-system,sans-serif;background:#eef2f7;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:12px}
+body{font-family:Arial,sans-serif;background:#eef2f7;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:12px}
 @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.msg-anim{animation:fadeUp 0.2s ease}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#d0e8f2;border-radius:3px}
 .wrap{width:100%;max-width:840px;display:flex;flex-direction:column;height:calc(100vh - 24px);min-height:560px}
 .banner{background:#1a5f7a;border-radius:10px 10px 0 0;padding:9px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.banner-badge{background:#f59e0b;color:#1a1a1a;font-weight:700;font-size:10px;border-radius:4px;padding:2px 7px;text-transform:uppercase}
-.banner-label{color:#a8d8ea;font-size:12.5px}
+.banner span.badge{background:#f59e0b;color:#1a1a1a;font-weight:700;font-size:10px;border-radius:4px;padding:2px 7px;text-transform:uppercase}
+.banner span.lbl{color:#a8d8ea;font-size:12px}
 .banner input{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;font-size:12px;outline:none;width:155px}
-.banner input::placeholder{color:rgba(255,255,255,.6)}
 .main{display:flex;flex:1;overflow:hidden}
 .chat{flex:1;display:flex;flex-direction:column;background:#fff;border-right:1px solid #e2eef5}
-.chat-header{background:#1e7598;padding:13px 18px;display:flex;align-items:center;gap:12px}
-.avatar{width:40px;height:40px;background:#2d9cbe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.chat-title{color:#fff;font-size:15px;font-weight:600}
-.chat-sub{color:#a8d8ea;font-size:11px;margin-top:1px}
-.online{width:8px;height:8px;background:#4ade80;border-radius:50%;margin-left:auto}
-.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
-.msg-row{display:flex;gap:8px;max-width:90%}
-.msg-row.user{flex-direction:row-reverse;align-self:flex-end}
-.msg-row.bot{align-self:flex-start}
-.msg-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
-.msg-icon.bot{background:#dbeef5}.msg-icon.user{background:#e0eaff}
-.bubble{padding:10px 14px;font-size:13.5px;line-height:1.65;color:#1a202c}
-.bubble.bot{background:#f1f8fc;border-radius:3px 14px 14px 14px}
-.bubble.user{background:#1a5f7a;color:#fff;border-radius:14px 3px 14px 14px}
-.bubble p{margin:0 0 6px}.bubble p:last-child{margin:0}
-.bubble ul{padding-left:18px;margin:6px 0}.bubble li{margin-bottom:3px}
-.fb-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
-.fb-btn{font-family:inherit;cursor:pointer;border:1px solid #d0e8f2;border-radius:6px;padding:3px 9px;font-size:11px;background:none;color:#64748b}
-.fb-good.active{background:#dcfce7;border-color:#16a34a;color:#15803d}
-.fb-bad.active{background:#fee2e2;border-color:#dc2626;color:#dc2626}
-.fb-note.active{background:#fef9c3;border-color:#ca8a04;color:#a16207}
-.note-box{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px;margin-top:6px}
-.note-label{font-size:12px;color:#92400e;margin-bottom:6px;font-weight:500}
-.note-box textarea{width:100%;border:1px solid #e2d48b;border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical;outline:none;background:#fff;color:#1a202c;margin-bottom:8px;box-sizing:border-box;display:block}
-.note-actions{display:flex;gap:8px;align-items:center}
-.note-submit{font-family:inherit;background:#1a5f7a;color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:13px;cursor:pointer}
-.note-cancel{font-family:inherit;background:none;color:#64748b;border:1px solid #e2eef5;border-radius:6px;padding:7px 12px;font-size:13px;cursor:pointer}
-.note-hint{font-size:11px;color:#94a3b8}
-.typing{display:flex;gap:4px;padding:12px 16px;background:#f1f8fc;border-radius:3px 14px 14px 14px;align-items:center}
-.dot{width:7px;height:7px;border-radius:50%;background:#2d9cbe;animation:bounce 1.2s infinite}
-.quick-replies{padding:8px 14px 4px;background:#fff;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid #f0f4f8}
-.qr{font-family:inherit;cursor:pointer;background:#f1f8fc;border:1px solid #b8d8e8;color:#1a5f7a;border-radius:16px;padding:5px 12px;font-size:11.5px;white-space:nowrap}
-.qr:hover{background:#1a5f7a;color:#fff}
-.input-row{background:#fff;border-top:1px solid #e2eef5;padding:11px 13px;display:flex;gap:8px;align-items:flex-end}
-.input-row textarea{flex:1;border:1.5px solid #d0e8f2;border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;resize:none;outline:none;line-height:1.5;max-height:80px;overflow-y:auto;color:#1a202c}
-.send-btn{width:38px;height:38px;background:#1a5f7a;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.send-btn:disabled{background:#94a3b8;cursor:not-allowed}
-.sidebar{width:245px;background:#f8fafc;border-left:1px solid #e2eef5;display:flex;flex-direction:column;overflow:hidden}
-.sidebar-header{background:#f1f5f9;border-bottom:1px solid #e2eef5;padding:11px 13px;font-size:12.5px;font-weight:600;color:#334155;display:flex;align-items:center}
-.fb-count{background:#1a5f7a;color:#fff;border-radius:10px;padding:1px 7px;font-size:10.5px;margin-left:auto}
-.fb-list{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px}
-.fb-empty{color:#94a3b8;font-size:12px;text-align:center;padding:20px 8px;line-height:1.8}
-.export-btn{font-family:inherit;margin:9px;background:#1a5f7a;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;cursor:pointer}
-.footer{background:#1a5f7a;border-radius:0 0 10px 10px;padding:7px 16px;display:flex;justify-content:space-between;font-size:11px;color:#a8d8ea}
-@media(max-width:600px){.sidebar{display:none}}
+.hdr{background:#1e7598;padding:13px 18px;display:flex;align-items:center;gap:12px}
+.av{width:40px;height:40px;background:#2d9cbe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
+.ht{color:#fff;font-size:15px;font-weight:600}
+.hs{color:#a8d8ea;font-size:11px;margin-top:1px}
+.dot{width:8px;height:8px;background:#4ade80;border-radius:50%;margin-left:auto}
+.msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:8px;max-width:90%}
+.row.u{flex-direction:row-reverse;align-self:flex-end}
+.row.b{align-self:flex-start}
+.ic{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
+.ic.b{background:#dbeef5}.ic.u{background:#e0eaff}
+.bub{padding:10px 14px;font-size:13.5px;line-height:1.65;color:#1a202c}
+.bub.b{background:#f1f8fc;border-radius:3px 14px 14px 14px}
+.bub.u{background:#1a5f7a;color:#fff;border-radius:14px 3px 14px 14px}
+.bub p{margin:0 0 6px}.bub p:last-child{margin:0}
+.bub ul{padding-left:18px;margin:6px 0}.bub li{margin-bottom:3px}
+.fbr{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.fb{font-family:inherit;cursor:pointer;border:1px solid #d0e8f2;border-radius:6px;padding:3px 9px;font-size:11px;background:none;color:#64748b}
+.fb.good.on{background:#dcfce7;border-color:#16a34a;color:#15803d}
+.fb.bad.on{background:#fee2e2;border-color:#dc2626;color:#dc2626}
+.fb.note.on{background:#fef9c3;border-color:#ca8a04;color:#a16207}
+.nb{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px;margin-top:6px}
+.nb textarea{width:100%;border:1px solid #e2d48b;border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical;outline:none;background:#fff;color:#1a202c;margin-bottom:8px;box-sizing:border-box;display:block}
+.na{display:flex;gap:8px;align-items:center}
+.ns{font-family:inherit;background:#1a5f7a;color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:13px;cursor:pointer}
+.nc{font-family:inherit;background:none;color:#64748b;border:1px solid #e2eef5;border-radius:6px;padding:7px 12px;font-size:13px;cursor:pointer}
+.td{display:flex;gap:4px;padding:12px 16px;background:#f1f8fc;border-radius:3px 14px 14px 14px;align-items:center}
+.td div{width:7px;height:7px;border-radius:50%;background:#2d9cbe;animation:bounce 1.2s infinite}
+.qr{padding:8px 14px 4px;background:#fff;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid #f0f4f8}
+.qb{font-family:inherit;cursor:pointer;background:#f1f8fc;border:1px solid #b8d8e8;color:#1a5f7a;border-radius:16px;padding:5px 12px;font-size:11.5px;white-space:nowrap}
+.ir{background:#fff;border-top:1px solid #e2eef5;padding:11px 13px;display:flex;gap:8px;align-items:flex-end}
+.ir textarea{flex:1;border:1.5px solid #d0e8f2;border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;resize:none;outline:none;line-height:1.5;max-height:80px;overflow-y:auto;color:#1a202c}
+.sb{width:38px;height:38px;background:#1a5f7a;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb:disabled{background:#94a3b8;cursor:not-allowed}
+.side{width:245px;background:#f8fafc;border-left:1px solid #e2eef5;display:flex;flex-direction:column;overflow:hidden}
+.sh{background:#f1f5f9;border-bottom:1px solid #e2eef5;padding:11px 13px;font-size:12.5px;font-weight:600;color:#334155;display:flex;align-items:center}
+.sc{background:#1a5f7a;color:#fff;border-radius:10px;padding:1px 7px;font-size:10.5px;margin-left:auto}
+.sl{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px;font-size:12px;color:#94a3b8;text-align:center}
+.eb{font-family:inherit;margin:9px;background:#1a5f7a;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;cursor:pointer}
+.ft{background:#1a5f7a;border-radius:0 0 10px 10px;padding:7px 16px;display:flex;justify-content:space-between;font-size:11px;color:#a8d8ea}
+@media(max-width:600px){.side{display:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
 <div class="banner">
-<div style="display:flex;align-items:center;gap:8px"><span class="banner-badge">Internal Beta</span><span class="banner-label">Kay - Kashian Bros AI - Test and Feedback Mode</span></div>
-<input id="tester-name" placeholder="Your name (tester)"/>
+<div style="display:flex;align-items:center;gap:8px"><span class="badge">Internal Beta</span><span class="lbl">Kay - Kashian Bros AI - Test and Feedback Mode</span></div>
+<input id="tn" placeholder="Your name (tester)"/>
 </div>
 <div class="main">
 <div class="chat">
-<div class="chat-header">
-<div class="avatar">&#x1F9F9;</div>
-<div><div class="chat-title">Kay - Kashian Bros</div><div class="chat-sub">Family-owned since 1910 - North Shore Chicago</div></div>
-<div class="online"></div>
+<div class="hdr"><div class="av">&#x1F9F9;</div><div><div class="ht">Kay - Kashian Bros</div><div class="hs">Family-owned since 1910 - North Shore Chicago</div></div><div class="dot"></div></div>
+<div class="msgs" id="msgs"></div>
+<div class="qr" id="qw">
+<button class="qb" onclick="send('Can you clean my rug in my home?')">Can you clean my rug in my home?</button>
+<button class="qb" onclick="send('How much does rug cleaning cost?')">How much does rug cleaning cost?</button>
+<button class="qb" onclick="send('How much is a rug pad?')">How much is a rug pad?</button>
+<button class="qb" onclick="send('My dog had an accident on my rug')">My dog had an accident on my rug</button>
+<button class="qb" onclick="send('Tell me about wood floor refinishing')">Tell me about wood floor refinishing</button>
+<button class="qb" onclick="send('I spilled red wine - what do I do?')">I spilled red wine - what do I do?</button>
 </div>
-<div class="messages" id="messages"></div>
-<div class="quick-replies" id="qr-wrap">
-<button class="qr" onclick="send('Can you clean my rug in my home?')">Can you clean my rug in my home?</button>
-<button class="qr" onclick="send('How much does rug cleaning cost?')">How much does rug cleaning cost?</button>
-<button class="qr" onclick="send('How much is a rug pad?')">How much is a rug pad?</button>
-<button class="qr" onclick="send('My dog had an accident on my rug')">My dog had an accident on my rug</button>
-<button class="qr" onclick="send('Tell me about wood floor refinishing')">Tell me about wood floor refinishing</button>
-<button class="qr" onclick="send('I spilled red wine - what do I do?')">I spilled red wine - what do I do?</button>
+<div class="ir"><textarea id="inp" rows="1" placeholder="Ask Kay anything..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send(this.value)}"></textarea><button class="sb" id="sb" onclick="send(document.getElementById('inp').value)"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div>
 </div>
-<div class="input-row">
-<textarea id="inp" placeholder="Ask Kay anything..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send(document.getElementById('inp').value)}"></textarea>
-<button class="send-btn" id="sbtn" onclick="send(document.getElementById('inp').value)"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+<div class="side"><div class="sh">Tester Feedback <span class="sc" id="fc">0</span></div><div class="sl" id="fl">No feedback yet.<br><br>Good = correct<br>Fix = wrong<br>Note = add comment</div><button class="eb" onclick="exportFb()">Export Feedback Report</button></div>
 </div>
-</div>
-<div class="sidebar">
-<div class="sidebar-header">Tester Feedback <span class="fb-count" id="fbc">0</span></div>
-<div class="fb-list" id="fbl"><div class="fb-empty">No feedback yet.<br><br>Good = correct<br>Fix = wrong<br>Note = add comment</div></div>
-<button class="export-btn" onclick="exportFb()">Export Feedback Report</button>
-</div>
-</div>
-<div class="footer"><span>kashianbros.com - (847) 251-1200 - info@kashianbros.com</span><span id="mc">1 message</span></div>
+<div class="ft"><span>kashianbros.com - (847) 251-1200 - info@kashianbros.com</span><span id="mc">1 message</span></div>
 </div>
 <script>
-var SP='You are Kay, a warm expert customer service rep for Kashian Bros, family-owned floor covering and cleaning company serving North Shore Chicago since 1910. Genuine warmth, real expertise. Use we and our team naturally.\n\nABOUT: Founded 1910 by Haig and Greg Kashian. Owner Doug Stein since 2006. NextDoor Neighborhood Favorite.\nWILMETTE: 1107 Greenleaf Ave Wilmette IL 60091, Mon-Fri 8:30am-5pm Sat 10am-3pm (847) 251-1200\nLAKE FOREST: 838 N Western Ave Lake Forest IL 60045, Mon-Fri 9am-5pm Sat 10am-3pm (847) 295-3737\nPHONE: (847) 807-8246 EMAIL: info@kashianbros.com\n\nDROP-OFF: Never mention Evanston. Rug 5x8 or under Wilmette or Lake Forest ok. Rug over 5x8 Wilmette only or pickup.\n\nIN-HOME RUG CLEANING: We DO offer this. Qualify: needs rug pad no border no fringe not sisal seagrass. Price $2 per sqft IN-HOME ONLY $199 min. Recommend fiber protectant $2 per sqft. Enzyme for pets $2 per sqft. Plant cleaning is much deeper sonic vibration rotary scrubbing 3000 RPM centrifuge dry room.\n\nRUG PAD: Ask rug or pad size. Pad is 2 inches shorter each dimension. 6ft roll if pad 6ft or under. 12ft roll if pad 6-12ft wide. Price = roll width x length x $2. $48 min. Default FIRMGRIP.\nExamples: 9x12 rug pad 8ft10x11ft10 use 12ft roll 12x12x2=$288. 6x9 rug use 6ft roll 6x9x2=$108. 5x8 use 6ft roll 6x8x2=$96.\n\nCARPET CLEANING: $0.75 per sqft. Stairs $12 each. Fiber protectant $0.35 per sqft. Enzyme $0.35 per sqft. $199 min. Round up at 6 inches.\n\nUPHOLSTERY: Sofa loveseat sectional $35 per linear ft full width including arms. Chair $100. Wing chair $70. Ottoman $75. Dining chair $40. Pillows $15. $199 min.\n\nRUG CLEANING PLANT: Drop-off $3.25 per sqft. Pickup and delivery $4.00 per sqft. $199 min per pickup. 7-10 days. 10-step process.\n\nWOOD FLOOR REFINISHING: Kashian Bros is a leader. FURNITURE: We move ALL furniture ourselves. Never pods never movers. We do first half of floor completely then move furniture onto finished floor and complete second half. Return everything to original spot. Dust Free sanding. Water-based polyurethane only. Stain colors light to dark espresso showroom samples then applied to actual floor for approval. Free in-home estimate always never quote per sqft.\n\nREMODELING: Full service kitchen and bathroom. Free consultation. Dedicated project manager. Transparent pricing. Handles electrical plumbing paint wallpaper. J&K Cabinetry and KB Custom Amish cabinetry. Countertops Cambria Caesarstone Raphael Stone. Hardware HAFELE and Schaub.\n\nVINYL FLOORING: CORETEC leading brand widest selection not USA made. ENGINEERED FLOORS made in USA. Water resistant scratch resistant good for basements bathrooms.\n\nCARPET AND RUG SALES: Custom carpet in-stock carpets quick-ship rugs 2-3 days US custom area rugs. Online shop kashianbros.com. Do not list brands unless asked.\n\nCOMMERCIAL: Commercial carpet cleaning and flooring. High-rise uses portable equipment standard practice.\n\nRUG REPAIR: Fringe replacement $21 per linear ft both ends. Width x 2 x $21. $125 min.\n\nSTAIN FIRST AID: Always blot never scrub. Pet blot warm water dish soap vinegar. Wine blot club soda. Coffee blot club soda. Mud let dry completely first. Blood cold water only.';
-var hist=[],fbLog=[],mc=1;
-function nl2html(t){return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').split('\n').map(function(l){var b=l.match(/^[-]\s+(.*)/);return b?'<li>'+b[1]+'</li>':(l.trim()?'<p>'+l+'</p>':'');}).join('').replace(/(<li>.*?<\/li>)+/g,function(m){return '<ul>'+m+'</ul>';});}
-function addMsg(role,content,id){
-  var msgs=document.getElementById('messages');
-  var isBot=role==='assistant';
-  var d=document.createElement('div');
-  d.className='msg-row '+(isBot?'bot':'user')+' msg-anim';
-  d.id='m'+id;
-  var enc=encodeURIComponent(content.substring(0,120));
-  var fb='';
-  if(isBot&&id>0){
-    fb='<div class="fb-row">'
-      +'<button class="fb-btn fb-good" onclick="thumb('+id+','good',''+enc+'')">Good</button>'
-      +'<button class="fb-btn fb-bad" onclick="thumb('+id+','bad',''+enc+'')">Fix</button>'
-      +'<button class="fb-btn fb-note" id="fbn'+id+'" onclick="toggleNote('+id+',''+enc+'')">Add note</button>'
-      +'</div>'
-      +'<div id="nb'+id+'" style="display:none"><div class="note-box">'
-      +'<div class="note-label" id="nl'+id+'">Add a note:</div>'
-      +'<textarea id="nt'+id+'" rows="3" placeholder="Type correction or note..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitNote('+id+',''+enc+'');}"></textarea>'
-      +'<div class="note-actions"><button class="note-submit" onclick="submitNote('+id+',''+enc+'')">Submit</button>'
-      +'<button class="note-cancel" onclick="document.getElementById('nb'+id+'').style.display='none'">Cancel</button>'
-      +'<span class="note-hint">or press Enter</span></div>'
-      +'</div></div>';
-  }
-  d.innerHTML='<div class="msg-icon '+(isBot?'bot':'user')+'">'+(isBot?'&#x1F9F9;':'&#x1F464;')+'</div>'
-    +'<div style="max-width:100%"><div class="bubble '+(isBot?'bot':'user')+'">'+(isBot?nl2html(content):'<p>'+content+'</p>')+'</div>'+fb+'</div>';
-  msgs.appendChild(d);
-  msgs.scrollTop=msgs.scrollHeight;
-  mc++;
-  document.getElementById('mc').textContent=mc+' messages';
+var SP = 'You are Kay, a warm expert customer service rep for Kashian Bros, family-owned floor covering and cleaning company serving North Shore Chicago since 1910. Genuine warmth, real expertise. Use we and our team naturally.\n\nABOUT: Founded 1910 by Haig and Greg Kashian. Owner Doug Stein since 2006. NextDoor Neighborhood Favorite.\nWILMETTE: 1107 Greenleaf Ave Wilmette IL 60091 Mon-Fri 8:30am-5pm Sat 10am-3pm (847) 251-1200\nLAKE FOREST: 838 N Western Ave Lake Forest IL 60045 Mon-Fri 9am-5pm Sat 10am-3pm (847) 295-3737\nPHONE: (847) 807-8246 EMAIL: info@kashianbros.com\n\nDROP-OFF: Never mention Evanston. Rug 5x8 or under Wilmette or Lake Forest. Rug over 5x8 Wilmette only or pickup.\n\nIN-HOME RUG CLEANING: We DO offer this. Qualify: needs rug pad no border no fringe not sisal seagrass. Price $2 per sqft IN-HOME ONLY $199 min. Fiber protectant $2 per sqft. Enzyme for pets $2 per sqft. Plant cleaning is deeper sonic vibration rotary scrubbing 3000 RPM centrifuge dry room.\n\nRUG PAD: Ask rug or pad size. Pad 2 inches shorter each dimension. 6ft roll if pad 6ft or under. 12ft roll if pad 6-12ft. Price = roll width x length x $2. $48 min. Default FIRMGRIP.\nExamples: 9x12 rug 12ft roll 12x12x2=$288. 6x9 rug 6ft roll 6x9x2=$108. 5x8 rug 6ft roll 6x8x2=$96.\n\nCARPET: $0.75 per sqft. Stairs $12 each. Protectant $0.35 per sqft. Enzyme $0.35 per sqft. $199 min.\n\nUPHOLSTERY: Sofa loveseat sectional $35 per linear ft. Chair $100. Wing chair $70. Ottoman $75. Dining chair $40. Pillows $15. $199 min.\n\nRUG PLANT: Drop-off $3.25 per sqft. Pickup delivery $4.00 per sqft. $199 min per pickup. 7-10 days.\n\nWOOD FLOORS: We are a leader. We move ALL furniture ourselves never pods never movers. First half floor completely then move furniture onto finished floor complete second half. Everything back in original spot. Dust Free sanding. Water-based polyurethane only. Stains light to dark espresso applied to actual floor for approval. Free in-home estimate always.\n\nREMODELING: Full service kitchen and bathroom. Free consultation. Dedicated project manager. J&K Cabinetry and KB Custom Amish. Countertops Cambria Caesarstone Raphael Stone. Hardware HAFELE and Schaub.\n\nVINYL: CORETEC leading brand not USA made. ENGINEERED FLOORS made in USA. Water resistant scratch resistant.\n\nCARPET SALES: Custom in-stock quick-ship rugs online at kashianbros.com.\n\nCOMMERCIAL: High-rise uses portable equipment standard practice.\n\nRUG REPAIR: Fringe $21 per ft both ends width x 2 x $21 $125 min.\n\nSTAIN: Blot never scrub. Pet blot warm water dish soap vinegar. Wine blot club soda. Mud let dry first. Blood cold water.';
+var hist = [], fbLog = [], cnt = 1;
+
+function mk(tag, cls, attrs) {
+  var el = document.createElement(tag);
+  if (cls) el.className = cls;
+  if (attrs) Object.keys(attrs).forEach(function(k) { el.setAttribute(k, attrs[k]); });
+  return el;
 }
-function addTyping(){var msgs=document.getElementById('messages');var d=document.createElement('div');d.className='msg-row bot';d.id='typing';d.innerHTML='<div class="msg-icon bot">&#x1F9F9;</div><div class="typing"><div class="dot" style="animation-delay:0s"></div><div class="dot" style="animation-delay:.2s"></div><div class="dot" style="animation-delay:.4s"></div></div>';msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;}
-function getLastQ(){var f=hist.slice().reverse().find(function(m){return m.role==='user';});return f?f.content.substring(0,80):'';}
-function thumb(id,type,enc){var btn=document.querySelector('#m'+id+' .fb-'+type);var active=btn.classList.contains('active');document.querySelectorAll('#m'+id+' .fb-good,#m'+id+' .fb-bad').forEach(function(b){b.classList.remove('active');});if(!active){btn.classList.add('active');if(type==='bad'){document.getElementById('nb'+id).style.display='block';setTimeout(function(){document.getElementById('nt'+id).focus();},50);}addFb({type:type,msgId:id,question:getLastQ(),answer:decodeURIComponent(enc),note:'',tester:document.getElementById('tester-name').value||'Anonymous',time:new Date().toLocaleTimeString()});}}
-function toggleNote(id,enc){var box=document.getElementById('nb'+id);box.style.display=box.style.display!=='none'?'none':'block';if(box.style.display!=='none')setTimeout(function(){document.getElementById('nt'+id).focus();},50);}
-function submitNote(id,enc){var txt=document.getElementById('nt'+id).value.trim();if(!txt)return;addFb({type:'note',msgId:id,question:getLastQ(),answer:decodeURIComponent(enc),note:txt,tester:document.getElementById('tester-name').value||'Anonymous',time:new Date().toLocaleTimeString()});document.getElementById('nb'+id).style.display='none';document.getElementById('nt'+id).value='';document.getElementById('fbn'+id).textContent='Note added';document.getElementById('fbn'+id).classList.add('active');}
-function addFb(entry){fbLog=fbLog.filter(function(f){return !(f.msgId===entry.msgId&&f.type===entry.type);});fbLog.push(entry);renderFb();}
-function renderFb(){var list=document.getElementById('fbl');document.getElementById('fbc').textContent=fbLog.length;if(!fbLog.length){list.innerHTML='<div class="fb-empty">No feedback yet.</div>';return;}var colors={good:'#16a34a',bad:'#dc2626',note:'#ca8a04'};var labels={good:'Correct',bad:'Needs fix',note:'Note'};list.innerHTML=fbLog.slice().reverse().map(function(f){return '<div style="background:#fff;border:1px solid #e2eef5;border-left:3px solid '+colors[f.type]+';border-radius:8px;padding:9px;font-size:11.5px;color:#334155"><div style="font-size:10px;color:#94a3b8;margin-bottom:3px;display:flex;justify-content:space-between"><span style="font-weight:600;color:'+colors[f.type]+'">'+labels[f.type]+'</span><span>'+f.tester+'</span></div>'+(f.question?'<div style="color:#64748b;font-style:italic;font-size:11px;margin-bottom:3px">"'+f.question+'"</div>':'')+'<div style="color:#1e293b">'+(f.note||f.answer+'...')+'</div></div>';}).join('');}
-function exportFb(){if(!fbLog.length){alert('No feedback yet.');return;}var t=document.getElementById('tester-name').value||'Anonymous';var txt='KASHIAN BROS KAY FEEDBACK\nExported: '+new Date().toLocaleString()+'\nTester: '+t+'\nTotal: '+fbLog.length+'\n\n';fbLog.forEach(function(f,i){txt+='['+(i+1)+'] '+{good:'CORRECT',bad:'NEEDS FIX',note:'NOTE'}[f.type]+' - '+f.tester+' at '+f.time+'\n';if(f.question)txt+='Asked: "'+f.question+'"\n';txt+=f.note?'Correction: '+f.note+'\n':'Response: '+f.answer+'...\n';txt+='\n';});var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download='KashianBros_Kay_Feedback_'+new Date().toISOString().slice(0,10)+'.txt';a.click();}
-function send(text){if(!text||!text.trim())return;document.getElementById('qr-wrap').style.display='none';document.getElementById('inp').value='';document.getElementById('sbtn').disabled=true;var id=mc;addMsg('user',text,id);hist.push({role:'user',content:text});addTyping();fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,system:SP,messages:hist})}).then(function(r){return r.json();}).then(function(data){var reply=data.content&&data.content[0]?data.content[0].text:"I'm sorry, I had trouble with that. Please call us at (847) 251-1200!";var t=document.getElementById('typing');if(t)t.remove();hist.push({role:'assistant',content:reply});addMsg('assistant',reply,mc);}).catch(function(){var t=document.getElementById('typing');if(t)t.remove();addMsg('assistant',"I'm having trouble connecting. Please call (847) 251-1200 or email info@kashianbros.com!",mc);}).finally(function(){document.getElementById('sbtn').disabled=false;});}
-addMsg('assistant',"Hi there! I'm Kay from Kashian Bros - we have been caring for North Shore homes since 1910. Whether you need a rug cleaned, carpet or upholstery cleaning, wood floor refinishing, a rug pad, or have a stain emergency - I am here to help. What can I do for you today?",0);
+
+function nl2html(t) {
+  return t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .split('\n').map(function(l) {
+      var b = l.match(/^- (.*)/);
+      return b ? '<li>' + b[1] + '</li>' : (l.trim() ? '<p>' + l + '</p>' : '');
+    }).join('').replace(/(<li>.*?<\/li>)+/g, function(m) { return '<ul>' + m + '</ul>'; });
+}
+
+function addMsg(role, content, id) {
+  var msgs = document.getElementById('msgs');
+  var isBot = role === 'assistant';
+  var row = mk('div', 'row ' + (isBot ? 'b' : 'u'));
+  row.id = 'r' + id;
+  var ic = mk('div', 'ic ' + (isBot ? 'b' : 'u'));
+  ic.innerHTML = isBot ? '&#x1F9F9;' : '&#x1F464;';
+  var wrap = mk('div');
+  wrap.style.maxWidth = '100%';
+  var bub = mk('div', 'bub ' + (isBot ? 'b' : 'u'));
+  bub.innerHTML = isBot ? nl2html(content) : '<p>' + content + '</p>';
+  wrap.appendChild(bub);
+  if (isBot && id > 0) {
+    var fbr = mk('div', 'fbr');
+    var bg = mk('button', 'fb good'); bg.textContent = 'Good'; bg.onclick = function() { thumb(id, 'good', content); }; fbr.appendChild(bg);
+    var bb = mk('button', 'fb bad'); bb.textContent = 'Fix'; bb.onclick = function() { thumb(id, 'bad', content); }; fbr.appendChild(bb);
+    var bn = mk('button', 'fb note'); bn.id = 'fbn' + id; bn.textContent = 'Add note'; bn.onclick = function() { toggleNote(id, content); }; fbr.appendChild(bn);
+    wrap.appendChild(fbr);
+    var nb = mk('div', 'nb'); nb.id = 'nb' + id; nb.style.display = 'none';
+    var nl = mk('div'); nl.id = 'nl' + id; nl.style.cssText = 'font-size:12px;color:#92400e;margin-bottom:6px;font-weight:500'; nl.textContent = 'Add a note:';
+    var nt = mk('textarea'); nt.id = 'nt' + id; nt.rows = 3; nt.placeholder = 'Type correction or note...';
+    nt.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitNote(id, content); } };
+    var na = mk('div', 'na');
+    var ns = mk('button', 'ns'); ns.textContent = 'Submit'; ns.onclick = function() { submitNote(id, content); };
+    var nc = mk('button', 'nc'); nc.textContent = 'Cancel'; nc.onclick = function() { document.getElementById('nb' + id).style.display = 'none'; };
+    var nh = mk('span'); nh.style.cssText = 'font-size:11px;color:#94a3b8'; nh.textContent = 'or press Enter';
+    na.appendChild(ns); na.appendChild(nc); na.appendChild(nh);
+    nb.appendChild(nl); nb.appendChild(nt); nb.appendChild(na);
+    wrap.appendChild(nb);
+  }
+  row.appendChild(ic); row.appendChild(wrap);
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+  cnt++;
+  document.getElementById('mc').textContent = cnt + ' messages';
+}
+
+function addTyping() {
+  var msgs = document.getElementById('msgs');
+  var d = mk('div', 'row b'); d.id = 'typing';
+  var ic = mk('div', 'ic b'); ic.innerHTML = '&#x1F9F9;';
+  var td = mk('div', 'td');
+  [0, .2, .4].forEach(function(s) { var dot = mk('div'); dot.style.animationDelay = s + 's'; td.appendChild(dot); });
+  d.appendChild(ic); d.appendChild(td);
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+}
+
+function thumb(id, type, content) {
+  var btn = document.querySelector('#r' + id + ' .fb.' + type);
+  if (!btn) return;
+  var on = btn.classList.contains('on');
+  document.querySelectorAll('#r' + id + ' .fb.good, #r' + id + ' .fb.bad').forEach(function(b) { b.classList.remove('on'); });
+  if (!on) {
+    btn.classList.add('on');
+    if (type === 'bad') { document.getElementById('nb' + id).style.display = 'block'; setTimeout(function() { document.getElementById('nt' + id).focus(); }, 50); }
+    addFb({ type: type, msgId: id, q: getLastQ(), a: content.substring(0, 120), note: '' });
+  }
+}
+
+function toggleNote(id, content) {
+  var box = document.getElementById('nb' + id);
+  box.style.display = box.style.display !== 'none' ? 'none' : 'block';
+  if (box.style.display !== 'none') setTimeout(function() { document.getElementById('nt' + id).focus(); }, 50);
+}
+
+function submitNote(id, content) {
+  var txt = document.getElementById('nt' + id).value.trim();
+  if (!txt) return;
+  addFb({ type: 'note', msgId: id, q: getLastQ(), a: content.substring(0, 120), note: txt });
+  document.getElementById('nb' + id).style.display = 'none';
+  document.getElementById('nt' + id).value = '';
+  var btn = document.getElementById('fbn' + id);
+  btn.textContent = 'Note added'; btn.classList.add('on');
+}
+
+function getLastQ() { var f = hist.slice().reverse().find(function(m) { return m.role === 'user'; }); return f ? f.content.substring(0, 80) : ''; }
+
+function addFb(entry) {
+  entry.tester = document.getElementById('tn').value || 'Anonymous';
+  entry.time = new Date().toLocaleTimeString();
+  fbLog = fbLog.filter(function(f) { return !(f.msgId === entry.msgId && f.type === entry.type); });
+  fbLog.push(entry); renderFb();
+}
+
+function renderFb() {
+  var list = document.getElementById('fl');
+  document.getElementById('fc').textContent = fbLog.length;
+  if (!fbLog.length) { list.innerHTML = 'No feedback yet.<br><br>Good = correct<br>Fix = wrong<br>Note = add comment'; return; }
+  var colors = { good: '#16a34a', bad: '#dc2626', note: '#ca8a04' };
+  var labels = { good: 'Correct', bad: 'Needs fix', note: 'Note' };
+  list.innerHTML = '';
+  fbLog.slice().reverse().forEach(function(f) {
+    var d = mk('div');
+    d.style.cssText = 'background:#fff;border:1px solid #e2eef5;border-left:3px solid ' + colors[f.type] + ';border-radius:8px;padding:9px;font-size:11.5px;color:#334155';
+    d.innerHTML = '<div style="font-size:10px;color:#94a3b8;margin-bottom:3px;display:flex;justify-content:space-between"><span style="font-weight:600;color:' + colors[f.type] + '">' + labels[f.type] + '</span><span>' + f.tester + '</span></div>' + (f.q ? '<div style="color:#64748b;font-style:italic;font-size:11px;margin-bottom:3px">"' + f.q + '"</div>' : '') + '<div style="color:#1e293b">' + (f.note || f.a + '...') + '</div>';
+    list.appendChild(d);
+  });
+}
+
+function exportFb() {
+  if (!fbLog.length) { alert('No feedback yet.'); return; }
+  var t = document.getElementById('tn').value || 'Anonymous';
+  var txt = 'KASHIAN BROS KAY FEEDBACK\nExported: ' + new Date().toLocaleString() + '\nTester: ' + t + '\nTotal: ' + fbLog.length + '\n\n';
+  fbLog.forEach(function(f, i) {
+    var lbl = { good: 'CORRECT', bad: 'NEEDS FIX', note: 'NOTE' }[f.type];
+    txt += '[' + (i + 1) + '] ' + lbl + ' - ' + f.tester + ' at ' + f.time + '\n';
+    if (f.q) txt += 'Asked: "' + f.q + '"\n';
+    txt += f.note ? 'Correction: ' + f.note + '\n' : 'Response: ' + f.a + '...\n';
+    txt += '\n';
+  });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
+  a.download = 'KashianBros_Kay_Feedback_' + new Date().toISOString().slice(0, 10) + '.txt';
+  a.click();
+}
+
+function send(text) {
+  if (!text || !text.trim()) return;
+  document.getElementById('qw').style.display = 'none';
+  document.getElementById('inp').value = '';
+  document.getElementById('sb').disabled = true;
+  var id = cnt;
+  addMsg('user', text, id);
+  hist.push({ role: 'user', content: text });
+  addTyping();
+  fetch('/.netlify/functions/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 800, system: SP, messages: hist })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    var reply = data.content && data.content[0] ? data.content[0].text : 'I had trouble with that. Please call (847) 251-1200!';
+    var t = document.getElementById('typing'); if (t) t.remove();
+    hist.push({ role: 'assistant', content: reply });
+    addMsg('assistant', reply, cnt);
+  }).catch(function() {
+    var t = document.getElementById('typing'); if (t) t.remove();
+    addMsg('assistant', 'I am having trouble connecting. Please call (847) 251-1200 or email info@kashianbros.com!', cnt);
+  }).finally(function() { document.getElementById('sb').disabled = false; });
+}
+
+addMsg('assistant', 'Hi there! I am Kay from Kashian Bros - we have been caring for North Shore homes since 1910. Whether you need a rug cleaned, carpet or upholstery cleaning, wood floor refinishing, a rug pad, or have a stain emergency - I am here to help. What can I do for you today?', 0);
 </script>
 </body>
 </html>
