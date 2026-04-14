@@ -96,6 +96,60 @@ exports.handler = async function(event) {
     const resData = await res.json();
     if (!res.ok) throw new Error(JSON.stringify(resData));
 
+    // --- Send customer confirmation email ---
+    const timing = (() => {
+      const now = new Date();
+      const day = now.getDay(), hr = now.getHours();
+      if (day === 0) return 'Our team will confirm your booking first thing Monday morning.';
+      if (day === 6 && hr < 10) return 'Our team opens at 10am on Saturdays and will confirm your booking then.';
+      if (day === 6 && hr < 15) return 'Adolfo will confirm your booking within about an hour, before we close at 3pm today.';
+      if (day === 6) return 'Our Saturday hours have ended. Adolfo will confirm your booking first thing Monday morning.';
+      if (hr < 9) return 'Our team starts at 9am. Adolfo will confirm your booking by then this morning.';
+      if (hr < 17) return 'Adolfo will confirm your booking within about an hour, and always before 5pm today.';
+      return 'Our team has closed for the day. Adolfo will confirm your booking first thing tomorrow morning.';
+    })();
+
+    const customerEmail = `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;background:#f1f5f9;padding:24px;margin:0">
+<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2eef5">
+  <div style="background:#1a5f7a;padding:16px 24px">
+    <h2 style="color:#fff;margin:0;font-size:18px">Your Booking Request is Confirmed!</h2>
+    <p style="color:#a8d8ea;margin:4px 0 0;font-size:13px">Kashian Bros - Family owned since 1910</p>
+  </div>
+  <div style="padding:20px 24px">
+    <p style="font-size:14px;color:#1e293b;margin-bottom:16px">Hi ${b.name.split(' ')[0]}, thank you for reaching out! We have received your booking request and our team will be in touch shortly to confirm your appointment.</p>
+    <div style="background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px;color:#1e293b;line-height:1.8">
+      <strong>Service:</strong> ${b.lbl}<br>
+      <strong>Address:</strong> ${b.addr}<br>
+      <strong>Requested Date:</strong> ${b.date}<br>
+      <strong>Time Preference:</strong> ${b.time}
+    </div>
+    <div style="background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#15803d">
+      <strong>${timing}</strong>
+    </div>
+    <p style="font-size:13px;color:#475569;margin-bottom:4px">Questions? We are happy to help:</p>
+    <p style="font-size:13px;color:#1e293b;margin:0"><strong>(847) 251-1200</strong> &nbsp;|&nbsp; <strong>info@kashianbros.com</strong></p>
+  </div>
+  <div style="background:#f1f5f9;padding:10px 24px;font-size:11px;color:#94a3b8;text-align:center">
+    Kashian Bros &bull; kashianbros.com &bull; (847) 251-1200
+  </div>
+</div>
+</body>
+</html>`;
+
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.RESEND_API_KEY}` },
+      body: JSON.stringify({
+        from: 'Kay at Kashian Bros <bot@kashianbrosautomation.com>',
+        to: [b.email],
+        subject: `Your Kashian Bros booking request - ${b.lbl} on ${b.date}`,
+        html: customerEmail
+      })
+    });
+    if (!res.ok) throw new Error(JSON.stringify(resData));
+
     return { statusCode: 200, body: JSON.stringify({ success: true }) };
 
   } catch(e) {
