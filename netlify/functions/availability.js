@@ -1,254 +1,34 @@
-const { GoogleAuth } = require('google-auth-library');
-const { google } = require('googleapis');
+PK    t‹\U,Þy
+  â     availability.jsåYýnÛFÿßO±-!u‘h‘’lIŽ‹“ÅUë/Xv€žc¸+r%1¡H?ì©€{ˆ{Â{’›Ù]’»´’\z‡K›VÚïùÍìÊÂ4#ŸÈi-6Ê³Ù’c’°¿å~ÂLcÉ×[6Z?Oh²1G{®<&¶w¡±Ÿ"¥$Î&¯G×3 ü´GHì»òxÈ?â{CbP{Àº
+gpÐ_ÌÙbÞë¸}Ö¶û}Ú§ï€-Ü…ã2‡ÍžÝívíÁá¼KûÝÎ!œ¤Y&Q[.
+XèÑÄzXn´6š\JH×ä\qÑäyÍÿ‘AbÛ£›tHîœ&éÞ“ý}r“³ÖŽaáf•'üs—Da°ò-žÉ’Üý`kFÜÃCÖ_tœÃÞ 7ðÚNRwNÛs‡Ú=Úq:=Ö‡XÛa^çÀô\v0èµ;í®ë8
+ûß5âE[WÝnP¶4IÛp…­7‰¯)ìh
+÷Û=
+ú}»ßó:ÞÂîÛN@¹ëyN×±í¶{Àz.í@PÚí®Ó¥ŽGçí]Ø.íÚv÷Ûv¾Aá½-d,ä©²4%«¢ óéÍôzvóðÓå	äÓà8á€®åîÙ¨Ü´{r·¯‰PØ}ÍIšÑ$kÔÈfç£³3<tp„Gºpd%$]Ó ÀcéÞÞ"ÝÌB²dÙû˜½KÌ0_ãÿÜ±‚'ZœîîÊ¥0z‚•=‘×4cfw@ÊmÊÈxå»t‘Ì_³’Þ‹ú1àbeÑY„Ÿe‰.Mƒ…­Û™Ñ„‚DBôøhÍ`°/ydÛà"Ú©+9|ß³R–ýˆ¾6ÛM"ÿÅJæÚÎÐqd‘Dk’Eë(I¢§âgæYKù©A^[œC‘n”‡ˆm£Œ§•°aŠµWDó_éAn·ä·w¡øöñ,›äàxF3‘Ä
+b"åwÇÀš¼xAŠ/ À+üÁÉc ?S~D¤ŸçéÊ,à	çñ ÕË—âëVäëì4	Ëò$äœö¶Jž@­©<
+ÿ6–Ô+ƒ‰$ÏÊ¥£öÀbDá–×Q˜­ª¯bœˆ—ö…D@ŸSr¶Š’ìÐ4E>ŠªÅ÷ß­+M7¡KÔòKÌ™<²0KÍ‚š>M½&g{î‡òý(Ê’–f	Ã:¥OÔÏH‰bŒ³´?ÍÌOEZÈÍ)À¦ 7¤œañü4]J 54*úqX|ØMP ð),"^³b'J<–œp×b	Þ Cd¨L\)°Ç‚hQËÏØ:%¿ý&1h
+JgîŠ˜L-³°šA'¦Q¸“,ÒñÕ!DŒYk@_ºdºÉUK#Ê,ˆ2Àˆ,OMáDr!ªq¼bÐ 7B0”˜ Ù-Û‰×
+BCÐEÆ’0F&.¶º¸‘Ã´ÄDyR ‚a(õQ÷++»…Šg,ƒÀ¬p½ba;»Î–OBou¿â¥÷›Æ"VJ+D˜‰?e
+öd¾BO¨»Ïƒs~ÐÒ<­{h,¾ˆÙÂ00WôUqÁé&"%,=;]¬	k” Rs5ICW@ã´0³Äq¡ã+€r”øƒÒ†îš¤¿ £ôØ3)ZìJi¸Ð¨ûYÈÙ–Mp”¦ `Äá3YÓ$f	YÑ`Ñ‚Èó”%4%ßÏótó}¢"Ò‚Ë˜dè‘~ã§)å
+ªzØK:y|Œ«Æ¬ÆH’Ô8¡U]ÙÇð9µVP‡Øˆ¨á­(fuÀY1
+€”Êyž t».àDk€ŸDAkÑSë2ñ—~h jýY‚½À«u³‰nÐ8 ìQÊþû4
 
-const CALENDARS = {
-  pickup: {
-    id: 'a19e4f2968fbefb546c8e0177788a8a3d6efcf2ce2eb251444197b4a84379e4a@group.calendar.google.com',
-    name: 'Pickup & Delivery',
-    days: [2, 4] // Tuesday=2, Thursday=4 only
-  },
-  truck1: {
-    id: '9c77e8f3275959d025aacba0b2a15a3235e8e8ee02ed36d965ce6950304c22f1@group.calendar.google.com',
-    name: 'Truck 1',
-    days: [1, 2, 3, 4, 5] // Mon-Fri
-  },
-  truck2: {
-    id: '805de988185d3df181289a2bcdd242110c6e5ca38fb00424a2dab03af1ca4114@group.calendar.google.com',
-    name: 'Truck 2',
-    days: [1, 2, 3, 4, 5] // Mon-Fri
-  }
-};
-
-// Business hours
-const FIRST_JOB = 9;   // 9am
-const LAST_JOB = 15;   // 3pm (last job start)
-const LAST_JOB_SMALL = 16; // 4pm for small jobs
-
-function getNextDays(numDays) {
-  const days = [];
-  const now = new Date();
-  // Use Chicago time
-  const chicagoNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-  let d = new Date(chicagoNow);
-  d.setHours(0, 0, 0, 0);
-
-  // Start from tomorrow
-  d.setDate(d.getDate() + 1);
-
-  let count = 0;
-  while (count < numDays) {
-    const dow = d.getDay(); // 0=Sun, 6=Sat
-    if (dow !== 0 && dow !== 6) { // Skip weekends
-      days.push(new Date(d));
-      count++;
-    }
-    d.setDate(d.getDate() + 1);
-  }
-  return days;
-}
-
-function formatDate(date) {
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric',
-    timeZone: 'America/Chicago'
-  });
-}
-
-function formatDateShort(date) {
-  return date.toLocaleDateString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric',
-    timeZone: 'America/Chicago'
-  });
-}
-
-async function getCalendarEvents(calendar, calId, timeMin, timeMax) {
-  try {
-    const res = await calendar.events.list({
-      calendarId: calId,
-      timeMin: timeMin.toISOString(),
-      timeMax: timeMax.toISOString(),
-      singleEvents: true,
-      orderBy: 'startTime'
-    });
-    return res.data.items || [];
-  } catch (e) {
-    console.error('Calendar fetch error:', e.message);
-    return [];
-  }
-}
-
-function getSlotStatus(events, day) {
-  // Check morning (9am-12pm) and afternoon (12pm-4pm) slots
-  const morningStart = new Date(day);
-  morningStart.setHours(FIRST_JOB, 0, 0, 0);
-  const noon = new Date(day);
-  noon.setHours(12, 0, 0, 0);
-  const afternoonEnd = new Date(day);
-  afternoonEnd.setHours(LAST_JOB_SMALL, 0, 0, 0);
-
-  let morningEvents = 0;
-  let afternoonEvents = 0;
-
-  events.forEach(evt => {
-    const start = new Date(evt.start.dateTime || evt.start.date);
-    const end = new Date(evt.end.dateTime || evt.end.date);
-
-    // Check if event overlaps morning
-    if (start < noon && end > morningStart) morningEvents++;
-    // Check if event overlaps afternoon
-    if (start < afternoonEnd && end > noon) afternoonEvents++;
-  });
-
-  // Assume 2 jobs max per half-day slot as "busy"
-  return {
-    morningOpen: morningEvents < 2,
-    afternoonOpen: afternoonEvents < 2,
-    morningCount: morningEvents,
-    afternoonCount: afternoonEvents
-  };
-}
-
-exports.handler = async function(event) {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Content-Type': 'application/json'
-  };
-
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
-  }
-
-  try {
-    // Parse service account credentials
-    const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-    if (!serviceAccountJson) {
-      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Missing credentials' }) };
-    }
-
-    const credentials = JSON.parse(serviceAccountJson);
-    const auth = new GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/calendar.readonly']
-    });
-
-    const authClient = await auth.getClient();
-    const calendar = google.calendar({ version: 'v3', auth: authClient });
-
-    // Get next 10 weekdays
-    const days = getNextDays(10);
-    const timeMin = days[0];
-    const timeMax = new Date(days[days.length - 1]);
-    timeMax.setHours(23, 59, 59, 999);
-
-    // Fetch all calendar events in parallel
-    const [pickupEvents, truck1Events, truck2Events] = await Promise.all([
-      getCalendarEvents(calendar, CALENDARS.pickup.id, timeMin, timeMax),
-      getCalendarEvents(calendar, CALENDARS.truck1.id, timeMin, timeMax),
-      getCalendarEvents(calendar, CALENDARS.truck2.id, timeMin, timeMax)
-    ]);
-
-    // Build availability summary
-    const availability = {
-      carpet_upholstery: [],
-      pickup_delivery: []
-    };
-
-    days.forEach(day => {
-      const dow = day.getDay();
-      const dateStr = formatDate(day);
-      const dateShort = formatDateShort(day);
-
-      // Carpet/Upholstery — needs at least one truck available (Mon-Fri)
-      const t1 = getSlotStatus(
-        truck1Events.filter(e => {
-          const s = new Date(e.start.dateTime || e.start.date);
-          return s.toDateString() === day.toDateString();
-        }), day
-      );
-      const t2 = getSlotStatus(
-        truck2Events.filter(e => {
-          const s = new Date(e.start.dateTime || e.start.date);
-          return s.toDateString() === day.toDateString();
-        }), day
-      );
-
-      const carpetMorning = t1.morningOpen || t2.morningOpen;
-      const carpetAfternoon = t1.afternoonOpen || t2.afternoonOpen;
-
-      availability.carpet_upholstery.push({
-        date: dateStr,
-        dateShort,
-        dow,
-        morning: carpetMorning,
-        afternoon: carpetAfternoon,
-        available: carpetMorning || carpetAfternoon
-      });
-
-      // Pickup/Delivery — Tues and Thurs only
-      if (dow === 2 || dow === 4) {
-        const pu = getSlotStatus(
-          pickupEvents.filter(e => {
-            const s = new Date(e.start.dateTime || e.start.date);
-            return s.toDateString() === day.toDateString();
-          }), day
-        );
-        availability.pickup_delivery.push({
-          date: dateStr,
-          dateShort,
-          dow,
-          morning: pu.morningOpen,
-          afternoon: pu.afternoonOpen,
-          available: pu.morningOpen || pu.afternoonOpen
-        });
-      }
-    });
-
-    // Build human-readable summary for Kay
-    const carpetOpen = availability.carpet_upholstery.filter(d => d.available);
-    const pickupOpen = availability.pickup_delivery.filter(d => d.available);
-
-    let summary = 'CURRENT AVAILABILITY:\n\n';
-
-    summary += 'CARPET & UPHOLSTERY CLEANING (Mon-Fri):\n';
-    if (carpetOpen.length === 0) {
-      summary += 'Fully booked for the next 2 weeks. Suggest calling (847) 251-1200.\n';
-    } else {
-      carpetOpen.slice(0, 6).forEach(d => {
-        const slots = [];
-        if (d.morning) slots.push('Morning');
-        if (d.afternoon) slots.push('Afternoon');
-        summary += `- ${d.date}: ${slots.join(' and ')} available\n`;
-      });
-    }
-
-    summary += '\nRUG PICKUP & DELIVERY (Tuesdays & Thursdays only):\n';
-    if (pickupOpen.length === 0) {
-      summary += 'Fully booked for the next 2 weeks. Suggest calling (847) 251-1200.\n';
-    } else {
-      pickupOpen.slice(0, 4).forEach(d => {
-        const slots = [];
-        if (d.morning) slots.push('Morning');
-        if (d.afternoon) slots.push('Afternoon');
-        summary += `- ${d.date}: ${slots.join(' and ')} available\n`;
-      });
-    }
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        summary,
-        availability,
-        updated: new Date().toISOString()
-      })
-    };
-
-  } catch (e) {
-    console.error('Availability error:', e);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: e.message })
-    };
-  }
-};
+¡Ôžˆ—k­²,>gÙ*‚„Þn\^ÝL//fFe…ƒ1ÍzÆ‘ ÍÄiCUI5›dyžòFÜÒZÄôŠ&0ˆ¥,yô]F¨+f7a(àÓ U‹IPÑO) 8‰ÐP ÖéååéÙäa6¹~;OFãñåíÔüìòâ¨LÄïž³)ìùŒE½!O(Yl#þbc~’ÀMŒs?Ån¢š€3 °_z 5+°„³ŒÑæULÀ{¡…êYuÌŠkÙßÜ(f8úÒt¸¿ÿôôdUWF¼8ì#×ý²'`/ÞºŒû²ÝÕ4 >ã³¥èâ¸„SšX65…
+®@\ÜTä
+x0#…,ß=v ñ!Ÿ¡*`«`Ú) qó?±ÛÅÔ£fˆÿÕK‚ÝÖ4‘ÃŽ¸°{×¾¶	°¢·”ôŽ® ïÜÞ"ö½äXŒe‡qàNÕˆ¿ƒÁ@Ñû
+oîxŸ)]!š ] æ°ÃE“;qS—˜"¯¼Ú7G|»/ý—?e°2ïdÜ¿4®•o–eù»†·æ7qzþaœœÝœ8£{Å»'¹ÀóHý€ÎýÀÏ äë5M6jÊªÛÇeÅ»4‰YöÇ«(H¥¡¶ïî
+]…g<ùd[¢¤lžEûÇT¶ÿÚuŠnª
+•¾/†z Ñn,›]d8Ëk„Å­aSøBôdnÑþmiùçßÿÍ<èË4x‡¹_äQá¼Êg€†&:³EE)#¦Ü'Z^Z
+? i&S €·6ÅìšžO@&§0º+W oIèX}¹:¹mð!X~¯94s¾b•ó¿b•f–Èæs9èCð,eðA…2G]9ÚqzTÞ øym(’´µRµÂ¬gu%nþ•
+Ñ#Ã"ÿ›Ú2Ïke)zª¾Hå‡º©Õ~©Ú°nŽBS¤|
+ZW;´Wx]­0ñ–¹_¼dòúÂwK~â¯–Åƒ%þ)ÞJ0²Š(¾tJF‰ÄùçÓ²€£¯$æžš¿?9ëé©”]-=jÈZOŽÏ¦ÇÎ©¥ˆ’$q®f»J¢ä	i	­‘U©¢óBÖ*EZ˜½Õ§§²Y­ò5
+[8dqè•íŠ¿{þLÕ¶%ò‘K<þZ…É”ð0%<«T]€„ãwñ«‡äóÜ8;¼jÃÝ`|{}=¹¸!£·£éÙèdz6½ùeø.|’¾ }‰Ä£ë«É
+yAn¯~¼<›ÝL®!ã³ÉèbzqZµ¡!?\”PåˆbÃllW5¤
+x“ ÁFõèó¸S³ƒ£ÃçÆÔ"³|¹db6
+ø«H¿{Ø NÏnÙp…±JÙ[Â¸¢èóW#…
+Ã×ÚƒF5èå(KSÊgiñ‡£B‘Pò½ET!ÑÈhÔ©ËdÓéK°RO(ÞøµEþôI<l‡ðQœ}ù¡ipÈ2Û*Ñß…¿)¨'’øYß…×·§äj:þùö
+Ô™œMßbMùûM
+‹Åï7
+ká¬òð¿NE2œÝÿpjÏ#äÙ^.÷^ùu÷í·®æ³VË¦ZÍcÔÞ*?Ëè³¥ÆÊ¸ýÕ§Ô‘:áW©úê.s{ßhnqÙ/ßhEåOhÿPK     t‹\U,Þy
+  â             €    availability.jsPK      =   5
+    
