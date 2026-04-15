@@ -49,15 +49,29 @@ function weekdays(n) {
   return days;
 }
 
+function chicagoDateStr(date) {
+  return date.toLocaleDateString('en-US',{timeZone:'America/Chicago'});
+}
+
+function chicagoHour(date) {
+  return parseInt(date.toLocaleString('en-US',{hour:'numeric',hour12:false,timeZone:'America/Chicago'}),10);
+}
+
 function slots(events, day) {
-  var ms=new Date(day); ms.setHours(9,0,0,0);
-  var me=new Date(day); me.setHours(12,0,0,0);
-  var as=new Date(day); as.setHours(12,0,0,0);
-  var ae=new Date(day); ae.setHours(16,0,0,0);
-  var ev=events.filter(function(e){var s=new Date(e.start.dateTime||e.start.date);return s.toDateString()===day.toDateString();});
-  var mc=ev.filter(function(e){var s=new Date(e.start.dateTime||e.start.date),en=new Date(e.end.dateTime||e.end.date);return s<me&&en>ms;}).length;
-  var ac=ev.filter(function(e){var s=new Date(e.start.dateTime||e.start.date),en=new Date(e.end.dateTime||e.end.date);return s<ae&&en>as;}).length;
-  return {m:mc<1,a:ac<1};
+  var dayStr = chicagoDateStr(day);
+  var ev = events.filter(function(e){
+    var s = new Date(e.start.dateTime||e.start.date);
+    return chicagoDateStr(s) === dayStr;
+  });
+  var mc = ev.filter(function(e){
+    var h = chicagoHour(new Date(e.start.dateTime||e.start.date));
+    return h >= 9 && h < 12;
+  }).length;
+  var ac = ev.filter(function(e){
+    var h = chicagoHour(new Date(e.start.dateTime||e.start.date));
+    return h >= 12 && h < 16;
+  }).length;
+  return {m:mc<1, a:ac<1};
 }
 
 function fmtDay(d) {
