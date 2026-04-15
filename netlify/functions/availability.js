@@ -1,34 +1,105 @@
-PK    t‹\U,Þy
-  â     availability.jsåYýnÛFÿßO±-!u‘h‘’lIŽ‹“ÅUë/Xv€žc¸+r%1¡H?ì©€{ˆ{Â{’›Ù]’»´’\z‡K›VÚïùÍìÊÂ4#ŸÈi-6Ê³Ù’c’°¿å~ÂLcÉ×[6Z?Oh²1G{®<&¶w¡±Ÿ"¥$Î&¯G×3 ü´GHì»òxÈ?â{CbP{Àº
-gpÐ_ÌÙbÞë¸}Ö¶û}Ú§ï€-Ü…ã2‡ÍžÝívíÁá¼KûÝÎ!œ¤Y&Q[.
-XèÑÄzXn´6š\JH×ä\qÑäyÍÿ‘AbÛ£›tHîœ&éÞ“ý}r“³ÖŽaáf•'üs—Da°ò-žÉ’Üý`kFÜÃCÖ_tœÃÞ 7ðÚNRwNÛs‡Ú=Úq:=Ö‡XÛa^çÀô\v0èµ;í®ë8
-ûß5âE[WÝnP¶4IÛp…­7‰¯)ìh
-÷Û=
-ú}»ßó:ÞÂîÛN@¹ëyN×±í¶{Àz.í@PÚí®Ó¥ŽGçí]Ø.íÚv÷Ûv¾Aá½-d,ä©²4%«¢ óéÍôzvóðÓå	äÓà8á€®åîÙ¨Ü´{r·¯‰PØ}ÍIšÑ$kÔÈfç£³3<tp„Gºpd%$]Ó ÀcéÞÞ"ÝÌB²dÙû˜½KÌ0_ãÿÜ±‚'ZœîîÊ¥0z‚•=‘×4cfw@ÊmÊÈxå»t‘Ì_³’Þ‹ú1àbeÑY„Ÿe‰.Mƒ…­Û™Ñ„‚DBôøhÍ`°/ydÛà"Ú©+9|ß³R–ýˆ¾6ÛM"ÿÅJæÚÎÐqd‘Dk’Eë(I¢§âgæYKù©A^[œC‘n”‡ˆm£Œ§•°aŠµWDó_éAn·ä·w¡øöñ,›äàxF3‘Ä
-b"åwÇÀš¼xAŠ/ À+üÁÉc ?S~D¤ŸçéÊ,à	çñ ÕË—âëVäëì4	Ëò$äœö¶Jž@­©<
-ÿ6–Ô+ƒ‰$ÏÊ¥£öÀbDá–×Q˜­ª¯bœˆ—ö…D@ŸSr¶Š’ìÐ4E>ŠªÅ÷ß­+M7¡KÔòKÌ™<²0KÍ‚š>M½&g{î‡òý(Ê’–f	Ã:¥OÔÏH‰bŒ³´?ÍÌOEZÈÍ)À¦ 7¤œañü4]J 54*úqX|ØMP ð),"^³b'J<–œp×b	Þ Cd¨L\)°Ç‚hQËÏØ:%¿ý&1h
-JgîŠ˜L-³°šA'¦Q¸“,ÒñÕ!DŒYk@_ºdºÉUK#Ê,ˆ2Àˆ,OMáDr!ªq¼bÐ 7B0”˜ Ù-Û‰×
-BCÐEÆ’0F&.¶º¸‘Ã´ÄDyR ‚a(õQ÷++»…Šg,ƒÀ¬p½ba;»Î–OBou¿â¥÷›Æ"VJ+D˜‰?e
-öd¾BO¨»Ïƒs~ÐÒ<­{h,¾ˆÙÂ00WôUqÁé&"%,=;]¬	k” Rs5ICW@ã´0³Äq¡ã+€r”øƒÒ†îš¤¿ £ôØ3)ZìJi¸Ð¨ûYÈÙ–Mp”¦ `Äá3YÓ$f	YÑ`Ñ‚Èó”%4%ßÏótó}¢"Ò‚Ë˜dè‘~ã§)å
-ªzØK:y|Œ«Æ¬ÆH’Ô8¡U]ÙÇð9µVP‡Øˆ¨á­(fuÀY1
-€”Êyž t».àDk€ŸDAkÑSë2ñ—~h jýY‚½À«u³‰nÐ8 ìQÊþû4
+var crypto = require('crypto');
 
-¡Ôžˆ—k­²,>gÙ*‚„Þn\^ÝL//fFe…ƒ1ÍzÆ‘ ÍÄiCUI5›dyžòFÜÒZÄôŠ&0ˆ¥,yô]F¨+f7a(àÓ U‹IPÑO) 8‰ÐP ÖéååéÙäa6¹~;OFãñåíÔüìòâ¨LÄïž³)ìùŒE½!O(Yl#þbc~’ÀMŒs?Ån¢š€3 °_z 5+°„³ŒÑæULÀ{¡…êYuÌŠkÙßÜ(f8úÒt¸¿ÿôôdUWF¼8ì#×ý²'`/ÞºŒû²ÝÕ4 >ã³¥èâ¸„SšX65…
-®@\ÜTä
-x0#…,ß=v ñ!Ÿ¡*`«`Ú) qó?±ÛÅÔ£fˆÿÕK‚ÝÖ4‘ÃŽ¸°{×¾¶	°¢·”ôŽ® ïÜÞ"ö½äXŒe‡qàNÕˆ¿ƒÁ@Ñû
-oîxŸ)]!š ] æ°ÃE“;qS—˜"¯¼Ú7G|»/ý—?e°2ïdÜ¿4®•o–eù»†·æ7qzþaœœÝœ8£{Å»'¹ÀóHý€ÎýÀÏ äë5M6jÊªÛÇeÅ»4‰YöÇ«(H¥¡¶ïî
-]…g<ùd[¢¤lžEûÇT¶ÿÚuŠnª
-•¾/†z Ñn,›]d8Ëk„Å­aSøBôdnÑþmiùçßÿÍ<èË4x‡¹_äQá¼Êg€†&:³EE)#¦Ü'Z^Z
-? i&S €·6ÅìšžO@&§0º+W oIèX}¹:¹mð!X~¯94s¾b•ó¿b•f–Èæs9èCð,eðA…2G]9ÚqzTÞ øym(’´µRµÂ¬gu%nþ•
-Ñ#Ã"ÿ›Ú2Ïke)zª¾Hå‡º©Õ~©Ú°nŽBS¤|
-ZW;´Wx]­0ñ–¹_¼dòúÂwK~â¯–Åƒ%þ)ÞJ0²Š(¾tJF‰ÄùçÓ²€£¯$æžš¿?9ëé©”]-=jÈZOŽÏ¦ÇÎ©¥ˆ’$q®f»J¢ä	i	­‘U©¢óBÖ*EZ˜½Õ§§²Y­ò5
-[8dqè•íŠ¿{þLÕ¶%ò‘K<þZ…É”ð0%<«T]€„ãwñ«‡äóÜ8;¼jÃÝ`|{}=¹¸!£·£éÙèdz6½ùeø.|’¾ }‰Ä£ë«É
-yAn¯~¼<›ÝL®!ã³ÉèbzqZµ¡!?\”PåˆbÃllW5¤
-x“ ÁFõèó¸S³ƒ£ÃçÆÔ"³|¹db6
-ø«H¿{Ø NÏnÙp…±JÙ[Â¸¢èóW#…
-Ã×ÚƒF5èå(KSÊgiñ‡£B‘Pò½ET!ÑÈhÔ©ËdÓéK°RO(ÞøµEþôI<l‡ðQœ}ù¡ipÈ2Û*Ñß…¿)¨'’øYß…×·§äj:þùö
-Ô™œMßbMùûM
-‹Åï7
-ká¬òð¿NE2œÝÿpjÏ#äÙ^.÷^ùu÷í·®æ³VË¦ZÍcÔÞ*?Ëè³¥ÆÊ¸ýÕ§Ô‘:áW©úê.s{ßhnqÙ/ßhEåOhÿPK     t‹\U,Þy
-  â             €    availability.jsPK      =   5
-    
+var PICKUP_CAL = 'a19e4f2968fbefb546c8e0177788a8a3d6efcf2ce2eb251444197b4a84379e4a@group.calendar.google.com';
+var TRUCK1_CAL = '9c77e8f3275959d025aacba0b2a15a3235e8e8ee02ed36d965ce6950304c22f1@group.calendar.google.com';
+var TRUCK2_CAL = '805de988185d3df181289a2bcdd242110c6e5ca38fb00424a2dab03af1ca4114@group.calendar.google.com';
+
+function b64url(str) {
+  return Buffer.from(str).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+
+async function getToken(creds) {
+  var now = Math.floor(Date.now()/1000);
+  var h = b64url(JSON.stringify({alg:'RS256',typ:'JWT'}));
+  var p = b64url(JSON.stringify({
+    iss: creds.client_email,
+    scope: 'https://www.googleapis.com/auth/calendar.readonly',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now+3600,
+    iat: now
+  }));
+  var s = h+'.'+p;
+  var sign = crypto.createSign('RSA-SHA256');
+  sign.update(s);
+  var sig = sign.sign(creds.private_key,'base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  var jwt = s+'.'+sig;
+  var res = await fetch('https://oauth2.googleapis.com/token',{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion='+jwt
+  });
+  var d = await res.json();
+  if(!d.access_token) throw new Error('No access token: '+JSON.stringify(d));
+  return d.access_token;
+}
+
+async function getEvents(token, calId, tMin, tMax) {
+  try {
+    var url = 'https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events?singleEvents=true&orderBy=startTime&timeMin='+tMin.toISOString()+'&timeMax='+tMax.toISOString();
+    var res = await fetch(url,{headers:{Authorization:'Bearer '+token}});
+    var d = await res.json();
+    return d.items||[];
+  } catch(e) { return []; }
+}
+
+function weekdays(n) {
+  var days=[], d=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));
+  d.setHours(0,0,0,0); d.setDate(d.getDate()+1);
+  while(days.length<n){if(d.getDay()!==0&&d.getDay()!==6)days.push(new Date(d));d.setDate(d.getDate()+1);}
+  return days;
+}
+
+function slots(events, day) {
+  var ms=new Date(day); ms.setHours(9,0,0,0);
+  var me=new Date(day); me.setHours(12,0,0,0);
+  var as=new Date(day); as.setHours(12,0,0,0);
+  var ae=new Date(day); ae.setHours(16,0,0,0);
+  var ev=events.filter(function(e){var s=new Date(e.start.dateTime||e.start.date);return s.toDateString()===day.toDateString();});
+  var mc=ev.filter(function(e){var s=new Date(e.start.dateTime||e.start.date),en=new Date(e.end.dateTime||e.end.date);return s<me&&en>ms;}).length;
+  var ac=ev.filter(function(e){var s=new Date(e.start.dateTime||e.start.date),en=new Date(e.end.dateTime||e.end.date);return s<ae&&en>as;}).length;
+  return {m:mc<2,a:ac<2};
+}
+
+function fmtDay(d) {
+  return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'America/Chicago'});
+}
+
+exports.handler = async function(event) {
+  var headers = {'Access-Control-Allow-Origin':'*','Content-Type':'application/json'};
+  if(event.httpMethod==='OPTIONS') return {statusCode:200,headers,body:''};
+  try {
+    var raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    if(!raw) throw new Error('Missing credentials');
+    var creds = JSON.parse(raw);
+    var token = await getToken(creds);
+    var days = weekdays(10);
+    var tMin = new Date(days[0]); tMin.setHours(0,0,0,0);
+    var tMax = new Date(days[days.length-1]); tMax.setHours(23,59,59,999);
+    var results = await Promise.all([
+      getEvents(token,PICKUP_CAL,tMin,tMax),
+      getEvents(token,TRUCK1_CAL,tMin,tMax),
+      getEvents(token,TRUCK2_CAL,tMin,tMax)
+    ]);
+    var pickupEv=results[0], t1Ev=results[1], t2Ev=results[2];
+    var summary = 'REAL-TIME CALENDAR AVAILABILITY:\n\nCARPET & UPHOLSTERY CLEANING (Mon-Fri):\n';
+    days.forEach(function(day){
+      var t1=slots(t1Ev,day), t2=slots(t2Ev,day);
+      var mo=t1.m||t2.m, ao=t1.a||t2.a;
+      var parts=[];
+      if(mo) parts.push('morning');
+      if(ao) parts.push('afternoon');
+      summary += '- '+fmtDay(day)+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
+    });
+    summary += '\nRUG PICKUP & DELIVERY (Tuesdays & Thursdays only):\n';
+    days.filter(function(d){return d.getDay()===2||d.getDay()===4;}).forEach(function(day){
+      var pu=slots(pickupEv,day);
+      var parts=[];
+      if(pu.m) parts.push('morning');
+      if(pu.a) parts.push('afternoon');
+      summary += '- '+fmtDay(day)+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
+    });
+    return {statusCode:200,headers,body:JSON.stringify({summary:summary,updated:new Date().toISOString()})};
+  } catch(e) {
+    return {statusCode:500,headers,body:JSON.stringify({error:e.message})};
+  }
+};
