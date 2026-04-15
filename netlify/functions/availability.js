@@ -57,7 +57,7 @@ function slots(events, day) {
   var ev=events.filter(function(e){var s=new Date(e.start.dateTime||e.start.date);return s.toDateString()===day.toDateString();});
   var mc=ev.filter(function(e){var s=new Date(e.start.dateTime||e.start.date),en=new Date(e.end.dateTime||e.end.date);return s<me&&en>ms;}).length;
   var ac=ev.filter(function(e){var s=new Date(e.start.dateTime||e.start.date),en=new Date(e.end.dateTime||e.end.date);return s<ae&&en>as;}).length;
-  return {m:mc<2,a:ac<2};
+  return {m:mc<1,a:ac<1};
 }
 
 function fmtDay(d) {
