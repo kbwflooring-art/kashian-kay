@@ -57,21 +57,18 @@ function chicagoHour(date) {
   return parseInt(date.toLocaleString('en-US',{hour:'numeric',hour12:false,timeZone:'America/Chicago'}),10);
 }
 
-function slots(events, day) {
+// Returns true if this truck has NO events in the given slot
+function truckSlotFree(events, day, slotStartHr, slotEndHr) {
   var dayStr = chicagoDateStr(day);
   var ev = events.filter(function(e){
     var s = new Date(e.start.dateTime||e.start.date);
     return chicagoDateStr(s) === dayStr;
   });
-  var mc = ev.filter(function(e){
+  var booked = ev.filter(function(e){
     var h = chicagoHour(new Date(e.start.dateTime||e.start.date));
-    return h >= 9 && h < 12;
+    return h >= slotStartHr && h < slotEndHr;
   }).length;
-  var ac = ev.filter(function(e){
-    var h = chicagoHour(new Date(e.start.dateTime||e.start.date));
-    return h >= 12 && h < 16;
-  }).length;
-  return {m:mc<1, a:ac<1};
+  return booked === 0;
 }
 
 function fmtDay(d) {
@@ -97,19 +94,22 @@ exports.handler = async function(event) {
     var pickupEv=results[0], t1Ev=results[1], t2Ev=results[2];
     var summary = 'REAL-TIME CALENDAR AVAILABILITY:\n\nCARPET & UPHOLSTERY CLEANING (Mon-Fri):\n';
     days.forEach(function(day){
-      var t1=slots(t1Ev,day), t2=slots(t2Ev,day);
-      var mo=t1.m||t2.m, ao=t1.a||t2.a;
+      // Morning is available if AT LEAST ONE truck is free 9am-12pm
+      var morningOpen = truckSlotFree(t1Ev,day,9,12) || truckSlotFree(t2Ev,day,9,12);
+      // Afternoon is available if AT LEAST ONE truck is free 12pm-4pm
+      var afternoonOpen = truckSlotFree(t1Ev,day,12,16) || truckSlotFree(t2Ev,day,12,16);
       var parts=[];
-      if(mo) parts.push('morning');
-      if(ao) parts.push('afternoon');
+      if(morningOpen) parts.push('morning');
+      if(afternoonOpen) parts.push('afternoon');
       summary += '- '+fmtDay(day)+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
     });
     summary += '\nRUG PICKUP & DELIVERY (Tuesdays & Thursdays only):\n';
     days.filter(function(d){return d.getDay()===2||d.getDay()===4;}).forEach(function(day){
-      var pu=slots(pickupEv,day);
+      var morningOpen = truckSlotFree(pickupEv,day,9,12);
+      var afternoonOpen = truckSlotFree(pickupEv,day,12,16);
       var parts=[];
-      if(pu.m) parts.push('morning');
-      if(pu.a) parts.push('afternoon');
+      if(morningOpen) parts.push('morning');
+      if(afternoonOpen) parts.push('afternoon');
       summary += '- '+fmtDay(day)+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
     });
     return {statusCode:200,headers,body:JSON.stringify({summary:summary,updated:new Date().toISOString()})};
