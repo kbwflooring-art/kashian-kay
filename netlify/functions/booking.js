@@ -44,18 +44,24 @@ exports.handler = async function(event) {
            <strong>⚠️ Chicago Address</strong> — Please book this manually on the appropriate calendar.
          </div>` : '';
 
+    // Kashian Bros brand colors
+    const TEAL = '#0d7a6e';
+    const TEAL_LIGHT = '#1aab9b';
+    const TEAL_BG = '#f0fbf9';
+    const TEAL_BORDER = '#9de0d8';
+
     // --- Build HTML email to Adolfo ---
     const htmlEmail = `<!DOCTYPE html>
 <html>
 <body style="font-family:Arial,sans-serif;background:#f1f5f9;padding:24px;margin:0">
-<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2eef5">
-  <div style="background:#1a5f7a;padding:16px 24px">
+<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid ${TEAL_BORDER}">
+  <div style="background:${TEAL};padding:16px 24px">
     <h2 style="color:#fff;margin:0;font-size:18px">📋 New Booking Request — Kay</h2>
-    <p style="color:#a8d8ea;margin:4px 0 0;font-size:13px">${lbl}</p>
+    <p style="color:#a8e6e0;margin:4px 0 0;font-size:13px">${lbl}</p>
   </div>
   <div style="padding:20px 24px">
     ${chicagoBanner}
-    <div style="background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px;color:#1e293b;line-height:1.8">
+    <div style="background:${TEAL_BG};border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px;color:#1e293b;line-height:1.8;border:1px solid ${TEAL_BORDER}">
       <strong>📅 Calendar:</strong> ${calendarName}<br>
       <strong>👤 Name:</strong> ${name}<br>
       <strong>📞 Phone:</strong> ${phone}<br>
@@ -69,7 +75,7 @@ exports.handler = async function(event) {
       <strong>🔑 On-site:</strong> ${selfP ? 'Customer will be present' : `Contact: ${cname} — ${cphone}`}
       ${notes ? `<br><strong>📝 Notes:</strong> ${notes}` : ''}
     </div>
-    <a href="${calLink}" style="display:block;background:#1a5f7a;color:#fff;text-align:center;padding:13px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:12px">
+    <a href="${calLink}" style="display:block;background:${TEAL};color:#fff;text-align:center;padding:13px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:12px">
       ⭐ Add to Google Calendar
     </a>
     <a href="${confirmLink}" style="display:block;background:#16a34a;color:#fff;text-align:center;padding:13px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:12px">
@@ -79,7 +85,7 @@ exports.handler = async function(event) {
       Clicking Confirm will automatically send ${name} a confirmation email.
     </p>
   </div>
-  <div style="background:#f1f5f9;padding:10px 24px;font-size:11px;color:#94a3b8;text-align:center">
+  <div style="background:${TEAL};padding:10px 24px;font-size:11px;color:#a8e6e0;text-align:center">
     Kashian Bros Kay — kashianbros.com — (847) 251-1200
   </div>
 </div>
