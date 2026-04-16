@@ -45,10 +45,10 @@ exports.handler = async function(event) {
          </div>` : '';
 
     // Kashian Bros brand colors
-    const TEAL = '#0d7a6e';
-    const TEAL_LIGHT = '#1aab9b';
-    const TEAL_BG = '#f0fbf9';
-    const TEAL_BORDER = '#9de0d8';
+    const TEAL = '#5bcdc7';
+    const TEAL_LIGHT = '#7ddbd6';
+    const TEAL_BG = '#f0fafa';
+    const TEAL_BORDER = '#b8eeeb';
 
     // --- Build HTML email to Adolfo ---
     const htmlEmail = `<!DOCTYPE html>
@@ -57,7 +57,7 @@ exports.handler = async function(event) {
 <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid ${TEAL_BORDER}">
   <div style="background:${TEAL};padding:16px 24px">
     <h2 style="color:#fff;margin:0;font-size:18px">📋 New Booking Request — Kay</h2>
-    <p style="color:#a8e6e0;margin:4px 0 0;font-size:13px">${lbl}</p>
+    <p style="color:#c8efed;margin:4px 0 0;font-size:13px">${lbl}</p>
   </div>
   <div style="padding:20px 24px">
     ${chicagoBanner}
@@ -85,7 +85,7 @@ exports.handler = async function(event) {
       Clicking Confirm will automatically send ${name} a confirmation email.
     </p>
   </div>
-  <div style="background:${TEAL};padding:10px 24px;font-size:11px;color:#a8e6e0;text-align:center">
+  <div style="background:${TEAL};padding:10px 24px;font-size:11px;color:#c8efed;text-align:center">
     Kashian Bros Kay — kashianbros.com — (847) 251-1200
   </div>
 </div>
