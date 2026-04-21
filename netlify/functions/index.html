@@ -100,43 +100,48 @@ var SP="You are Kay, a warm expert customer service rep for Kashian Bros, family
 var hist=[],fbLog=[],cnt=1,availCache=null,availFetched=false;
 var TODAY = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:'America/Chicago'});
 SP = "TODAY IS: "+TODAY+". Use this to understand relative terms like tomorrow, next week, this Friday etc.\n\n" + SP;
-function attachAutocomplete(input){
-  if(!window.google||!window.google.maps||!window.google.maps.places) return;
+function setupAddressAutocomplete(input){
   if(input.dataset.ac) return;
   input.dataset.ac="1";
-  var ac=new window.google.maps.places.Autocomplete(input,{
-    componentRestrictions:{country:"us"},
-    fields:["formatted_address"],
-    types:["address"]
+  var dropdown=document.createElement("div");
+  dropdown.style.cssText="position:absolute;background:#fff;border:1px solid #9de8e4;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:9999;width:100%;max-height:200px;overflow-y:auto;display:none;font-family:inherit;font-size:13px";
+  input.parentNode.style.position="relative";
+  input.parentNode.appendChild(dropdown);
+  var timer=null;
+  input.addEventListener("input",function(){
+    clearTimeout(timer);
+    var val=input.value.trim();
+    if(val.length<3){dropdown.style.display="none";return;}
+    timer=setTimeout(function(){
+      fetch("/.netlify/functions/placesearch?input="+encodeURIComponent(val))
+        .then(function(r){return r.json();})
+        .then(function(d){
+          dropdown.innerHTML="";
+          if(!d.suggestions||!d.suggestions.length){dropdown.style.display="none";return;}
+          d.suggestions.forEach(function(s){
+            var item=document.createElement("div");
+            item.textContent=s;
+            item.style.cssText="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0fafa;color:#111";
+            item.addEventListener("mousedown",function(e){
+              e.preventDefault();
+              input.value=s;
+              dropdown.style.display="none";
+            });
+            item.addEventListener("mouseover",function(){item.style.background="#f0fafa";});
+            item.addEventListener("mouseout",function(){item.style.background="#fff";});
+            dropdown.appendChild(item);
+          });
+          dropdown.style.display="block";
+        }).catch(function(){dropdown.style.display="none";});
+    },300);
   });
-  ac.addListener("place_changed",function(){
-    var p=ac.getPlace();
-    if(p&&p.formatted_address) input.value=p.formatted_address;
-  });
+  input.addEventListener("blur",function(){setTimeout(function(){dropdown.style.display="none";},200);});
 }
-function attachAllAddressFields(){
-  document.querySelectorAll(".bk-addr-input").forEach(attachAutocomplete);
+function setupAllAddressFields(){
+  document.querySelectorAll(".bk-addr-input").forEach(setupAddressAutocomplete);
 }
-window.initGoogleMaps=function(){
-  attachAllAddressFields();
-  var observer=new MutationObserver(function(mutations){
-    mutations.forEach(function(m){
-      m.addedNodes.forEach(function(node){
-        if(node.nodeType!==1) return;
-        var inputs=node.querySelectorAll?node.querySelectorAll(".bk-addr-input"):[];
-        inputs.forEach(attachAutocomplete);
-        if(node.classList&&node.classList.contains("bk-addr-input")) attachAutocomplete(node);
-      });
-    });
-  });
-  observer.observe(document.body,{childList:true,subtree:true});
-};
-fetch("/.netlify/functions/mapskey").then(function(r){return r.json();}).then(function(d){
-  if(!d.key) return;
-  var s=document.createElement("script");
-  s.src="https://maps.googleapis.com/maps/api/js?key="+d.key+"&libraries=places&callback=initGoogleMaps";
-  document.head.appendChild(s);
-}).catch(function(){});
+var addrObserver=new MutationObserver(function(){setupAllAddressFields();});
+addrObserver.observe(document.body,{childList:true,subtree:true});
 async function fetchAvailability(){if(availFetched)return;availFetched=true;try{var r=await fetch('/.netlify/functions/availability');var d=await r.json();if(d.summary)availCache=d.summary;}catch(e){availCache=null;}}
 fetchAvailability();
 function mk(tag,cls,attrs){var el=document.createElement(tag);if(cls)el.className=cls;if(attrs)Object.keys(attrs).forEach(function(k){el.setAttribute(k,attrs[k]);});return el;}
@@ -146,7 +151,7 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
 function toggleContact(id,checked){var b=document.getElementById("bk-contact-box-"+id);b.style.display=checked?"none":"block";}
 function cancelBooking(id){var f=document.getElementById("bkf-"+id);if(f)f.innerHTML="<p style=\"color:#333;font-size:13px\">No problem! Call us at <strong>(847) 251-1200</strong> or email <strong>info@kashianbros.com</strong>!</p>";}
 function submitBooking(mid,svc,lbl){var name=document.getElementById("bk-name-"+mid).value.trim(),phone=document.getElementById("bk-phone-"+mid).value.trim(),email=document.getElementById("bk-email-"+mid).value.trim(),addr=document.getElementById("bk-addr-"+mid).value.trim(),detail=document.getElementById("bk-detail-"+mid).value.trim(),stEl=document.getElementById("bk-stairs-"+mid),stairs=stEl?stEl.value.trim():"",date=document.getElementById("bk-date-"+mid).value,time=document.getElementById("bk-time-"+mid).value,selfP=document.getElementById("bk-self-"+mid).checked,pets=document.getElementById("bk-pets-"+mid).value,notes=document.getElementById("bk-notes-"+mid).value.trim(),cnEl=document.getElementById("bk-cname-"+mid),cpEl=document.getElementById("bk-cphone-"+mid),cname=selfP?"":(cnEl?cnEl.value.trim():""),cphone=selfP?"":(cpEl?cpEl.value.trim():"");if(!name||!phone||!email||!addr||!detail||!date){alert("Please fill in all required fields.");return;}if(!selfP&&(!cname||!cphone)){alert("Please provide the on-site contact, or check that you will be there yourself.");return;}var isChicago=/\bchicago\b/i.test(addr);var truck=svc==="CARPET"?"Truck 1 or Truck 2 - Hard Surface Calendar":svc==="UPHOLSTERY"?"Truck 1 preferred - Hard Surface Calendar":"Rug Pickup Calendar - Tues and Thurs only";var dd=date?new Date(date+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"}):"Not specified";var eb="NEW BOOKING - KASHIAN BROS KAY\nSERVICE: "+lbl+"\nCALENDAR: "+truck+"\n"+(isChicago?"*** CHICAGO - Adolfo must book manually ***\n":"")+"\nName: "+name+"\nPhone: "+phone+"\nEmail: "+email+"\nAddress: "+addr+"\n"+(svc==="CARPET"?"Rooms: "+detail+"\n"+(stairs?"Stairs: "+stairs+"\n":""):svc==="UPHOLSTERY"?"Items: "+detail+"\n":"Rugs: "+detail+"\n")+"Pets: "+pets+"\n"+(notes?"Notes: "+notes+"\n":"")+"\nDate: "+dd+"\nTime: "+time+"\nOn-site: "+(selfP?"Customer present":"Contact: "+cname+" "+cphone)+"\nSubmitted: "+new Date().toLocaleString();fetch("/.netlify/functions/booking",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:name,phone:phone,email:email,addr:addr,svc:svc,lbl:lbl,detail:detail,stairs:stairs,date:dd,time:time,selfP:selfP,cname:cname,cphone:cphone,pets:pets,notes:notes,isChicago:isChicago,truck:truck,emailBody:eb})}).catch(function(){});var timing=getConfirmTiming();var f=document.getElementById("bkf-"+mid);f.className="bk-success";f.innerHTML="<h3>Booking Request Sent!</h3><p style=\"margin-top:8px\"><strong>Thank you, "+name.split(" ")[0]+"!</strong></p><p style=\"margin-top:6px\">Booking request for <strong>"+lbl+"</strong> on <strong>"+dd+"</strong> has been sent.</p><p style=\"margin-top:8px;background:#dcfce7;border-radius:6px;padding:8px\"><strong>"+timing+"</strong></p><p style=\"margin-top:8px\">Confirmation will go to <strong>"+email+"</strong>. Questions? Call <strong>(847) 251-1200</strong>.</p>"+(isChicago?"<p style=\"margin-top:8px;background:#fef9c3;border-radius:6px;padding:8px\">Chicago bookings are handled personally by our cleaning manager.</p>":"");hist.push({role:"user",content:"BOOKING SUBMITTED: "+name+" for "+lbl+" on "+dd});hist.push({role:"assistant",content:"Booking sent! "+timing});}
-function addMsg(role,content,id){var msgs=document.getElementById("msgs"),isBot=role==="assistant";var fm=content.match(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)([^\]]*)\]/);var cc=content.replace(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)[^\]]*\]/g,"").trim();var row=mk("div","row "+(isBot?"b":"u"));row.id="r"+id;var ic=mk("div","ic "+(isBot?"b":"u"));ic.innerHTML=isBot?"&#x1F9F9;":"&#x1F464;";var wrap=mk("div");wrap.style.maxWidth="100%";var bub=mk("div","bub "+(isBot?"b":"u"));bub.innerHTML=isBot?nl2html(cc):"<p>"+content+"</p>";wrap.appendChild(bub);if(fm&&isBot){var pArr=(fm[2]||"").replace(/^\|/,"").split("|");wrap.appendChild(buildBookingForm(fm[1],id,pArr[0]||"",pArr[1]||"",pArr[2]||"",pArr[3]||"",pArr[4]||"",pArr[5]||"",pArr[6]||""));}if(isBot&&id>0){var fbr=mk("div","fbr");var bg=mk("button","fb good");bg.textContent="Good";bg.onclick=function(){thumb(id,"good",content);};fbr.appendChild(bg);var bb=mk("button","fb bad");bb.textContent="Fix";bb.onclick=function(){thumb(id,"bad",content);};fbr.appendChild(bb);var bn=mk("button","fb note");bn.id="fbn"+id;bn.textContent="Add note";bn.onclick=function(){toggleNote(id,content);};fbr.appendChild(bn);wrap.appendChild(fbr);var nb=mk("div","nb");nb.id="nb"+id;nb.style.display="none";var nl=mk("div");nl.style.cssText="font-size:12px;color:#92400e;margin-bottom:6px;font-weight:500";nl.textContent="Add a note:";var nt=mk("textarea");nt.id="nt"+id;nt.rows=3;nt.placeholder="Type correction or note...";nt.onkeydown=function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitNote(id,content);}};var na=mk("div","na");var ns=mk("button","ns");ns.textContent="Submit";ns.onclick=function(){submitNote(id,content);};var nc=mk("button","nc");nc.textContent="Cancel";nc.onclick=function(){document.getElementById("nb"+id).style.display="none";};var nh=mk("span");nh.style.cssText="font-size:11px;color:#94a3b8";nh.textContent="or press Enter";na.appendChild(ns);na.appendChild(nc);na.appendChild(nh);nb.appendChild(nl);nb.appendChild(nt);nb.appendChild(na);wrap.appendChild(nb);}row.appendChild(ic);row.appendChild(wrap);msgs.appendChild(row);msgs.scrollTop=msgs.scrollHeight;cnt++;document.getElementById("mc").textContent=cnt+" messages";attachAllAddressFields&&attachAllAddressFields();}
+function addMsg(role,content,id){var msgs=document.getElementById("msgs"),isBot=role==="assistant";var fm=content.match(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)([^\]]*)\]/);var cc=content.replace(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)[^\]]*\]/g,"").trim();var row=mk("div","row "+(isBot?"b":"u"));row.id="r"+id;var ic=mk("div","ic "+(isBot?"b":"u"));ic.innerHTML=isBot?"&#x1F9F9;":"&#x1F464;";var wrap=mk("div");wrap.style.maxWidth="100%";var bub=mk("div","bub "+(isBot?"b":"u"));bub.innerHTML=isBot?nl2html(cc):"<p>"+content+"</p>";wrap.appendChild(bub);if(fm&&isBot){var pArr=(fm[2]||"").replace(/^\|/,"").split("|");wrap.appendChild(buildBookingForm(fm[1],id,pArr[0]||"",pArr[1]||"",pArr[2]||"",pArr[3]||"",pArr[4]||"",pArr[5]||"",pArr[6]||""));}if(isBot&&id>0){var fbr=mk("div","fbr");var bg=mk("button","fb good");bg.textContent="Good";bg.onclick=function(){thumb(id,"good",content);};fbr.appendChild(bg);var bb=mk("button","fb bad");bb.textContent="Fix";bb.onclick=function(){thumb(id,"bad",content);};fbr.appendChild(bb);var bn=mk("button","fb note");bn.id="fbn"+id;bn.textContent="Add note";bn.onclick=function(){toggleNote(id,content);};fbr.appendChild(bn);wrap.appendChild(fbr);var nb=mk("div","nb");nb.id="nb"+id;nb.style.display="none";var nl=mk("div");nl.style.cssText="font-size:12px;color:#92400e;margin-bottom:6px;font-weight:500";nl.textContent="Add a note:";var nt=mk("textarea");nt.id="nt"+id;nt.rows=3;nt.placeholder="Type correction or note...";nt.onkeydown=function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitNote(id,content);}};var na=mk("div","na");var ns=mk("button","ns");ns.textContent="Submit";ns.onclick=function(){submitNote(id,content);};var nc=mk("button","nc");nc.textContent="Cancel";nc.onclick=function(){document.getElementById("nb"+id).style.display="none";};var nh=mk("span");nh.style.cssText="font-size:11px;color:#94a3b8";nh.textContent="or press Enter";na.appendChild(ns);na.appendChild(nc);na.appendChild(nh);nb.appendChild(nl);nb.appendChild(nt);nb.appendChild(na);wrap.appendChild(nb);}row.appendChild(ic);row.appendChild(wrap);msgs.appendChild(row);msgs.scrollTop=msgs.scrollHeight;cnt++;document.getElementById("mc").textContent=cnt+" messages";setupAllAddressFields&&setupAllAddressFields();}
 function addTyping(){var msgs=document.getElementById("msgs");var d=mk("div","row b");d.id="typing";var ic=mk("div","ic b");ic.innerHTML="&#x1F9F9;";var td=mk("div","td");[0,.2,.4].forEach(function(s){var dot=mk("div");dot.style.animationDelay=s+"s";td.appendChild(dot);});d.appendChild(ic);d.appendChild(td);msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;}
 function thumb(id,type,content){var btn=document.querySelector("#r"+id+" .fb."+type);if(!btn)return;var on=btn.classList.contains("on");document.querySelectorAll("#r"+id+" .fb.good, #r"+id+" .fb.bad").forEach(function(b){b.classList.remove("on");});if(!on){btn.classList.add("on");if(type==="bad"){document.getElementById("nb"+id).style.display="block";setTimeout(function(){document.getElementById("nt"+id).focus();},50);}addFb({type:type,msgId:id,q:getLastQ(),a:content.substring(0,120),note:""});}}
 function toggleNote(id,content){var box=document.getElementById("nb"+id);box.style.display=box.style.display!=="none"?"none":"block";if(box.style.display!=="none")setTimeout(function(){document.getElementById("nt"+id).focus();},50);}
