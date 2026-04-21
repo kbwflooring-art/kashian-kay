@@ -2,387 +2,157 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Kay — Kashian Bros AI</title>
+<title>Kay - Kashian Bros AI</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI',-apple-system,sans-serif;background:#eef2f7;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:12px}
-  @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-  .msg-anim{animation:fadeUp 0.2s ease}
-  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d0e8f2;border-radius:3px}
-  .wrap{width:100%;max-width:840px;display:flex;flex-direction:column;height:calc(100vh - 24px);min-height:560px}
-  .banner{background:#1a5f7a;border-radius:10px 10px 0 0;padding:9px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-  .banner-badge{background:#f59e0b;color:#1a1a1a;font-weight:700;font-size:10px;border-radius:4px;padding:2px 7px;text-transform:uppercase;letter-spacing:.5px}
-  .banner-label{color:#a8d8ea;font-size:12.5px}
-  .banner input{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;font-size:12px;outline:none;width:155px}
-  .banner input::placeholder{color:rgba(255,255,255,.6)}
-  .main{display:flex;flex:1;overflow:hidden}
-  .chat{flex:1;display:flex;flex-direction:column;background:#fff;border-right:1px solid #e2eef5}
-  .chat-header{background:#1e7598;padding:13px 18px;display:flex;align-items:center;gap:12px}
-  .avatar{width:40px;height:40px;background:#2d9cbe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-  .chat-title{color:#fff;font-size:15px;font-weight:600}
-  .chat-sub{color:#a8d8ea;font-size:11px;margin-top:1px}
-  .online{width:8px;height:8px;background:#4ade80;border-radius:50%;margin-left:auto}
-  .messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
-  .msg-row{display:flex;gap:8px;max-width:90%}
-  .msg-row.user{flex-direction:row-reverse;align-self:flex-end}
-  .msg-row.bot{align-self:flex-start}
-  .msg-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
-  .msg-icon.bot{background:#dbeef5}
-  .msg-icon.user{background:#e0eaff}
-  .bubble{padding:10px 14px;font-size:13.5px;line-height:1.65;color:#1a202c}
-  .bubble.bot{background:#f1f8fc;border-radius:3px 14px 14px 14px}
-  .bubble.user{background:#1a5f7a;color:#fff;border-radius:14px 3px 14px 14px}
-  .bubble p{margin:0 0 6px}.bubble p:last-child{margin:0}
-  .bubble ul{padding-left:18px;margin:6px 0}.bubble li{margin-bottom:3px}
-  .fb-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
-  .fb-btn{font-family:inherit;cursor:pointer;border:1px solid #d0e8f2;border-radius:6px;padding:3px 9px;font-size:11px;background:none;color:#64748b;transition:all .15s}
-  .fb-good.active{background:#dcfce7;border-color:#16a34a;color:#15803d}
-  .fb-bad.active{background:#fee2e2;border-color:#dc2626;color:#dc2626}
-  .fb-note.active{background:#fef9c3;border-color:#ca8a04;color:#a16207}
-  .note-box{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px;margin-top:6px}
-  .note-label{font-size:12px;color:#92400e;margin-bottom:6px;font-weight:500}
-  .note-box textarea{width:100%;border:1px solid #e2d48b;border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical;outline:none;background:#fff;color:#1a202c;margin-bottom:8px;box-sizing:border-box;display:block}
-  .note-actions{display:flex;gap:8px;align-items:center}
-  .note-submit{font-family:inherit;background:#1a5f7a;color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:13px;font-weight:500;cursor:pointer}
-  .note-cancel{font-family:inherit;background:none;color:#64748b;border:1px solid #e2eef5;border-radius:6px;padding:7px 12px;font-size:13px;cursor:pointer}
-  .note-hint{font-size:11px;color:#94a3b8}
-  .typing{display:flex;gap:4px;padding:12px 16px;background:#f1f8fc;border-radius:3px 14px 14px 14px;align-items:center}
-  .dot{width:7px;height:7px;border-radius:50%;background:#2d9cbe;animation:bounce 1.2s infinite}
-  .quick-replies{padding:8px 14px 4px;background:#fff;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid #f0f4f8}
-  .qr{font-family:inherit;cursor:pointer;background:#f1f8fc;border:1px solid #b8d8e8;color:#1a5f7a;border-radius:16px;padding:5px 12px;font-size:11.5px;white-space:nowrap;transition:all .15s}
-  .qr:hover{background:#1a5f7a;color:#fff;border-color:#1a5f7a}
-  .input-row{background:#fff;border-top:1px solid #e2eef5;padding:11px 13px;display:flex;gap:8px;align-items:flex-end}
-  .input-row textarea{flex:1;border:1.5px solid #d0e8f2;border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;resize:none;outline:none;line-height:1.5;max-height:80px;overflow-y:auto;color:#1a202c}
-  .send-btn{width:38px;height:38px;background:#1a5f7a;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
-  .send-btn:disabled{background:#94a3b8;cursor:not-allowed}
-  .send-btn:hover:not(:disabled){background:#144d63}
-  .sidebar{width:245px;background:#f8fafc;border-left:1px solid #e2eef5;display:flex;flex-direction:column;overflow:hidden}
-  .sidebar-header{background:#f1f5f9;border-bottom:1px solid #e2eef5;padding:11px 13px;font-size:12.5px;font-weight:600;color:#334155;display:flex;align-items:center}
-  .fb-count{background:#1a5f7a;color:#fff;border-radius:10px;padding:1px 7px;font-size:10.5px;margin-left:auto}
-  .fb-list{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px}
-  .fb-empty{color:#94a3b8;font-size:12px;text-align:center;padding:20px 8px;line-height:1.8}
-  .fb-item{background:#fff;border:1px solid #e2eef5;border-radius:8px;padding:9px;font-size:11.5px;line-height:1.5;color:#334155}
-  .export-btn{font-family:inherit;margin:9px;background:#1a5f7a;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;cursor:pointer}
-  .footer{background:#1a5f7a;border-radius:0 0 10px 10px;padding:7px 16px;display:flex;justify-content:space-between;font-size:11px;color:#a8d8ea}
-  @media(max-width:600px){.sidebar{display:none}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Raleway',Arial,sans-serif;letter-spacing:0.02em;background:#eef2f7;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:12px;color:#111}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.wrap{width:100%;max-width:840px;display:flex;flex-direction:column;height:calc(100vh - 24px);min-height:560px}
+.banner{background:#5bcdc7;border-radius:10px 10px 0 0;padding:9px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.banner span.badge{background:#f59e0b;color:#1a1a1a;font-weight:700;font-size:10px;border-radius:4px;padding:2px 7px;text-transform:uppercase}
+.banner span.lbl{color:#1a1a1a;font-size:12px}
+.banner input{background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.6);color:#111;border-radius:6px;padding:4px 10px;font-size:12px;outline:none;width:155px}
+.main{display:flex;flex:1;overflow:hidden}
+.chat{flex:1;display:flex;flex-direction:column;background:#fff;border-right:1px solid #b8eeeb}
+.hdr{background:#5bcdc7;padding:13px 18px;display:flex;align-items:center;gap:12px}
+.av{width:40px;height:40px;background:#7ddbd6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
+.ht{color:#111;font-size:15px;font-weight:600}
+.hs{color:#1a1a1a;font-size:11px;margin-top:1px}
+.dot{width:8px;height:8px;background:#4ade80;border-radius:50%;margin-left:auto}
+.msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:8px;max-width:90%}
+.row.u{flex-direction:row-reverse;align-self:flex-end}
+.row.b{align-self:flex-start}
+.ic{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
+.ic.b{background:#b8eeeb}.ic.u{background:#e0eaff}
+.bub{padding:10px 14px;font-size:13.5px;line-height:1.65;color:#111}
+.bub.b{background:#f0fafa;border-radius:3px 14px 14px 14px}
+.bub.u{background:#5bcdc7;color:#111;border-radius:14px 3px 14px 14px}
+.bub p{margin:0 0 6px}.bub p:last-child{margin:0}
+.bub ul{padding-left:18px;margin:6px 0}.bub li{margin-bottom:3px}
+.fbr{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.fb{font-family:inherit;cursor:pointer;border:1px solid #b8eeeb;border-radius:6px;padding:3px 9px;font-size:11px;background:none;color:#333}
+.fb.good.on{background:#dcfce7;border-color:#16a34a;color:#15803d}
+.fb.bad.on{background:#fee2e2;border-color:#dc2626;color:#dc2626}
+.fb.note.on{background:#fef9c3;border-color:#ca8a04;color:#a16207}
+.nb{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px;margin-top:6px}
+.nb textarea{width:100%;border:1px solid #e2d48b;border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical;outline:none;background:#fff;color:#111;margin-bottom:8px;box-sizing:border-box;display:block}
+.na{display:flex;gap:8px;align-items:center}
+.ns{font-family:inherit;background:#5bcdc7;color:#111;border:none;border-radius:6px;padding:7px 16px;font-size:13px;cursor:pointer}
+.nc{font-family:inherit;background:none;color:#333;border:1px solid #b8eeeb;border-radius:6px;padding:7px 12px;font-size:13px;cursor:pointer}
+.td{display:flex;gap:4px;padding:12px 16px;background:#f0fafa;border-radius:3px 14px 14px 14px;align-items:center}
+.td div{width:7px;height:7px;border-radius:50%;background:#5bcdc7;animation:bounce 1.2s infinite}
+.qr{padding:8px 14px 4px;background:#fff;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid #e8f8f6}
+.qb{font-family:inherit;cursor:pointer;background:#f0fafa;border:1px solid #80d8ce;color:#111;border-radius:16px;padding:5px 12px;font-size:11.5px;white-space:nowrap}
+.mb{font-family:inherit;cursor:pointer;background:#5bcdc7;border:none;color:#111;border-radius:10px;padding:10px 18px;font-size:13.5px;font-weight:600;white-space:nowrap;flex:1;min-width:140px;text-align:center;display:flex;align-items:center;justify-content:center}
+.mb:hover{background:#7ddbd6}
+.ir{background:#fff;border-top:1px solid #b8eeeb;padding:11px 13px;display:flex;gap:8px;align-items:flex-end}
+.ir textarea{flex:1;border:1.5px solid #9de8e4;border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;resize:none;outline:none;line-height:1.5;max-height:80px;overflow-y:auto;color:#111}
+.sb{width:38px;height:38px;background:#5bcdc7;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb:disabled{background:#94a3b8;cursor:not-allowed}
+.side{width:245px;background:#f8fafc;border-left:1px solid #b8eeeb;display:flex;flex-direction:column;overflow:hidden}
+.sh{background:#e8f8f6;border-bottom:1px solid #b8eeeb;padding:11px 13px;font-size:12.5px;font-weight:600;color:#111;display:flex;align-items:center}
+.sc{background:#5bcdc7;color:#111;border-radius:10px;padding:1px 7px;font-size:10.5px;margin-left:auto}
+.sl{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px;font-size:12px;color:#94a3b8;text-align:center}
+.eb{font-family:inherit;margin:9px;background:#5bcdc7;color:#111;border:none;border-radius:8px;padding:8px;font-size:12px;cursor:pointer}
+.ft{background:#5bcdc7;border-radius:0 0 10px 10px;padding:7px 16px;display:flex;justify-content:space-between;font-size:11px;color:#111}
+.bk-form{background:#fff;border:2px solid #5bcdc7;border-radius:12px;padding:16px;margin-top:8px;font-size:13px}
+.bk-form h3{color:#111;font-size:14px;margin-bottom:12px}
+.bk-row{margin-bottom:10px}
+.bk-label{display:block;font-size:11.5px;font-weight:600;color:#333;margin-bottom:3px}
+.bk-input{width:100%;border:1.5px solid #9de8e4;border-radius:7px;padding:7px 10px;font-size:13px;font-family:inherit;outline:none;color:#111}
+.bk-input:focus{border-color:#5bcdc7}
+.bk-select{width:100%;border:1.5px solid #9de8e4;border-radius:7px;padding:7px 10px;font-size:13px;font-family:inherit;outline:none;color:#111;background:#fff}
+.bk-row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bk-check{display:flex;align-items:center;gap:6px;margin-bottom:8px;cursor:pointer;font-size:13px;color:#111}
+.bk-check input{width:15px;height:15px;accent-color:#5bcdc7}
+.bk-submit{background:#5bcdc7;color:#111;border:none;border-radius:8px;padding:10px 20px;font-size:13.5px;font-weight:600;cursor:pointer;width:100%;margin-top:4px;font-family:inherit}
+.bk-cancel{background:none;border:1px solid #9de8e4;color:#333;border-radius:8px;padding:8px 16px;font-size:12px;cursor:pointer;width:100%;margin-top:6px;font-family:inherit}
+.bk-success{background:#f0fdf4;border:2px solid #16a34a;border-radius:12px;padding:16px;margin-top:8px;text-align:center}
+.bk-success h3{color:#15803d;margin-bottom:6px}
+.bk-success p{font-size:12.5px;color:#166534}
+.bk-note{background:#fef9c3;border:1px solid #fcd34d;border-radius:6px;padding:7px 10px;font-size:11.5px;color:#92400e;margin-bottom:10px}
+.contact-toggle{display:none}
+.bk-needs{background:#fffbeb!important;border-color:#f59e0b!important;}
+.bk-filled{background:#f0fdf4!important;border-color:#86efac!important;}
+@media(max-width:600px){.side{display:none}}
 </style>
+<script>
+function initGoogleMaps(){
+  if(!window.google||!window.google.maps||!window.google.maps.places) return;
+  var inputs=document.querySelectorAll(".bk-addr-input");
+  inputs.forEach(function(input){
+    if(input.dataset.autocomplete) return;
+    input.dataset.autocomplete="true";
+    var ac=new window.google.maps.places.Autocomplete(input,{
+      componentRestrictions:{country:"us"},
+      fields:["formatted_address"],
+      types:["address"]
+    });
+    ac.addListener("place_changed",function(){
+      var place=ac.getPlace();
+      if(place&&place.formatted_address) input.value=place.formatted_address;
+    });
+  });
+}
+window.initGoogleMaps=initGoogleMaps;
+</script>
 </head>
 <body>
 <div class="wrap">
-  <div class="banner">
-    <div style="display:flex;align-items:center;gap:8px">
-      <span class="banner-badge">Internal Beta</span>
-      <span class="banner-label">Kay – Kashian Bros AI · Test &amp; Feedback Mode</span>
-    </div>
-    <input id="tester-name" placeholder="Your name (tester)"/>
-  </div>
-  <div class="main">
-    <div class="chat">
-      <div class="chat-header">
-        <div class="avatar">🧹</div>
-        <div>
-          <div class="chat-title">Kay — Kashian Bros</div>
-          <div class="chat-sub">Family-owned since 1910 · North Shore Chicago</div>
-        </div>
-        <div class="online"></div>
-      </div>
-      <div class="messages" id="messages"></div>
-      <div class="quick-replies" id="quick-replies">
-        <button class="qr" onclick="send('Can you clean my rug in my home?')">Can you clean my rug in my home?</button>
-        <button class="qr" onclick="send('How much does rug cleaning cost?')">How much does rug cleaning cost?</button>
-        <button class="qr" onclick="send('How much is a rug pad?')">How much is a rug pad?</button>
-        <button class="qr" onclick="send('My dog had an accident on my rug')">My dog had an accident on my rug</button>
-        <button class="qr" onclick="send('Tell me about wood floor refinishing')">Tell me about wood floor refinishing</button>
-        <button class="qr" onclick="send('I spilled red wine — what do I do?')">I spilled red wine — what do I do?</button>
-      </div>
-      <div class="input-row">
-        <textarea id="input" placeholder="Ask Kay anything…" rows="1"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send(document.getElementById('input').value)}"></textarea>
-        <button class="send-btn" id="send-btn" onclick="send(document.getElementById('input').value)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="sidebar">
-      <div class="sidebar-header">📋 Tester Feedback <span class="fb-count" id="fb-count">0</span></div>
-      <div class="fb-list" id="fb-list">
-        <div class="fb-empty">No feedback yet.<br><br>👍 mark correct answers<br>👎 flag wrong answers<br>🚩 add a note</div>
-      </div>
-      <button class="export-btn" onclick="exportFeedback()">⬇ Export Feedback Report</button>
-    </div>
-  </div>
-  <div class="footer">
-    <span>kashianbros.com · (847) 251-1200 · info@kashianbros.com</span>
-    <span id="msg-count">1 message</span>
-  </div>
+<div class="banner"><div style="display:flex;align-items:center;gap:8px"><span class="badge">Internal Beta</span><span class="lbl">Kay - Kashian Bros AI - Test and Feedback Mode</span></div><input id="tn" placeholder="Your name (tester)"/></div>
+<div class="main">
+<div class="chat">
+<div class="hdr"><div class="av">&#x1F9F9;</div><div><div class="ht">Kay - Kashian Bros</div><div class="hs">Flooring, Remodeling &amp; Cleaning Services - North Shore Chicago</div></div><div class="dot"></div></div>
+<div class="msgs" id="msgs"></div>
+<div class="qr" id="qw"></div>
+<div class="ir"><textarea id="inp" rows="1" placeholder="Ask Kay anything..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send(this.value)}"></textarea><button class="sb" id="sb" onclick="send(document.getElementById('inp').value)"><svg width="16" height="16" viewBox="0 0 24 24" fill="#111"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div>
+</div>
+<div class="side"><div class="sh">Tester Feedback <span class="sc" id="fc">0</span></div><div class="sl" id="fl">No feedback yet.<br><br>Good = correct<br>Fix = wrong<br>Note = add comment</div><button class="eb" onclick="exportFb()">Export Feedback Report</button></div>
+</div>
+<div class="ft"><span>kashianbros.com - (847) 251-1200 - info@kashianbros.com</span><span id="mc">1 message</span></div>
 </div>
 <script>
-const SYSTEM_PROMPT = `You are Kay, a warm and knowledgeable customer service representative for Kashian Bros — a family-owned floor covering and cleaning company serving the North Shore of Chicago since 1910. Speak with genuine warmth and real expertise — like a trusted team member who loves this company, not a scripted FAQ bot. Use "we" and "our team" naturally. Never be salesy — be genuinely helpful first.
-
-## TONE & PERSONALITY
-Warm, friendly, conversational, expert, honest. Ask follow-up questions when it helps. Never make customers feel their question is too basic. For stain emergencies, respond with calm urgency and give steps immediately. Kashian Bros motto: "Love Your Floors and Home for Life."
-
-## ABOUT KASHIAN BROS
-Founded 1910 by Armenian immigrant brothers Haig and Greg Kashian. Current owner: Doug Stein (since 2006). Voted NextDoor Neighborhood Favorite, 81 recommendations, 40+ five-star Google reviews. We never send work to third parties — everything is done by our own trained team.
-- WILMETTE: 1107 Greenleaf Ave, Wilmette IL 60091 | Mon-Fri 8:30am-5pm, Sat 10am-3pm | (847) 251-1200
-- LAKE FOREST: 838 N. Western Ave, Lake Forest IL 60045 | Mon-Fri 9am-5pm, Sat 10am-3pm | (847) 295-3737
-- MAIN: (847) 80-STAIN = (847) 807-8246 | info@kashianbros.com
-
-## CRITICAL RULES
-
-**1. RUG DROP-OFF SIZE RULE**
-NEVER mention Evanston to customers. When a customer asks about drop-off, always check their rug size:
-- Rug 5x8 or smaller (40 sq ft or less) → Wilmette OR Lake Forest (customer must carry it in at Lake Forest)
-- Rug larger than 5x8 (over 40 sq ft) → Wilmette ONLY, or pickup. Do NOT suggest Lake Forest.
-
-**2. IN-HOME RUG CLEANING — WE OFFER THIS SERVICE**
-We DO clean area rugs in the customer's home. Always confirm this first, then qualify the rug.
-Qualifying conditions (ALL four must be met): 1) Has a rug pad. 2) No border. 3) No fringe. 4) Not sisal or seagrass.
-If no rug pad → offer to sell one. If any condition fails → suggest plant cleaning warmly.
-IN-HOME PRICING: $2.00/sq ft — specifically for in-home rug cleaning only. $199 minimum.
-Always proactively recommend fiber protectant ($2.00/sq ft) and enzyme treatment for pets ($2.00/sq ft).
-PLANT VS IN-HOME: Our plant delivers a significantly deeper clean. In-home is great for maintenance, but the plant process — sonic vibration, rotary scrubbing both sides, 3,000 RPM centrifuge, controlled dry room — is truly in a different league. For heavily soiled, pet-affected, or heirloom rugs, always recommend the plant.
-
-**3. RUG PAD PRICING — ALWAYS CALCULATE**
-Always ask: rug size or pad size? Pad is cut 2" shorter in both dimensions.
-Roll widths: 6ft and 12ft — pick whichever gives LOWER price.
-- Pad width 6'0" or less → 6ft roll | 6'1"-12' → 12ft roll | Over 12' → seam at $2/sq ft actual area
-- Round UP at 6"+ for pricing only. Price = roll width x rounded pad length x $2.00. $48 minimum.
-- Default: FIRMGRIP. Thin Solid Rubber only for door clearance concerns.
-Examples: 9x12 → pad 8'10"x11'10" → 12ft roll → 12x12x$2=$288 | 6x9 → pad 5'10"x8'10" → 6ft roll → 6x9x$2=$108
-
-**4. CARPET CLEANING PRICING**
-$0.75/sq ft | Stairs $12/stair | Fiber protectant $0.35/sq ft | Enzyme treatment $0.35/sq ft | $199 minimum
-Round up at 6"+. Charged for ACTUAL room size. Dries in 4-6 hours. Re-clean guarantee. Eco-friendly.
-Service area: Wilmette, Kenilworth, Winnetka, Glencoe, Highland Park, Deerfield, Northbrook, Glenview, Evanston, Skokie, Northfield, Lake Forest, Lake Bluff, surrounding North Shore.
-
-**5. UPHOLSTERY PRICING**
-Sofa/loveseat/sectional: $35/linear ft (full width including arms) | Chair: $100 | Wing chair: $70 | Ottoman: $75 | Dining chair: $40 | Pillows: $15 | $199 minimum | Round up at 6"+
-
-## AREA RUG CLEANING (PLANT)
-Drop-off: $3.25/sq ft | Pickup & delivery: $4.00/sq ft | $199 minimum per pickup visit
-Fringe included in measurement. Round up at 6"+. Turnaround: 7-10 days.
-10-step process: inspection → sonic vibration → enzyme soak (pets) → shampoo → rotary scrubbing both sides → hand fringe cleaning → rinse → centrifuge 3,000 RPM → dry room → final inspection.
-Pet odor removal GUARANTEED. Stain removal not guaranteed. 0% VOC products.
-
-## WOOD FLOOR REFINISHING
-Kashian Bros is a leader in wood floor refinishing.
-
-FURNITURE — CRITICAL: We move ALL furniture ourselves. Customers NEVER need to move furniture, hire movers, or use storage pods. NEVER suggest any of those things. Our crew documents furniture placement, moves everything to available rooms within the home, sands and finishes the first half of the floor completely, then moves furniture onto the finished floor and completes the second half. Everything returned to exact original spot. We work in older North Shore homes with smaller rooms all the time. Our crews are careful and respectful. We have done this in hundreds of homes and always find a way.
-
-STAYING HOME: Customers do NOT need to move out. Dust-free, non-toxic, low-odor. Kids and pets can stay home.
-
-PROCESS: We sand floors down to bare wood using Dust Free sanding equipment — clean process, no mess. Apply new stain if desired, or keep natural wood tone. Multiple coats of water-based polyurethane finish.
-
-STAIN: Showroom samples as starting point. After sanding, stains applied to actual floor for final approval. Light to dark espresso range.
-
-FINISH: Water-based polyurethane only — dries faster, clearer, less odor, won't yellow, most durable on market.
-
-REPAIRS: Replace damaged boards, fix squeaks, seamless matching to existing floor. Can make floors lighter — no need to replace.
-
-ENGINEERED/LAMINATE: Engineered may be refinishable depending on wear layer. Laminate CANNOT be refinished.
-
-PRICING: Free in-home estimate always. Never quote per sq ft. Always close with: "The best first step is a free in-home estimate — one of our flooring experts will come out, assess your floors, and give you a detailed quote. No charge, no obligation. Would you like to schedule one?"
-
-## KITCHEN & BATHROOM REMODELING
-Full-service general contractor. Free consultation always the first step. Dedicated project manager for every job. Transparent pricing and timelines. Handles electrical, plumbing, paint, wallpaper, all finishing touches. On time and on budget.
-
-KITCHEN: Full renovations or partial updates. Cabinets, countertops, backsplash, hardware, flooring, appliances. Can paint existing cabinets. J&K Cabinetry (solid wood stock) and KB Custom Cabinetry (Amish handcrafted). Countertops: Cambria, Caesarstone, Raphael Stone. Hardware: HAFELE and Schaub (European).
-
-BATHROOM: Full renovations or targeted upgrades. Vanity, countertops, backsplash, hardware, shower, tub, mirrors, flooring, lighting, electrical, plumbing, paint, wallpaper. Accessibility design available.
-
-PRICING: Always free consultation and custom quote. Offer: "The best first step is a free in-home consultation — our team will visit, discuss your vision, and provide a transparent budget. No charge, no obligation."
-
-## VINYL FLOORING
-Luxury vinyl plank that looks and feels like hardwood. Water resistant, scratch resistant, easy maintenance. Perfect for basements, laundry rooms, mudrooms, bathrooms, commercial spaces.
-TWO MAIN BRANDS: CORETEC (leading brand, widest selection, not made in USA — our primary brand) and ENGINEERED FLOORS (made 100% in USA).
-Sell and install in residential and commercial spaces including high-rises. Visit Wilmette or Lake Forest showroom.
-
-## CARPET & AREA RUG SALES
-Full-service carpet showroom — sell and install carpet, area rugs, stair runners.
-Custom carpet, in-stock carpets (cut and bound quickly), quick-ship area rugs (ships US in 2-3 days), custom area rugs (exact size, full customization). Online shop: kashianbros.com.
-BRANDS: Give a warm general answer about world-class selection without listing brands. If asked about a SPECIFIC brand, check: Crescent, Rosecore, Stanton, Hibernia, Antrim, Cavan, Unique, Fibreworks, Kaleen, Home & Porch, Hook & Beam, PureLife, Design Materials, Saxony, Silver Creek, Bloomsburg, Radicci, Bellbridge, Missoni, Mantra, Prestige, Weave-Tuft, Ashley Stark Home, Couristan, Fabrica, Masland, Dixie Home, Wool Solutions, Ulster, Nourison, Nourtex, Hagaman, JMish/Riviera, Cella, Katha Living, Harcourt, Rebel, Roger Oates, Rumi, Momeni, Tuftex, Milliken, Dreamweaver, Aladdin Commercial, J&J Flooring, EF Contract, Philadelphia Commercial, Shaw. Note: Tuftex is a Shaw brand.
-
-## COMMERCIAL SERVICES
-Commercial carpet cleaning and flooring installation in offices, buildings, and high-rises.
-High-rise carpet cleaning: portable equipment used (standard practice, same great results).
-Commercial flooring: carpet, vinyl, wood installation including high-rises.
-Pricing: always custom quote — call (847) 251-1200 or email info@kashianbros.com.
-
-## RUG REPAIR & RESTORATION
-100+ years repairing fine oriental and area rugs.
-FRINGE REPLACEMENT: $21.00/linear ft. Both ends. Width x 2 x $21.00. $125 minimum.
-- 9x12 → 9x2x$21=$378 | 4x6 → 4x2x$21=$168 | 2x3 → $84 → minimum → $125
-RESIZE: Custom-size to eliminate damage or fit new space.
-STORAGE: Moth-proof, wrap, store. Cut pad to size.
-CARPET REPAIR: We repair carpet too. George Gallaga is our Field Estimator & Repairs specialist.
-ALL OTHER REPAIRS: In-person assessment + written quote before any work begins.
-
-## STAIN FIRST AID
-Always blot (never scrub), work outside-in.
-- Pet: blot → warm water → dish soap + white vinegar → blot multiple rounds → towel + weight
-- Wine: blot immediately → club soda → keep going while color transfers
-- Coffee: blot → club soda edges inward
-- Mud: let dry COMPLETELY → brush one direction → vacuum → warm water + dish soap
-- Blood/grass: COLD water only, enzyme cleaner, blot gently
-- Oil: mineral spirits on towel, blot → hot water + dish soap
-Stain Library: kashianbros.com/stain-library | First Aid: kashianbros.com/stain-first-aid
-
-## GENERAL
-Always give price AND minimum. Unknown questions: give phone/email. Persian/oriental/wool/heirloom rugs: treat with special reverence.`;
-
-let history = [], feedbackLog = [], msgCount = 1;
-
-function nl2html(t) {
-  return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').split('\n').map(l=>{
-    const b=l.match(/^[-•]\s+(.*)/);
-    return b?`<li>${b[1]}</li>`:(l.trim()?`<p>${l}</p>`:'');
-  }).join('').replace(/(<li>.*?<\/li>)+/gs,m=>`<ul>${m}</ul>`);
-}
-
-function addMsg(role, content, id) {
-  const msgs = document.getElementById('messages');
-  const isBot = role==='assistant';
-  const d = document.createElement('div');
-  d.className=`msg-row ${isBot?'bot':'user'} msg-anim`;
-  d.id=`msg-${id}`;
-  d.innerHTML=`
-    <div class="msg-icon ${isBot?'bot':'user'}">${isBot?'🧹':'👤'}</div>
-    <div style="max-width:100%">
-      <div class="bubble ${isBot?'bot':'user'}">${isBot?nl2html(content):`<p>${content}</p>`}</div>
-      ${isBot&&id>0?`
-      <div class="fb-row">
-        <button class="fb-btn fb-good" onclick="thumb(${id},'good','${encodeURIComponent(content.substring(0,120))}')">👍 Good</button>
-        <button class="fb-btn fb-bad" onclick="thumb(${id},'bad','${encodeURIComponent(content.substring(0,120))}')">👎 Fix</button>
-        <button class="fb-btn fb-note" id="fbn-${id}" onclick="toggleNote(${id},'${encodeURIComponent(content.substring(0,120))}')">🚩 Add note</button>
-      </div>
-      <div id="nb-${id}" style="display:none">
-        <div class="note-box">
-          <div class="note-label" id="nl-${id}">Add a note:</div>
-          <textarea id="nt-${id}" rows="3" placeholder="Type your correction or note…"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitNote(${id},'${encodeURIComponent(content.substring(0,120))}')}"></textarea>
-          <div class="note-actions">
-            <button class="note-submit" onclick="submitNote(${id},'${encodeURIComponent(content.substring(0,120))}')">Submit</button>
-            <button class="note-cancel" onclick="document.getElementById('nb-${id}').style.display='none'">Cancel</button>
-            <span class="note-hint">or press Enter</span>
-          </div>
-        </div>
-      </div>`:''}
-    </div>`;
-  msgs.appendChild(d);
-  msgs.scrollTop=msgs.scrollHeight;
-  msgCount++;
-  document.getElementById('msg-count').textContent=msgCount+' messages';
-}
-
-function addTyping() {
-  const msgs=document.getElementById('messages');
-  const d=document.createElement('div');
-  d.className='msg-row bot'; d.id='typing';
-  d.innerHTML=`<div class="msg-icon bot">🧹</div><div class="typing"><div class="dot" style="animation-delay:0s"></div><div class="dot" style="animation-delay:.2s"></div><div class="dot" style="animation-delay:.4s"></div></div>`;
-  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
-}
-
-function getLastQ(){const f=[...history].reverse().find(m=>m.role==='user');return f?f.content.substring(0,80):'';}
-
-function thumb(id, type, enc) {
-  const btn=document.querySelector(`#msg-${id} .fb-${type}`);
-  const active=btn.classList.contains('active');
-  document.querySelectorAll(`#msg-${id} .fb-good,#msg-${id} .fb-bad`).forEach(b=>b.classList.remove('active'));
-  if(!active){
-    btn.classList.add('active');
-    if(type==='bad'){document.getElementById(`nb-${id}`).style.display='block';document.getElementById(`nl-${id}`).textContent='What should Kay have said?';setTimeout(()=>document.getElementById(`nt-${id}`).focus(),50);}
-    addFb({type,msgId:id,question:getLastQ(),answer:decodeURIComponent(enc),note:''});
-  }
-}
-
-function toggleNote(id,enc){
-  const box=document.getElementById(`nb-${id}`);
-  const open=box.style.display!=='none';
-  box.style.display=open?'none':'block';
-  if(!open)setTimeout(()=>document.getElementById(`nt-${id}`).focus(),50);
-}
-
-function submitNote(id,enc){
-  const txt=document.getElementById(`nt-${id}`).value.trim();
-  if(!txt)return;
-  addFb({type:'note',msgId:id,question:getLastQ(),answer:decodeURIComponent(enc),note:txt});
-  document.getElementById(`nb-${id}`).style.display='none';
-  document.getElementById(`nt-${id}`).value='';
-  const btn=document.getElementById(`fbn-${id}`);
-  btn.textContent='🚩 Note added ✓'; btn.classList.add('active');
-}
-
-function addFb(entry){
-  entry.tester=document.getElementById('tester-name').value||'Anonymous';
-  entry.time=new Date().toLocaleTimeString();
-  feedbackLog=feedbackLog.filter(f=>!(f.msgId===entry.msgId&&f.type===entry.type));
-  feedbackLog.push(entry); renderFb();
-}
-
-function renderFb(){
-  const list=document.getElementById('fb-list');
-  document.getElementById('fb-count').textContent=feedbackLog.length;
-  if(!feedbackLog.length){list.innerHTML='<div class="fb-empty">No feedback yet.<br><br>👍 mark correct answers<br>👎 flag wrong answers<br>🚩 add a note</div>';return;}
-  const colors={good:'#16a34a',bad:'#dc2626',note:'#ca8a04'};
-  const labels={good:'👍 Correct',bad:'👎 Needs fix',note:'🚩 Note'};
-  list.innerHTML=[...feedbackLog].reverse().map(f=>`
-    <div class="fb-item" style="border-left:3px solid ${colors[f.type]}">
-      <div style="font-size:10px;color:#94a3b8;margin-bottom:3px;display:flex;justify-content:space-between">
-        <span style="font-weight:600;color:${colors[f.type]}">${labels[f.type]}</span><span>${f.tester}</span>
-      </div>
-      ${f.question?`<div style="color:#64748b;font-style:italic;font-size:11px;margin-bottom:3px">"${f.question}"</div>`:''}
-      <div style="color:#1e293b">${f.note||f.answer+'...'}</div>
-    </div>`).join('');
-}
-
-function exportFeedback(){
-  if(!feedbackLog.length){alert('No feedback to export yet.');return;}
-  const tester=document.getElementById('tester-name').value||'Anonymous';
-  let txt=`KASHIAN BROS — KAY AI CHATBOT FEEDBACK REPORT\nExported: ${new Date().toLocaleString()}\nTester: ${tester}\nTotal: ${feedbackLog.length}\n\n${'─'.repeat(60)}\n\n`;
-  feedbackLog.forEach((f,i)=>{
-    const label={good:'✅ CORRECT',bad:'❌ NEEDS FIX',note:'🚩 NOTE'}[f.type];
-    txt+=`[${i+1}] ${label} — ${f.tester} at ${f.time}\n`;
-    if(f.question)txt+=`Asked: "${f.question}"\n`;
-    txt+=f.note?`Correction: ${f.note}\n`:`Response: ${f.answer}...\n`;
-    txt+='\n';
-  });
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
-  a.download=`KashianBros_Kay_Feedback_${new Date().toISOString().slice(0,10)}.txt`;
-  a.click();
-}
-
-async function send(text){
-  if(!text||!text.trim())return;
-  document.getElementById('quick-replies').style.display='none';
-  document.getElementById('input').value='';
-  document.getElementById('send-btn').disabled=true;
-  const id=msgCount;
-  addMsg('user',text,id);
-  history.push({role:'user',content:text});
-  addTyping();
+var SP="You are Kay, a warm expert customer service rep for Kashian Bros, family-owned floor covering, Remodeling and cleaning company serving North Shore Chicago since 1910. Genuine warmth, real expertise. Use we and our team naturally. All text responses should use plain readable language - no markdown formatting like asterisks or pound signs.\n\nABOUT: Founded 1910 by Haig and Greg Kashian. Owner Doug Stein since 2006. NextDoor Neighborhood Favorite.\nWILMETTE: 1107 Greenleaf Ave Wilmette IL 60091 Mon-Fri 8:30am-5pm Sat 10am-3pm (847) 251-1200\nLAKE FOREST: 838 N Western Ave Lake Forest IL 60045 Mon-Fri 9am-5pm Sat 10am-3pm (847) 295-3737\nPHONE: Always write the cleaning number exactly as (847) 80-Stain - never convert it to digits. Use (847) 80-Stain ONLY for cleaning services. Use (847) 251-1200 for all other topics. EMAIL: info@kashianbros.com\n\nBUSINESS HOURS - CRITICAL: We are CLOSED all day Sunday. We are CLOSED Saturday after 3pm. Never offer or suggest Sunday or Saturday after 3pm for any service.\n\nDROP-OFF: Customers can drop off rugs OR upholstery at our WILMETTE LOCATION ONLY (1107 Greenleaf Ave) - no appointment needed. Never mention Evanston for drop-off. Rug 5x8 or under can be dropped at Wilmette. Rug over 5x8 Wilmette only or we can do pickup. For upholstery drop-off, Wilmette only, no appointment needed. Always mention Wilmette is the only drop-off location.\n\nIN-HOME RUG CLEANING: We DO offer this. Qualify: needs rug pad no border no fringe not sisal seagrass. Price $2 per sqft IN-HOME ONLY $199 min. Fiber protectant $2 per sqft. Enzyme for pets $2 per sqft. Plant cleaning is deeper sonic vibration rotary scrubbing 3000 RPM centrifuge dry room.\n\nRUG PAD: Ask rug or pad size. Pad 2 inches shorter each dimension. 6ft roll if pad 6ft or under. 12ft roll if pad 6-12ft. Price = roll width x length x $2. $48 min. Default FIRMGRIP.\nExamples: 9x12 rug 12ft roll 12x12x2=$288. 6x9 rug 6ft roll 6x9x2=$108. 5x8 rug 6ft roll 6x8x2=$96.\n\nCARPET CLEANING: NEVER quote any prices or dollar amounts for carpet cleaning. Pricing is done on-site by the crew before starting. $199 minimum applies. Add-ons (fiber protectant, enzyme treatment for pets) exist but do NOT quote their price.\n\nUPHOLSTERY: Sofa loveseat sectional $35 per linear ft. Chair $100. Wing chair $70. Ottoman $75. Dining chair $40. Pillows $15. $199 min.\n\nRUG PLANT: Drop-off $3.25 per sqft. Pickup delivery $4.00 per sqft. $199 min per pickup. 7-10 days.\n\nWOOD FLOORS: We are a leader. We move ALL furniture ourselves never pods never movers. First half floor completely then move furniture onto finished floor complete second half. Everything back in original spot. Dust Free sanding. Water-based polyurethane only. Stains light to dark espresso applied to actual floor for approval. Free in-home estimate always.\n\nREMODELING: Full service kitchen and bathroom. Free consultation. Dedicated project manager. J and K Cabinetry and KB Custom Amish. Countertops Cambria Caesarstone Raphael Stone. Hardware HAFELE and Schaub.\n\nVINYL: CORETEC leading brand not USA made. ENGINEERED FLOORS made in USA. Water resistant scratch resistant.\n\nCARPET SALES: Custom in-stock quick-ship rugs online at kashianbros.com.\n\nCOMMERCIAL: High-rise uses portable equipment standard practice.\n\nRUG REPAIR: Fringe $21 per ft both ends width x 2 x $21 $125 min.\n\nSTAIN: Blot never scrub. Pet blot warm water dish soap vinegar. Wine blot club soda. Mud let dry first. Blood cold water.\n\nFULL PRODUCTS AND SERVICES LIST: If a customer asks whether we offer any of the following, confirm yes we do and invite them to call (847) 251-1200 or visit a showroom for details and pricing.\n\nSOFT SURFACE MATERIALS: Carpet types including Cut Pile (Saxony, Textured Plush, Frieze/Shag), Loop Pile (Level Loop, Multi Level Loop, Cut and Loop), and Flatweave. Fibers including Wool, Wool Blends, Nylon, Polyester, Olefin, Seagrass, Sisal. Patterns including Stripes, Herringbone, Greek Key, Plaid, Animal Print, Geometric, All Over Design, Star, Trellis/Diamond, Striae, Floral, Basket Weave. Commercial Carpet including Broadloom and Carpet Tiles. Custom Area Rugs in Rectangle, Round, Oval, Custom Shapes, and Animal Skin Hides. Rug Pads including FirmGrip Non-Slip and Thin Solid for door clearance applications. Stair Runners wall-to-wall or with wood reveal, installed Waterfall or Hollywood style, finished with Regular Binding, Serging Tape, Machine Serging Thread, Hand Serging, or Wide Binding.\n\nHARD SURFACE MATERIALS: New 3/4 inch Solid and Engineered Unfinished Wood Flooring in Red Oak, White Oak, Maple, Walnut, and European Oak. Tile including Mosaic Backsplash in Natural Stone or Porcelain, and Porcelain Floor Tile. Luxury Vinyl in Wood Look Planks, Stone Look Planks, and Commercial Vinyl.\n\nREMODELING MATERIALS: Semi-Custom and Fully Custom Amish Crafted Cabinets. Countertops in Quartz and Natural Stone. Door Pull Hardware.\n\nCLEANING SERVICES: In-Home Carpet Cleaning. In-Home Upholstery Cleaning including Dining Room Chairs, Sofas and Sectionals, Headboards, Extra Pillows and Cushions, Outdoor Cushions. In-Home Area Rug Cleaning. Pickup and Re-Delivery of Area Rugs Cleaned In-Plant. Hard Surface Cleaning including Spray and Buff Hardwood Floors, Strip and Wax Vinyl Floors, Strip Wax and Seal Stone Floors. Flood Restoration. Commercial Cleaning for Carpet, Strip and Wax Vinyl, Strip Wax and Seal Natural Stone.\n\nAREA RUG SERVICES: New Fringe, Hand Wrap Edges, Overcast and Secure End of Rug, Mothproof and Wrap for Storage, Moth Freeze Remediation, Re-Weave Holes and Damaged Areas, Re-Size Large Rugs to Fit a Smaller Space, Apply Fiber Protectant, Deodorize Rugs, Enzyme Treatment for Pet Odor Removal, Monthly Storage in our Warehouse.\n\nCARPET REPAIR SERVICES: Re-Stretch Carpet, Repair Small Damaged Areas, Deodorize Carpet, Enzyme Treatment for Pet Odor Removal.\n\nWOOD FLOOR SERVICES: Sand and Refinish using our Dust Free Sanding System. Install New Wood Floors.\n\nKITCHEN AND BATH REMODELING: Design and Layout, Material Selection Assistance, Permits as Needed, Plumbing and Electrical, Cabinet Repainting for Kitchen Re-Fresh, Backsplash Installation, Shower Design and Installation, Faucet and Plumbing Fixture Installation, Wall Painting, New Flooring Installation, Glass Shower Door Installation.\n\nFor any of the above, if a customer asks for pricing, let them know pricing varies based on their specific needs and invite them to call (847) 251-1200 or stop by either showroom for a free consultation.\n\nBOOKING FORM RULES - CRITICAL:\nNEVER show the booking form automatically. ONLY show the booking form after the customer has explicitly confirmed they are ready to schedule by saying yes or similar confirmation.\n\nWhen a customer asks about scheduling, pricing, or asks a question:\n1. Answer their question or provide availability info first\n2. Then ask if they would like to schedule - for example: Would you like me to set that up for you?\n3. ONLY show the booking form AFTER they say yes or confirm they want to book\n\nWhen showing the booking form output exactly: [SHOW_BOOKING_FORM:X|name|phone|email|address|detail|date|time] filling in what you already know from the conversation including any city or location mentioned. X is CARPET, UPHOLSTERY, or RUG_PICKUP. Example: [SHOW_BOOKING_FORM:CARPET||||||||] Keep all pipes even if empty. NEVER ask the customer for their name, phone, email, or address in the chat - the booking form collects all of that. Just show the form.\n\nPRE-FILL LOCATION: If the customer has mentioned their city or address anywhere in the conversation, always pre-fill that into the address field of the booking form.\n\nSERVICE AREAS:\n- Standard (book directly): All North Shore - Wilmette, Kenilworth, Winnetka, Northfield, Glencoe, Highland Park, Lake Forest, Lake Bluff, Northbrook, Deerfield, Glenview, Evanston, Skokie and surrounding North Shore towns.\n- Chicago city: Tell customer our cleaning manager will personally handle their booking, then show form.\n- Other areas: Advise to call (847) 251-1200.\n\nSCHEDULING RULES - CRITICAL:\n\nALWAYS CHECK REAL-TIME CALENDAR - CRITICAL: You have access to real-time calendar availability above. You MUST check it EVERY time before agreeing to or confirming ANY date or time. Never say a time works without first verifying it appears as available in the calendar data. If the customer suggests a specific time like 9am Tuesday, check the calendar - if that slot is not listed as available, tell them it is booked and offer the next available slot from the calendar.\n\nCARPET AND UPHOLSTERY CLEANING (both use Truck 1 and Truck 2): Available EVERY weekday - Monday, Tuesday, Wednesday, Thursday AND Friday. ALL FIVE weekdays are working days. You MAY tell a customer a specific time slot is fully booked based on the real-time calendar. But NEVER say an entire weekday is unavailable - always check morning and afternoon separately. First job 9am. Last job starts 3pm (4pm for small jobs).\n\nRUG PICKUP AND DELIVERY - CRITICAL: TUESDAYS AND THURSDAYS ONLY - NO EXCEPTIONS. Never suggest any other day for rug pickup. Always check the real-time calendar to confirm the Tuesday or Thursday slot is available.\n\nNEVER QUOTE PRICES FOR CARPET OR UPHOLSTERY CLEANING. Pricing is done on-site. Just collect room info and give a time estimate.\n\nFor carpet cleaning ask which ROOMS need cleaning - never ask for square footage.\n\nTIME ESTIMATES - always give as a range:\nCARPET: Standard room no furniture 20-40 min. Standard room with furniture 35-60 min. Master bedroom with sitting area add 50%. Large basement double time. Small basement same as standard. Stairs 13-15 steps 20-30 min. In-home area rug 25-45 min. Heavily soiled double time. Minimum job 1 hour.\nUPHOLSTERY: Sectional 1.5-2.5 hrs. Sofa 1 hr. Chair 30 min each. Ottoman 20 min. Dining chair seat only multiple 10 min each. Dining chair seat only 1-2 chairs 20 min each. Dining chair full fabric 20 min each. Headboard or mattress 25-45 min.\nHARD SURFACE: Minimum 3 hours, estimate required first, scheduling after estimate.\nRUG PICKUP per stop: 1 rug 15 min. 2-3 rugs 25 min. 4-6 rugs 45 min. Rug over 10x15 add 15 min.\nDRIVE TIME: 10-15 min same town. 20-30 min between towns.\nLUNCH: 30 min around noon, always between jobs never during a job.\nBook as far out as desired.";
+var hist=[],fbLog=[],cnt=1,availCache=null,availFetched=false;
+var TODAY = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:'America/Chicago'});
+SP = "TODAY IS: "+TODAY+". Use this to understand relative terms like tomorrow, next week, this Friday etc.\n\n" + SP;
+async function loadGoogleMaps(){
   try{
-    const res=await fetch('/.netlify/functions/chat',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,system:SYSTEM_PROMPT,messages:history})
-    });
-    const data=await res.json();
-    const reply=data.content?.[0]?.text||"I'm sorry, I had trouble with that. Please call us at (847) 251-1200!";
-    document.getElementById('typing')?.remove();
-    history.push({role:'assistant',content:reply});
-    addMsg('assistant',reply,msgCount);
-  }catch(e){
-    document.getElementById('typing')?.remove();
-    addMsg('assistant',"I'm having trouble connecting. Please call (847) 251-1200 or email info@kashianbros.com!",msgCount);
-  }
-  document.getElementById('send-btn').disabled=false;
+    var r=await fetch("/.netlify/functions/mapskey");
+    var d=await r.json();
+    if(!d.key) return;
+    var s=document.createElement("script");
+    s.src="https://maps.googleapis.com/maps/api/js?key="+d.key+"&libraries=places&callback=initGoogleMaps";
+    s.async=true;
+    document.head.appendChild(s);
+  }catch(e){}
 }
-
-addMsg('assistant',"Hi there! I'm Kay from Kashian Bros — we've been caring for North Shore homes since 1910. Whether you need a rug cleaned, carpet or upholstery cleaning, wood floor refinishing, a rug pad, or have a stain emergency — I'm here to help. What can I do for you today?",0);
+loadGoogleMaps();
+async function fetchAvailability(){if(availFetched)return;availFetched=true;try{var r=await fetch('/.netlify/functions/availability');var d=await r.json();if(d.summary)availCache=d.summary;}catch(e){availCache=null;}}
+fetchAvailability();
+function mk(tag,cls,attrs){var el=document.createElement(tag);if(cls)el.className=cls;if(attrs)Object.keys(attrs).forEach(function(k){el.setAttribute(k,attrs[k]);});return el;}
+function nl2html(t){return t.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/#{1,3} (.*)/g,"<strong>$1</strong>").split("\n").map(function(l){var b=l.match(/^- (.*)/);return b?"<li>"+b[1]+"</li>":(l.trim()?"<p>"+l+"</p>":"");}).join("").replace(/(<li>.*?<\/li>)+/g,function(m){return"<ul>"+m+"</ul>";});}
+function getConfirmTiming(){var now=new Date(),day=now.getDay(),hr=now.getHours(),min=now.getMinutes(),tv=hr+min/60;if(day===0)return"Our team is closed today. Adolfo will confirm your booking first thing Monday morning.";if(day===6){if(tv<10)return"Our team opens at 10am on Saturdays. Adolfo will confirm your booking by then.";if(tv<15)return"Adolfo will confirm your booking within about an hour, before we close at 3pm today.";return"Our Saturday hours have ended. Adolfo will confirm your booking first thing Monday morning.";}if(tv<9)return"Our team starts at 9am. Adolfo will confirm your booking by then this morning.";if(tv<17)return"Adolfo will confirm your booking within about an hour, and always before 5pm today.";return"Our team has closed for the day. Adolfo will confirm your booking first thing tomorrow morning.";}
+function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime){var isRug=svc==="RUG_PICKUP",isCarpet=svc==="CARPET",lbl=isRug?"Rug Pickup and Delivery":(isCarpet?"Carpet Cleaning":"Upholstery Cleaning");var f=mk("div","bk-form");f.id="bkf-"+mid;var dtl=isRug?"<div class=\"bk-row\"><label class=\"bk-label\">Rug Size(s) *</label><input class=\"bk-input\" id=\"bk-detail-"+mid+"\" placeholder=\"e.g. 8x10 wool, 5x7 Persian\"/></div>":isCarpet?"<div class=\"bk-row-2\"><div class=\"bk-row\"><label class=\"bk-label\">Rooms to Clean *</label><input class=\"bk-input\" id=\"bk-detail-"+mid+"\" placeholder=\"e.g. 3 bedrooms\"/></div><div class=\"bk-row\"><label class=\"bk-label\">Stairs (if any)</label><input class=\"bk-input\" id=\"bk-stairs-"+mid+"\" placeholder=\"e.g. 14 stairs\"/></div></div>":"<div class=\"bk-row\"><label class=\"bk-label\">Items to Clean *</label><input class=\"bk-input\" id=\"bk-detail-"+mid+"\" placeholder=\"e.g. sofa, 2 chairs\"/></div>";f.innerHTML="<h3>Booking Request - "+lbl+"</h3><div class=\"bk-note\">Please fill in your details. Adolfo will confirm your appointment time.</div><div class=\"bk-row-2\"><div class=\"bk-row\"><label class=\"bk-label\">First and Last Name *</label><input class=\"bk-input\" id=\"bk-name-"+mid+"\" placeholder=\"Jane Smith\"/></div><div class=\"bk-row\"><label class=\"bk-label\">Phone Number *</label><input class=\"bk-input\" id=\"bk-phone-"+mid+"\" placeholder=\"(847) 555-1234\" type=\"tel\"/></div></div><div class=\"bk-row\"><label class=\"bk-label\">Email Address *</label><input class=\"bk-input\" id=\"bk-email-"+mid+"\" placeholder=\"you@email.com\" type=\"email\"/></div><div class=\"bk-row\"><label class=\"bk-label\">Full Address (include city) *</label><input class=\"bk-input\" id=\"bk-addr-"+mid+"\" placeholder=\"123 Main St, Wilmette, IL 60091\"/></div>"+dtl+"<div class=\"bk-row-2\"><div class=\"bk-row\"><label class=\"bk-label\">Preferred Date *</label><input class=\"bk-input\" id=\"bk-date-"+mid+"\" type=\"date\"/></div><div class=\"bk-row\"><label class=\"bk-label\">Time Preference</label><select class=\"bk-select\" id=\"bk-time-"+mid+"\"><option value=\"Morning\">Morning</option><option value=\"Afternoon\">Afternoon</option><option value=\"No preference\">No preference</option></select></div></div><div class=\"bk-row\"><label class=\"bk-check\"><input type=\"checkbox\" id=\"bk-self-"+mid+"\" onchange=\"toggleContact('"+mid+"',this.checked)\" checked/> I will be there to let your crew in</label></div><div id=\"bk-contact-box-"+mid+"\" class=\"contact-toggle\"><div class=\"bk-note\" style=\"margin-bottom:8px\">Provide the contact who will let our crew in:</div><div class=\"bk-row-2\"><div class=\"bk-row\"><label class=\"bk-label\">Contact Name *</label><input class=\"bk-input\" id=\"bk-cname-"+mid+"\" placeholder=\"On-site contact name\"/></div><div class=\"bk-row\"><label class=\"bk-label\">Contact Phone *</label><input class=\"bk-input\" id=\"bk-cphone-"+mid+"\" placeholder=\"Their phone number\"/></div></div></div><div class=\"bk-row\"><label class=\"bk-label\">Pets in the home?</label><select class=\"bk-select\" id=\"bk-pets-"+mid+"\"><option value=\"None\">No pets</option><option value=\"Dogs\">Dog(s)</option><option value=\"Cats\">Cat(s)</option><option value=\"Dogs and cats\">Dogs and cats</option><option value=\"Other\">Other pets</option></select></div><div class=\"bk-row\"><label class=\"bk-label\">Additional Notes</label><textarea class=\"bk-input\" id=\"bk-notes-"+mid+"\" rows=\"2\" placeholder=\"Anything else we should know...\" style=\"resize:vertical\"></textarea></div><button class=\"bk-submit\" onclick=\"submitBooking('"+mid+"','"+svc+"','"+lbl+"')\">Send Booking Request</button><button class=\"bk-cancel\" onclick=\"cancelBooking('"+mid+"')\">Never mind, I will call instead</button>";setTimeout(function(){var flds=[["bk-name-"+mid,pName],["bk-phone-"+mid,pPhone],["bk-email-"+mid,pEmail],["bk-addr-"+mid,pAddr],["bk-detail-"+mid,pDetail]];flds.forEach(function(pair){var el=document.getElementById(pair[0]);if(!el)return;if(pair[1]){el.value=pair[1];el.classList.add("bk-filled");}else{el.classList.add("bk-needs");}});if(pDate){var mo={"january":"01","february":"02","march":"03","april":"04","may":"05","june":"06","july":"07","august":"08","september":"09","october":"10","november":"11","december":"12"};var dp=pDate.toLowerCase().replace(/,/g,"").split(" ");var mKey=dp[0];var mVal=mo[mKey];var dy=dp[1]?dp[1].replace(/\D/g,""):"";var yr=dp[2]||new Date().getFullYear()+"";if(mVal&&dy){var dEl=document.getElementById("bk-date-"+mid);if(dEl){dEl.value=yr+"-"+mVal+"-"+(dy.length===1?"0"+dy:dy);dEl.classList.add("bk-filled");}}}if(pTime){var tEl=document.getElementById("bk-time-"+mid);if(tEl){var tl=pTime.toLowerCase();tEl.value=tl.indexOf("morning")>-1?"Morning":tl.indexOf("afternoon")>-1?"Afternoon":"No preference";tEl.classList.add("bk-filled");}}},80);return f;}
+function toggleContact(id,checked){var b=document.getElementById("bk-contact-box-"+id);b.style.display=checked?"none":"block";}
+function cancelBooking(id){var f=document.getElementById("bkf-"+id);if(f)f.innerHTML="<p style=\"color:#333;font-size:13px\">No problem! Call us at <strong>(847) 251-1200</strong> or email <strong>info@kashianbros.com</strong>!</p>";}
+function submitBooking(mid,svc,lbl){var name=document.getElementById("bk-name-"+mid).value.trim(),phone=document.getElementById("bk-phone-"+mid).value.trim(),email=document.getElementById("bk-email-"+mid).value.trim(),addr=document.getElementById("bk-addr-"+mid).value.trim(),detail=document.getElementById("bk-detail-"+mid).value.trim(),stEl=document.getElementById("bk-stairs-"+mid),stairs=stEl?stEl.value.trim():"",date=document.getElementById("bk-date-"+mid).value,time=document.getElementById("bk-time-"+mid).value,selfP=document.getElementById("bk-self-"+mid).checked,pets=document.getElementById("bk-pets-"+mid).value,notes=document.getElementById("bk-notes-"+mid).value.trim(),cnEl=document.getElementById("bk-cname-"+mid),cpEl=document.getElementById("bk-cphone-"+mid),cname=selfP?"":(cnEl?cnEl.value.trim():""),cphone=selfP?"":(cpEl?cpEl.value.trim():"");if(!name||!phone||!email||!addr||!detail||!date){alert("Please fill in all required fields.");return;}if(!selfP&&(!cname||!cphone)){alert("Please provide the on-site contact, or check that you will be there yourself.");return;}var isChicago=/\bchicago\b/i.test(addr);var truck=svc==="CARPET"?"Truck 1 or Truck 2 - Hard Surface Calendar":svc==="UPHOLSTERY"?"Truck 1 preferred - Hard Surface Calendar":"Rug Pickup Calendar - Tues and Thurs only";var dd=date?new Date(date+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"}):"Not specified";var eb="NEW BOOKING - KASHIAN BROS KAY\nSERVICE: "+lbl+"\nCALENDAR: "+truck+"\n"+(isChicago?"*** CHICAGO - Adolfo must book manually ***\n":"")+"\nName: "+name+"\nPhone: "+phone+"\nEmail: "+email+"\nAddress: "+addr+"\n"+(svc==="CARPET"?"Rooms: "+detail+"\n"+(stairs?"Stairs: "+stairs+"\n":""):svc==="UPHOLSTERY"?"Items: "+detail+"\n":"Rugs: "+detail+"\n")+"Pets: "+pets+"\n"+(notes?"Notes: "+notes+"\n":"")+"\nDate: "+dd+"\nTime: "+time+"\nOn-site: "+(selfP?"Customer present":"Contact: "+cname+" "+cphone)+"\nSubmitted: "+new Date().toLocaleString();fetch("/.netlify/functions/booking",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:name,phone:phone,email:email,addr:addr,svc:svc,lbl:lbl,detail:detail,stairs:stairs,date:dd,time:time,selfP:selfP,cname:cname,cphone:cphone,pets:pets,notes:notes,isChicago:isChicago,truck:truck,emailBody:eb})}).catch(function(){});var timing=getConfirmTiming();var f=document.getElementById("bkf-"+mid);f.className="bk-success";f.innerHTML="<h3>Booking Request Sent!</h3><p style=\"margin-top:8px\"><strong>Thank you, "+name.split(" ")[0]+"!</strong></p><p style=\"margin-top:6px\">Booking request for <strong>"+lbl+"</strong> on <strong>"+dd+"</strong> has been sent.</p><p style=\"margin-top:8px;background:#dcfce7;border-radius:6px;padding:8px\"><strong>"+timing+"</strong></p><p style=\"margin-top:8px\">Confirmation will go to <strong>"+email+"</strong>. Questions? Call <strong>(847) 251-1200</strong>.</p>"+(isChicago?"<p style=\"margin-top:8px;background:#fef9c3;border-radius:6px;padding:8px\">Chicago bookings are handled personally by our cleaning manager.</p>":"");hist.push({role:"user",content:"BOOKING SUBMITTED: "+name+" for "+lbl+" on "+dd});hist.push({role:"assistant",content:"Booking sent! "+timing});}
+function addMsg(role,content,id){var msgs=document.getElementById("msgs"),isBot=role==="assistant";var fm=content.match(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)([^\]]*)\]/);var cc=content.replace(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)[^\]]*\]/g,"").trim();var row=mk("div","row "+(isBot?"b":"u"));row.id="r"+id;var ic=mk("div","ic "+(isBot?"b":"u"));ic.innerHTML=isBot?"&#x1F9F9;":"&#x1F464;";var wrap=mk("div");wrap.style.maxWidth="100%";var bub=mk("div","bub "+(isBot?"b":"u"));bub.innerHTML=isBot?nl2html(cc):"<p>"+content+"</p>";wrap.appendChild(bub);if(fm&&isBot){var pArr=(fm[2]||"").replace(/^\|/,"").split("|");wrap.appendChild(buildBookingForm(fm[1],id,pArr[0]||"",pArr[1]||"",pArr[2]||"",pArr[3]||"",pArr[4]||"",pArr[5]||"",pArr[6]||""));}if(isBot&&id>0){var fbr=mk("div","fbr");var bg=mk("button","fb good");bg.textContent="Good";bg.onclick=function(){thumb(id,"good",content);};fbr.appendChild(bg);var bb=mk("button","fb bad");bb.textContent="Fix";bb.onclick=function(){thumb(id,"bad",content);};fbr.appendChild(bb);var bn=mk("button","fb note");bn.id="fbn"+id;bn.textContent="Add note";bn.onclick=function(){toggleNote(id,content);};fbr.appendChild(bn);wrap.appendChild(fbr);var nb=mk("div","nb");nb.id="nb"+id;nb.style.display="none";var nl=mk("div");nl.style.cssText="font-size:12px;color:#92400e;margin-bottom:6px;font-weight:500";nl.textContent="Add a note:";var nt=mk("textarea");nt.id="nt"+id;nt.rows=3;nt.placeholder="Type correction or note...";nt.onkeydown=function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitNote(id,content);}};var na=mk("div","na");var ns=mk("button","ns");ns.textContent="Submit";ns.onclick=function(){submitNote(id,content);};var nc=mk("button","nc");nc.textContent="Cancel";nc.onclick=function(){document.getElementById("nb"+id).style.display="none";};var nh=mk("span");nh.style.cssText="font-size:11px;color:#94a3b8";nh.textContent="or press Enter";na.appendChild(ns);na.appendChild(nc);na.appendChild(nh);nb.appendChild(nl);nb.appendChild(nt);nb.appendChild(na);wrap.appendChild(nb);}row.appendChild(ic);row.appendChild(wrap);msgs.appendChild(row);msgs.scrollTop=msgs.scrollHeight;cnt++;document.getElementById("mc").textContent=cnt+" messages";setTimeout(function(){initGoogleMaps();},200);}
+function addTyping(){var msgs=document.getElementById("msgs");var d=mk("div","row b");d.id="typing";var ic=mk("div","ic b");ic.innerHTML="&#x1F9F9;";var td=mk("div","td");[0,.2,.4].forEach(function(s){var dot=mk("div");dot.style.animationDelay=s+"s";td.appendChild(dot);});d.appendChild(ic);d.appendChild(td);msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;}
+function thumb(id,type,content){var btn=document.querySelector("#r"+id+" .fb."+type);if(!btn)return;var on=btn.classList.contains("on");document.querySelectorAll("#r"+id+" .fb.good, #r"+id+" .fb.bad").forEach(function(b){b.classList.remove("on");});if(!on){btn.classList.add("on");if(type==="bad"){document.getElementById("nb"+id).style.display="block";setTimeout(function(){document.getElementById("nt"+id).focus();},50);}addFb({type:type,msgId:id,q:getLastQ(),a:content.substring(0,120),note:""});}}
+function toggleNote(id,content){var box=document.getElementById("nb"+id);box.style.display=box.style.display!=="none"?"none":"block";if(box.style.display!=="none")setTimeout(function(){document.getElementById("nt"+id).focus();},50);}
+function submitNote(id,content){var txt=document.getElementById("nt"+id).value.trim();if(!txt)return;addFb({type:"note",msgId:id,q:getLastQ(),a:content.substring(0,120),note:txt});document.getElementById("nb"+id).style.display="none";document.getElementById("nt"+id).value="";var btn=document.getElementById("fbn"+id);btn.textContent="Note added";btn.classList.add("on");}
+function getLastQ(){var f=hist.slice().reverse().find(function(m){return m.role==="user";});return f?f.content.substring(0,80):"";}
+function addFb(entry){entry.tester=document.getElementById("tn").value||"Anonymous";entry.time=new Date().toLocaleTimeString();fbLog=fbLog.filter(function(f){return!(f.msgId===entry.msgId&&f.type===entry.type);});fbLog.push(entry);renderFb();}
+function renderFb(){var list=document.getElementById("fl");document.getElementById("fc").textContent=fbLog.length;if(!fbLog.length){list.innerHTML="No feedback yet.<br><br>Good = correct<br>Fix = wrong<br>Note = add comment";return;}var colors={good:"#16a34a",bad:"#dc2626",note:"#ca8a04"};var labels={good:"Correct",bad:"Needs fix",note:"Note"};list.innerHTML="";fbLog.slice().reverse().forEach(function(f){var d=mk("div");d.style.cssText="background:#fff;border:1px solid #b8eeeb;border-left:3px solid "+colors[f.type]+";border-radius:8px;padding:9px;font-size:11.5px;color:#111";d.innerHTML="<div style=\"font-size:10px;color:#94a3b8;margin-bottom:3px;display:flex;justify-content:space-between\"><span style=\"font-weight:600;color:"+colors[f.type]+"\">"+labels[f.type]+"</span><span>"+f.tester+"</span></div>"+(f.q?"<div style=\"color:#333;font-style:italic;font-size:11px;margin-bottom:3px\">"+f.q+"</div>":"")+"<div style=\"color:#111\">"+(f.note||f.a+"...")+"</div>";list.appendChild(d);});}
+function exportFb(){if(!fbLog.length){alert("No feedback yet.");return;}var t=document.getElementById("tn").value||"Anonymous";var txt="KASHIAN BROS KAY FEEDBACK\nExported: "+new Date().toLocaleString()+"\nTester: "+t+"\nTotal: "+fbLog.length+"\n\n";fbLog.forEach(function(f,i){var lbl={good:"CORRECT",bad:"NEEDS FIX",note:"NOTE"}[f.type];txt+="["+(i+1)+"] "+lbl+" - "+f.tester+" at "+f.time+"\n";if(f.q)txt+='Asked: "'+f.q+'"\n';txt+=f.note?"Correction: "+f.note+"\n":"Response: "+f.a+"...\n";txt+="\n";});var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain"}));a.download="KashianBros_Kay_Feedback_"+new Date().toISOString().slice(0,10)+".txt";a.click();}
+function send(text){if(!text||!text.trim())return;document.getElementById("qw").style.display="none";document.getElementById("inp").value="";document.getElementById("sb").disabled=true;var id=cnt;addMsg("user",text,id);hist.push({role:"user",content:text});addTyping();fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:800,system:SP+(availCache?"\n\n"+availCache:""),messages:hist})}).then(function(r){return r.json();}).then(function(data){var reply=data.content&&data.content[0]?data.content[0].text:"I had trouble with that. Please call (847) 251-1200!";var t=document.getElementById("typing");if(t)t.remove();hist.push({role:"assistant",content:reply});addMsg("assistant",reply,cnt);}).catch(function(){var t=document.getElementById("typing");if(t)t.remove();addMsg("assistant","I am having trouble connecting. Please call (847) 251-1200 or email info@kashianbros.com!",cnt);}).finally(function(){document.getElementById("sb").disabled=false;});}
+function showMainButtons(){var qw=document.getElementById("qw");qw.innerHTML="";qw.style.cssText="padding:12px;background:#fff;display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid #e8f8f6;justify-content:center";var btns=[{label:"📅 Schedule a Service",msg:"I would like to schedule a service"},{label:"💰 Pricing & Estimates",msg:"I have a question about pricing"},{label:"❓ Ask a Question",msg:"I have a question"}];btns.forEach(function(b){var btn=mk("button","mb");btn.textContent=b.label;btn.onclick=function(){send(b.msg);};qw.appendChild(btn);});}
+addMsg("assistant","Hi! I am Kay from Kashian Bros. How can I help you today?",0);
+showMainButtons();
 </script>
 </body>
 </html>
