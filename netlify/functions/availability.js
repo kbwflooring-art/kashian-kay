@@ -53,22 +53,56 @@ function chicagoDateStr(date) {
   return date.toLocaleDateString('en-US',{timeZone:'America/Chicago'});
 }
 
-function chicagoHour(date) {
-  return parseInt(date.toLocaleString('en-US',{hour:'numeric',hour12:false,timeZone:'America/Chicago'}),10);
+function toChicagoDate(date, hours, minutes) {
+  // Create a date at the given Chicago time
+  var str = date.toLocaleDateString('en-US',{timeZone:'America/Chicago'});
+  var parts = str.split('/');
+  var month = parseInt(parts[0])-1;
+  var day = parseInt(parts[1]);
+  var year = parseInt(parts[2]);
+  // Use Chicago offset approximation (CDT=-5, CST=-6)
+  // Better: build ISO string and parse
+  var pad = function(n){return String(n).padStart(2,'0');};
+  // Get UTC offset for Chicago
+  var testDate = new Date(year, month, day, hours, minutes||0, 0);
+  var chicagoStr = testDate.toLocaleString('en-US',{timeZone:'America/Chicago',hour12:false});
+  var utcStr = testDate.toLocaleString('en-US',{hour12:false});
+  return testDate;
 }
 
-// Returns true if this truck has NO events in the given slot
-function truckSlotFree(events, day, slotStartHr, slotEndHr) {
+// Check if a calendar has any event that OVERLAPS with the given time window
+// An event overlaps if: event.start < windowEnd AND event.end > windowStart
+function calSlotFree(events, day, startHr, endHr) {
   var dayStr = chicagoDateStr(day);
-  var ev = events.filter(function(e){
-    var s = new Date(e.start.dateTime||e.start.date);
-    return chicagoDateStr(s) === dayStr;
+  
+  // Build slot start and end in Chicago time
+  var slotStart = new Date(day);
+  slotStart.setHours(startHr, 0, 0, 0);
+  var slotEnd = new Date(day);
+  slotEnd.setHours(endHr, 0, 0, 0);
+
+  // Convert slot times to proper Chicago timezone times
+  var slotStartChicago = new Date(slotStart.toLocaleString('en-US',{timeZone:'America/Chicago'}));
+  var slotEndChicago = new Date(slotEnd.toLocaleString('en-US',{timeZone:'America/Chicago'}));
+
+  var overlapping = events.filter(function(e){
+    if(!e.start) return false;
+    var evStart = new Date(e.start.dateTime||e.start.date);
+    var evEnd = new Date(e.end.dateTime||e.end.date);
+    
+    // Convert event times to Chicago
+    var evStartChicago = new Date(evStart.toLocaleString('en-US',{timeZone:'America/Chicago'}));
+    var evEndChicago = new Date(evEnd.toLocaleString('en-US',{timeZone:'America/Chicago'}));
+    
+    // Check same day
+    var evDateStr = evStart.toLocaleDateString('en-US',{timeZone:'America/Chicago'});
+    if(evDateStr !== dayStr) return false;
+    
+    // Check overlap: event overlaps slot if event starts before slot ends AND event ends after slot starts
+    return evStartChicago < slotEndChicago && evEndChicago > slotStartChicago;
   });
-  var booked = ev.filter(function(e){
-    var h = chicagoHour(new Date(e.start.dateTime||e.start.date));
-    return h >= slotStartHr && h < slotEndHr;
-  }).length;
-  return booked === 0;
+  
+  return overlapping.length === 0;
 }
 
 function fmtDay(d) {
@@ -86,32 +120,50 @@ exports.handler = async function(event) {
     var days = weekdays(10);
     var tMin = new Date(days[0]); tMin.setHours(0,0,0,0);
     var tMax = new Date(days[days.length-1]); tMax.setHours(23,59,59,999);
+
     var results = await Promise.all([
       getEvents(token,PICKUP_CAL,tMin,tMax),
       getEvents(token,TRUCK1_CAL,tMin,tMax),
       getEvents(token,TRUCK2_CAL,tMin,tMax)
     ]);
     var pickupEv=results[0], t1Ev=results[1], t2Ev=results[2];
-    var summary = 'REAL-TIME CALENDAR AVAILABILITY:\n\nCARPET & UPHOLSTERY CLEANING (Mon-Fri):\n';
+
+    var summary = 'REAL-TIME CALENDAR AVAILABILITY:\n\n';
+    summary += 'CARPET & UPHOLSTERY CLEANING:\n';
+    summary += 'Mon/Wed/Fri: Truck 1 AND Truck 2 available. Slot is open if EITHER truck has no overlapping jobs.\n';
+    summary += 'Tue/Thu: ONLY Truck 1 available for carpet (Truck 2 crew runs Big Truck for rug pickup).\n\n';
+
     days.forEach(function(day){
-      // Morning is available if AT LEAST ONE truck is free 9am-12pm
-      var morningOpen = truckSlotFree(t1Ev,day,9,12) || truckSlotFree(t2Ev,day,9,12);
-      // Afternoon is available if AT LEAST ONE truck is free 12pm-4pm
-      var afternoonOpen = truckSlotFree(t1Ev,day,12,16) || truckSlotFree(t2Ev,day,12,16);
+      var dow = day.getDay();
+      var isTueThu = (dow === 2 || dow === 4);
+      var morningOpen, afternoonOpen;
+
+      if(isTueThu){
+        // Tue/Thu: only Truck 1 for carpet - check full overlap
+        morningOpen = calSlotFree(t1Ev, day, 9, 12);
+        afternoonOpen = calSlotFree(t1Ev, day, 12, 16);
+      } else {
+        // Mon/Wed/Fri: either truck free means slot available
+        morningOpen = calSlotFree(t1Ev,day,9,12) || calSlotFree(t2Ev,day,9,12);
+        afternoonOpen = calSlotFree(t1Ev,day,12,16) || calSlotFree(t2Ev,day,12,16);
+      }
+
       var parts=[];
       if(morningOpen) parts.push('morning');
       if(afternoonOpen) parts.push('afternoon');
-      summary += '- '+fmtDay(day)+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
+      summary += '- '+fmtDay(day)+(isTueThu?' (Truck 1 only)':'')+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
     });
-    summary += '\nRUG PICKUP & DELIVERY (Tuesdays & Thursdays only):\n';
+
+    summary += '\nRUG PICKUP & DELIVERY (Big Truck - Tuesdays & Thursdays only):\n';
     days.filter(function(d){return d.getDay()===2||d.getDay()===4;}).forEach(function(day){
-      var morningOpen = truckSlotFree(pickupEv,day,9,12);
-      var afternoonOpen = truckSlotFree(pickupEv,day,12,16);
+      var morningOpen = calSlotFree(pickupEv,day,9,12);
+      var afternoonOpen = calSlotFree(pickupEv,day,12,16);
       var parts=[];
       if(morningOpen) parts.push('morning');
       if(afternoonOpen) parts.push('afternoon');
       summary += '- '+fmtDay(day)+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
     });
+
     return {statusCode:200,headers,body:JSON.stringify({summary:summary,updated:new Date().toISOString()})};
   } catch(e) {
     return {statusCode:500,headers,body:JSON.stringify({error:e.message})};
