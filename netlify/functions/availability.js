@@ -30,9 +30,18 @@ async function getEvents(token,calId,tMin,tMax){
 }
 
 function weekdays(n){
-  var days=[],d=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));
-  d.setHours(0,0,0,0);d.setDate(d.getDate()+1);
-  while(days.length<n){if(d.getDay()!==0&&d.getDay()!==6)days.push(new Date(d));d.setDate(d.getDate()+1);}
+  var days=[];
+  var now=new Date();
+  var cs=now.toLocaleDateString('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'});
+  var parts=cs.split('/');
+  var month=parseInt(parts[0])-1;
+  var day=parseInt(parts[1]);
+  var year=parseInt(parts[2]);
+  for(var i=1;days.length<n;i++){
+    // Use 17:00 UTC = noon Chicago time (safe for both CDT and CST)
+    var d=new Date(Date.UTC(year,month,day+i,17,0,0));
+    if(d.getDay()!==0&&d.getDay()!==6)days.push(d);
+  }
   return days;
 }
 
