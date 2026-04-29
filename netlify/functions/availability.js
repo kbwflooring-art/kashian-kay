@@ -91,9 +91,15 @@ function findSlots(t1Events,t2Events,days,durationHours,type){
       var startH=startMin/60;
       var endH=startH+durationHours;
       var free=false;
-      if(type==='RUG'){free=isSlotFree(t1Events,day,startH,endH);}
-      else if(useBothTrucks){free=isSlotFree(t1Events,day,startH,endH)||isSlotFree(t2Events,day,startH,endH);}
-      else{free=isSlotFree(t1Events,day,startH,endH);}
+        if(type==='RUG'){free=isSlotFree(t1Events,day,startH,endH);}
+      else if(isTueThu){
+        // Tue/Thu: only ONE truck runs carpet - if EITHER truck has a job, slot is taken
+        free=isSlotFree(t1Events,day,startH,endH)&&isSlotFree(t2Events,day,startH,endH);
+      }
+      else{
+        // Mon/Wed/Fri: both trucks available - slot open if EITHER is free
+        free=isSlotFree(t1Events,day,startH,endH)||isSlotFree(t2Events,day,startH,endH);
+      }
       if(free){
         slots.push({date:fmtDay(day),time:fmtTime(startH),label:fmtDay(day)+' at '+fmtTime(startH)});
         break; // one slot per day
@@ -109,7 +115,11 @@ function buildTextSummary(t1Events,t2Events,pickupEvents,days){
     var dow=day.getDay();
     var isTueThu=(dow===2||dow===4);
     var morningOpen,afternoonOpen;
-    if(isTueThu){morningOpen=isSlotFree(t1Events,day,9,12);afternoonOpen=isSlotFree(t1Events,day,12,16);}
+    if(isTueThu){
+      // Tue/Thu: if EITHER truck has a job, slot is fully booked
+      morningOpen=isSlotFree(t1Events,day,9,12)&&isSlotFree(t2Events,day,9,12);
+      afternoonOpen=isSlotFree(t1Events,day,12,16)&&isSlotFree(t2Events,day,12,16);
+    }
     else{morningOpen=isSlotFree(t1Events,day,9,12)||isSlotFree(t2Events,day,9,12);afternoonOpen=isSlotFree(t1Events,day,12,16)||isSlotFree(t2Events,day,12,16);}
     var parts=[];if(morningOpen)parts.push('morning');if(afternoonOpen)parts.push('afternoon');
     summary+='- '+fmtDay(day)+(isTueThu?' (Truck 1 only)':'')+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
