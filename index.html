@@ -283,7 +283,6 @@ function addRugRow(mid){
 }
 function calcRugPrice(mid){
   var detail=document.getElementById("bk-detail-"+mid);
-  if(!detail||!detail.value.trim()){document.getElementById("bk-price-row-"+mid).style.display="none";return;}
   var container=document.getElementById("bk-rug-rows-"+mid);
   var totalSqft=0;var rugDesc=[];
   function roundFt(ft,inches){var i=parseInt(inches)||0;return (parseInt(ft)||0)+(i>=6?1:0);}
