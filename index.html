@@ -88,6 +88,8 @@ body{font-family:'Raleway',Arial,sans-serif;letter-spacing:0.02em;background:#ee
 .bk-qty-table th{text-align:left;padding:6px 8px;background:#f0fafa;font-size:11.5px;color:#333;border-bottom:1px solid #9de8e4}
 .bk-qty-table td{padding:5px 8px;border-bottom:1px solid #f0fafa;vertical-align:middle}
 .bk-qty{display:flex;align-items:center;gap:8px}
+.bk-qty-add{order:-1!important}
+.bk-qty-sub{order:1!important}
 .bk-qty button{width:24px;height:24px;border:1.5px solid #9de8e4;border-radius:5px;background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:#111;font-family:inherit}
 .bk-qty button:hover{background:#5bcdc7;color:#111}
 .bk-qty span{min-width:20px;text-align:center;font-weight:600;font-size:13px}
@@ -304,10 +306,10 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
         var td1=document.createElement('td');td1.textContent=r[1];
         var td2=document.createElement('td');
         var div=document.createElement('div');div.className='bk-qty';
-        var btnAdd=document.createElement('button');btnAdd.type='button';btnAdd.textContent='+';
+        var btnAdd=document.createElement('button');btnAdd.type='button';btnAdd.textContent='+';btnAdd.className='bk-qty-add';
         (function(key){btnAdd.onclick=function(){adjQty(key+'-'+mid,1,mid);};})(r[0]);
         var span=document.createElement('span');span.id=r[0]+'-'+mid;span.textContent='0';
-        var btnSub=document.createElement('button');btnSub.type='button';btnSub.innerHTML='&minus;';
+        var btnSub=document.createElement('button');btnSub.type='button';btnSub.innerHTML='&minus;';btnSub.className='bk-qty-sub';
         (function(key){btnSub.onclick=function(){adjQty(key+'-'+mid,-1,mid);};})(r[0]);
         div.appendChild(btnAdd);div.appendChild(span);div.appendChild(btnSub);
         td2.appendChild(div);tr.appendChild(td1);tr.appendChild(td2);cTable.appendChild(tr);
@@ -323,10 +325,10 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
         var td2=document.createElement('td');td2.textContent=r[2];
         var td3=document.createElement('td');
         var div=document.createElement('div');div.className='bk-qty';
-        var btnAdd=document.createElement('button');btnAdd.type='button';btnAdd.textContent='+';
+        var btnAdd=document.createElement('button');btnAdd.type='button';btnAdd.textContent='+';btnAdd.className='bk-qty-add';
         (function(key){btnAdd.onclick=function(){adjQty(key+'-'+mid,1,mid);};})(r[0]);
         var span=document.createElement('span');span.id=r[0]+'-'+mid;span.textContent='0';
-        var btnSub=document.createElement('button');btnSub.type='button';btnSub.innerHTML='&minus;';
+        var btnSub=document.createElement('button');btnSub.type='button';btnSub.innerHTML='&minus;';btnSub.className='bk-qty-sub';
         (function(key){btnSub.onclick=function(){adjQty(key+'-'+mid,-1,mid);};})(r[0]);
         div.appendChild(btnAdd);div.appendChild(span);div.appendChild(btnSub);
         td3.appendChild(div);tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);uTable.appendChild(tr);
