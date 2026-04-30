@@ -295,6 +295,43 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
   html+='<button class="bk-submit" onclick="submitBooking(\''+mid+'\',\''+svc+'\',\''+lbl+'\')">Send Booking Request</button><button class="bk-cancel" onclick="cancelBooking(\''+mid+'\')">Never mind, I will call instead</button>';
   f.innerHTML=html;
   setTimeout(function(){
+    // Populate carpet table
+    var cTable=document.getElementById('c-table-'+mid);
+    if(cTable){
+      var cRooms=[['c-liv','Living / Family Room'],['c-din','Dining Room'],['c-mbd','Master Bedroom'],['c-bed','Bedroom'],['c-off','Office / Den'],['c-bat','Bathroom'],['c-bas','Basement'],['c-hal','Hallway'],['c-sta','Stairs (per flight)'],['c-wic','Walk-in Closet']];
+      cRooms.forEach(function(r){
+        var tr=document.createElement('tr');
+        var td1=document.createElement('td');td1.textContent=r[1];
+        var td2=document.createElement('td');
+        var div=document.createElement('div');div.className='bk-qty';
+        var minus=document.createElement('button');minus.type='button';minus.innerHTML='&minus;';
+        (function(key){minus.onclick=function(){adjQty(key+'-'+mid,-1,mid);};})(r[0]);
+        var span=document.createElement('span');span.id=r[0]+'-'+mid;span.textContent='0';
+        var plus=document.createElement('button');plus.type='button';plus.textContent='+';
+        (function(key){plus.onclick=function(){adjQty(key+'-'+mid,1,mid);};})(r[0]);
+        div.appendChild(minus);div.appendChild(span);div.appendChild(plus);
+        td2.appendChild(div);tr.appendChild(td1);tr.appendChild(td2);cTable.appendChild(tr);
+      });
+    }
+    // Populate upholstery table
+    var uTable=document.getElementById('u-table-'+mid);
+    if(uTable){
+      var uItems=[['u-sof',"Sofa (up to 7')","$245"],['u-lov',"Love Seat (up to 5')","$175"],['u-cha','Chair','$100'],['u-win','Wing Chair','$70'],['u-ott','Ottoman','$75'],['u-sec','Sectional (linear ft)','$35/ft'],['u-din','Dining Chair','$40'],['u-pil','Pillow / Cushion','$15']];
+      uItems.forEach(function(r){
+        var tr=document.createElement('tr');
+        var td1=document.createElement('td');td1.textContent=r[1];
+        var td2=document.createElement('td');td2.textContent=r[2];
+        var td3=document.createElement('td');
+        var div=document.createElement('div');div.className='bk-qty';
+        var minus=document.createElement('button');minus.type='button';minus.innerHTML='&minus;';
+        (function(key){minus.onclick=function(){adjQty(key+'-'+mid,-1,mid);};})(r[0]);
+        var span=document.createElement('span');span.id=r[0]+'-'+mid;span.textContent='0';
+        var plus=document.createElement('button');plus.type='button';plus.textContent='+';
+        (function(key){plus.onclick=function(){adjQty(key+'-'+mid,1,mid);};})(r[0]);
+        div.appendChild(minus);div.appendChild(span);div.appendChild(plus);
+        td3.appendChild(div);tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);uTable.appendChild(tr);
+      });
+    }
     var fname=pName?pName.split(' ')[0]:'';
     var lname=pName&&pName.split(' ').length>1?pName.split(' ').slice(1).join(' '):'';
     var flds=[['bk-fname-'+mid,fname],['bk-lname-'+mid,lname],['bk-phone-'+mid,pPhone],['bk-email-'+mid,pEmail],['bk-addr-'+mid,pAddr],['bk-detail-'+mid,pDetail]];
