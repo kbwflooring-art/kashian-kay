@@ -164,7 +164,7 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
   html+='<div class="bk-row"><label class="bk-label">Requested Time *</label><input class="bk-input" id="bk-appt-'+mid+'" placeholder="e.g. Thursday May 7 at 9:00 AM" autocomplete="off"/></div>';
   html+='<div class="bk-row"><label class="bk-check"><input type="checkbox" id="bk-self-'+mid+'" onchange="toggleContact(\''+mid+'\',this.checked)" checked/> I will be there to let your crew in</label></div>';
   html+='<div id="bk-contact-box-'+mid+'" class="contact-toggle"><div class="bk-note" style="margin-bottom:8px">Provide the contact who will let our crew in:</div><div class="bk-row-2"><div class="bk-row"><label class="bk-label">Contact Name *</label><input class="bk-input" id="bk-cname-'+mid+'" placeholder="On-site contact name"/></div><div class="bk-row"><label class="bk-label">Contact Phone *</label><input class="bk-input" id="bk-cphone-'+mid+'" placeholder="Their phone number"/></div></div></div>';
-  html+='<div class="bk-row"><label class="bk-label">Pets in the home?</label><select class="bk-select" id="bk-pets-'+mid+'"><option value="None">No pets</option><option value="Dogs">Dog(s)</option><option value="Cats">Cat(s)</option><option value="Dogs and cats">Dogs and cats</option><option value="Other">Other pets</option></select></div>';
+  
   html+='<div class="bk-row"><label class="bk-label">Additional Notes</label><textarea class="bk-input" id="bk-notes-'+mid+'" rows="2" placeholder="Anything else we should know..." style="resize:vertical"></textarea></div>';
   html+='<button class="bk-submit" onclick="submitBooking(\''+mid+'\',\''+svc+'\',\''+lbl+'\')">Send Booking Request</button><button class="bk-cancel" onclick="cancelBooking(\''+mid+'\')">Never mind, I will call instead</button>';
   f.innerHTML=html;
@@ -303,11 +303,11 @@ function calcRugPrice(mid){
   var protect=protectEl&&protectEl.checked?totalSqft*2:0;
   var enzyme=enzymeEl&&enzymeEl.checked?totalSqft*2:0;
   var total=Math.max(199,basePrice)+protect+enzyme;
-  var breakdown="Pickup & Delivery: $"+Math.max(199,basePrice).toFixed(2);
-  if(protect>0)breakdown+=" + Fiber Protectant: $"+protect.toFixed(2);
-  if(enzyme>0)breakdown+=" + Enzyme Treatment: $"+enzyme.toFixed(2);
-  breakdown+=" = <strong>Total: $"+total.toFixed(2)+"</strong>";
-  breakdown+="<br><small style='color:#166534'>*$199 minimum applies. Final price confirmed at pickup.</small>";
+  var breakdown="Rug Cleaning: $"+Math.max(199,basePrice).toFixed(2);
+  if(protect>0)breakdown+="<br>Fiber Protectant: $"+protect.toFixed(2);
+  if(enzyme>0)breakdown+="<br>Enzyme Treatment: $"+enzyme.toFixed(2);
+  breakdown+="<br><strong style='font-size:14px'>Total: $"+total.toFixed(2)+"</strong>";
+  breakdown+="<br><small style='color:#166534'>$199 minimum applies.</small>";
   document.getElementById("bk-price-"+mid).innerHTML=breakdown;
   document.getElementById("bk-price-row-"+mid).style.display="block";
 }
@@ -393,7 +393,7 @@ async function checkCustomTime(requestedTime){
     }
   }catch(e){flowMsg("I had trouble checking the schedule. Please call (847) 251-1200!");flow.active=false;}
 }
-async function checkAvailabilityForFlow(){var type=flow.type==="rug"?"RUG":"CARPET";try{var r=await fetch("/.netlify/functions/availability?duration="+flow.duration+"&type="+type);var d=await r.json();if(d.slots&&d.slots.length){flow.step="time_choice";var btns=d.slots.slice(0,4).map(function(s){return s.label;});btns.push("I have a different time in mind");flowMsg("Here are our next available times. Which works best for you?",btns);}else{flowMsg("Our schedule is quite full right now. Please call us at (847) 251-1200 and we will find you a time!");flow.active=false;}}catch(e){flowMsg("I had trouble checking the schedule. Please call (847) 251-1200!");flow.active=false;}}
+async function checkAvailabilityForFlow(){var type=flow.type==="rug"?"RUG":"CARPET";try{var url="/.netlify/functions/availability?duration="+flow.duration+"&type="+type;console.log("Fetching:",url);var controller=new AbortController();var timeout=setTimeout(function(){controller.abort();},10000);var r=await fetch(url,{signal:controller.signal});clearTimeout(timeout);if(!r.ok)throw new Error("HTTP "+r.status);var d=await r.json();if(d.slots&&d.slots.length){flow.step="time_choice";var btns=d.slots.slice(0,4).map(function(s){return s.label;});btns.push("I have a different time in mind");flowMsg("Here are our next available times. Which works best for you?",btns);}else if(d.error){flowMsg("I had trouble checking the schedule ("+d.error+"). Please call (847) 251-1200!");flow.active=false;}else{flowMsg("Our schedule is quite full right now. Please call us at (847) 251-1200 and we will find you a time!");flow.active=false;}}catch(e){flowMsg("Connection error: "+e.message+". Please call (847) 251-1200!");flow.active=false;}}
 function showMainButtons(){
   var msgs=document.getElementById("msgs");
   var lastRow=msgs.lastElementChild;
