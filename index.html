@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Kay - Kashian Bros AI</title><!-- v2.2 -->
+<title>Kay - Kashian Bros AI</title><!-- v2.3 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Raleway',Arial,sans-serif;letter-spacing:0.02em;background:#eef2f7;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:12px;color:#111}
@@ -97,6 +97,8 @@ body{font-family:'Raleway',Arial,sans-serif;letter-spacing:0.02em;background:#ee
 .bk-price-box{background:#f0fdf4;border:1.5px solid #86efac;border-radius:7px;padding:8px 12px;font-size:13px;color:#15803d;font-weight:600;margin-top:6px}
 .bk-rug-size-row{display:flex;align-items:center;gap:4px;margin-bottom:6px;flex-wrap:wrap}
 .bk-rug-size-row input{width:52px!important;text-align:center;padding:7px 4px!important}
+.bk-duration-box{background:#eff6ff;border:1.5px solid #60a5fa;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:13px;color:#1e40af;text-align:center}
+.bk-duration-box strong{font-size:15px;color:#1e3a8a}
 @media(max-width:600px){.side{display:none}}
 </style>
 </head><body>
@@ -133,56 +135,60 @@ var CARPET_ROOMS={
   'c-hal':'Hallway','c-sta':'Stairs (per flight)','c-wic':'Walk-in Closet'
 };
 var UPHOL_ITEMS={
-  'u-sof':{name:'Sofa (up to 7\')',price:245},'u-lov':{name:'Love Seat (up to 5\')',price:175},
-  'u-cha':{name:'Chair',price:100},'u-win':{name:'Wing Chair',price:70},
-  'u-ott':{name:'Ottoman',price:75},'u-sec':{name:'Sectional (linear ft)',price:35},
-  'u-din':{name:'Dining Chair',price:40},'u-pil':{name:'Pillow / Cushion',price:15}
+  'u-sof':{name:'Sofa (up to 7\')',price:245,duration:60},
+  'u-lov':{name:'Love Seat (up to 5\')',price:175,duration:45},
+  'u-cha':{name:'Chair',price:100,duration:30},
+  'u-win':{name:'Wing Chair',price:70,duration:30},
+  'u-ott':{name:'Ottoman',price:75,duration:20},
+  'u-sec':{name:'Sectional (linear ft)',price:35,duration:120},
+  'u-din':{name:'Dining Chair',price:40,duration:15},
+  'u-pil':{name:'Pillow / Cushion',price:15,duration:5}
 };
-function toggleSection(id,arrowId){var body=document.getElementById(id);var arrow=arrowId?document.getElementById(arrowId):null;if(!body)return;var open=body.style.display!=='none';body.style.display=open?'none':'block';if(arrow)arrow.textContent=open?'+':'−';if(!open){var mid=id.split('-').pop();calcServicePrice(mid);}}
-function adjQty(elId,delta,mid){var el=document.getElementById(elId);if(!el)return;var val=Math.max(0,parseInt(el.textContent||'0')+delta);el.textContent=val;calcServicePrice(mid);}
+var CARPET_DURATION_PER_ROOM=30;
+
+function calcJobDuration(mid){
+  var totalMin=0;
+  Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)totalMin+=qty*CARPET_DURATION_PER_ROOM;});
+  Object.keys(UPHOL_ITEMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)totalMin+=qty*UPHOL_ITEMS[k].duration;});
+  return totalMin;
+}
+function fmtDuration(mins){
+  if(mins===0)return'0 min';
+  if(mins<60)return mins+' min';
+  var h=Math.floor(mins/60),m=mins%60;
+  if(m===0)return h+(h===1?' hour':' hours');
+  return h+'h '+m+'m';
+}
+
+function toggleSection(id,arrowId){var body=document.getElementById(id);var arrow=arrowId?document.getElementById(arrowId):null;if(!body)return;var open=body.style.display!=='none';body.style.display=open?'none':'block';if(arrow)arrow.textContent=open?'+':'\u2212';if(!open){var mid=id.split('-').pop();calcServicePrice(mid);}}
+function adjQty(elId,delta,mid){var el=document.getElementById(elId);if(!el)return;var val=Math.max(0,parseInt(el.textContent||'0')+delta);el.textContent=val;calcServicePrice(mid);updateScopeDuration(mid);}
 function getQty(id){var el=document.getElementById(id);return el?parseInt(el.textContent||'0'):0;}
+
+function updateScopeDuration(mid){
+  var box=document.getElementById('scope-duration-'+mid);
+  if(!box)return;
+  var mins=calcJobDuration(mid);
+  if(mins===0){
+    box.innerHTML='<small style="color:#1e40af">Pick at least one room or item to see your job time</small>';
+    box.style.background='#f1f5f9';box.style.borderColor='#cbd5e1';
+  } else {
+    box.innerHTML='Estimated job time: <strong>'+fmtDuration(mins)+'</strong><br><small>+ 15 min travel buffer between jobs</small>';
+    box.style.background='#eff6ff';box.style.borderColor='#60a5fa';
+  }
+  var findBtn=document.getElementById('find-times-'+mid);
+  if(findBtn){
+    if(mins===0){findBtn.disabled=true;findBtn.style.opacity='0.4';findBtn.style.cursor='not-allowed';}
+    else{findBtn.disabled=false;findBtn.style.opacity='1';findBtn.style.cursor='pointer';}
+  }
+}
+
 function calcServicePrice(mid){
   var carpetLines=[];
   Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)carpetLines.push(qty+'x '+CARPET_ROOMS[k]);});
-  var cPriceRow=document.getElementById('c-price-row-'+mid);
-  var cPriceEl=document.getElementById('c-price-'+mid);
-  var cProtect=document.getElementById('c-protect-'+mid);
-  var cEnzyme=document.getElementById('c-enzyme-'+mid);
-  if(cPriceRow&&carpetLines.length){
-    var addons=[];
-    if(cProtect&&cProtect.checked)addons.push('Fiber Protectant');
-    if(cEnzyme&&cEnzyme.checked)addons.push('Enzyme Treatment');
-    var summary=carpetLines.join(', ')+(addons.length?' + '+addons.join(' + '):'');
-    summary+='<br><small style="color:#166534">Quote given on-site by crew. $199 service minimum applies to the full job.</small>';
-    cPriceEl.innerHTML=summary;
-    cPriceRow.style.display='block';
-    var detEl=document.getElementById('bk-detail-'+mid);
-    if(detEl)detEl.value=carpetLines.join(', ')+(addons.length?' with '+addons.join(' and '):'');
-  } else if(cPriceRow){cPriceRow.style.display='none';}
   var upholTotal=0,upholLines=[];
   Object.keys(UPHOL_ITEMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0){var item=UPHOL_ITEMS[k];upholTotal+=qty*item.price;upholLines.push(qty+'x '+item.name+' ($'+(qty*item.price)+')');}});
-  var uPriceRow=document.getElementById('u-price-row-'+mid);
-  var uPriceEl=document.getElementById('u-price-'+mid);
-  var uProtect=document.getElementById('u-protect-'+mid);
-  var uEnzyme=document.getElementById('u-enzyme-'+mid);
-  var uAntibac=document.getElementById('u-antibac-'+mid);
-  if(uPriceRow&&upholLines.length){
-    var uAddons=[];
-    if(uProtect&&uProtect.checked)uAddons.push('Fiber Protectant');
-    if(uEnzyme&&uEnzyme.checked)uAddons.push('Deodorize/Enzyme');
-    if(uAntibac&&uAntibac.checked)uAddons.push('Antibacterial');
-    var uSummary=upholLines.join(', ')+(uAddons.length?' + '+uAddons.join(', '):'')+'<br><strong>Upholstery Subtotal: $'+upholTotal.toFixed(2)+'</strong>';
-    if(carpetLines.length){
-      uSummary+='<br><small style="color:#166534">$199 minimum applies to the full job. Carpet pricing added on-site.</small>';
-    } else {
-      uSummary+='<br><small style="color:#166534">$199 service minimum applies to the full job. Final price confirmed on-site.</small>';
-    }
-    uPriceEl.innerHTML=uSummary;
-    uPriceRow.style.display='block';
-    var detEl2=document.getElementById('bk-detail-'+mid+'u');
-    if(detEl2)detEl2.value=upholLines.join(', ')+(uAddons.length?' with '+uAddons.join(' and '):'');
-  } else if(uPriceRow){uPriceRow.style.display='none';}
 }
+
 function addRugRow(mid){
   var container=document.getElementById('bk-rug-rows-'+mid);
   if(!container)return;
@@ -242,14 +248,113 @@ function calcRugPrice(mid){
   priceEl.innerHTML=breakdown;
   priceRow.style.display='block';
 }
+
+function buildCarpetTable(mid){
+  var table=document.createElement('table');table.className='bk-qty-table';table.id='c-table-'+mid;
+  table.innerHTML='<tr><th>Room</th><th>Qty</th></tr>';
+  var cRooms=[['c-liv','Living / Family Room'],['c-din','Dining Room'],['c-mbd','Master Bedroom'],['c-bed','Bedroom'],['c-off','Office / Den'],['c-bat','Bathroom'],['c-bas','Basement'],['c-hal','Hallway'],['c-sta','Stairs (per flight)'],['c-wic','Walk-in Closet']];
+  cRooms.forEach(function(r){
+    var tr=document.createElement('tr');
+    var td1=document.createElement('td');td1.textContent=r[1];
+    var td2=document.createElement('td');
+    var div=document.createElement('div');div.className='bk-qty';
+    var btnAdd=document.createElement('button');btnAdd.type='button';btnAdd.textContent='+';btnAdd.className='bk-qty-add';
+    (function(key){btnAdd.onclick=function(){adjQty(key+'-'+mid,1,mid);};})(r[0]);
+    var span=document.createElement('span');span.id=r[0]+'-'+mid;span.textContent='0';
+    var btnSub=document.createElement('button');btnSub.type='button';btnSub.innerHTML='&minus;';btnSub.className='bk-qty-sub';
+    (function(key){btnSub.onclick=function(){adjQty(key+'-'+mid,-1,mid);};})(r[0]);
+    div.appendChild(btnAdd);div.appendChild(span);div.appendChild(btnSub);
+    td2.appendChild(div);tr.appendChild(td1);tr.appendChild(td2);table.appendChild(tr);
+  });
+  return table;
+}
+function buildUpholTable(mid){
+  var table=document.createElement('table');table.className='bk-qty-table';table.id='u-table-'+mid;
+  table.innerHTML='<tr><th>Item</th><th>Price</th><th>Qty</th></tr>';
+  var uItems=[['u-sof',"Sofa (up to 7')","$245"],['u-lov',"Love Seat (up to 5')","$175"],['u-cha','Chair','$100'],['u-win','Wing Chair','$70'],['u-ott','Ottoman','$75'],['u-sec','Sectional (linear ft)','$35/ft'],['u-din','Dining Chair','$40'],['u-pil','Pillow / Cushion','$15']];
+  uItems.forEach(function(r){
+    var tr=document.createElement('tr');
+    var td1=document.createElement('td');td1.textContent=r[1];
+    var td2=document.createElement('td');td2.textContent=r[2];
+    var td3=document.createElement('td');
+    var div=document.createElement('div');div.className='bk-qty';
+    var btnAdd=document.createElement('button');btnAdd.type='button';btnAdd.textContent='+';btnAdd.className='bk-qty-add';
+    (function(key){btnAdd.onclick=function(){adjQty(key+'-'+mid,1,mid);};})(r[0]);
+    var span=document.createElement('span');span.id=r[0]+'-'+mid;span.textContent='0';
+    var btnSub=document.createElement('button');btnSub.type='button';btnSub.innerHTML='&minus;';btnSub.className='bk-qty-sub';
+    (function(key){btnSub.onclick=function(){adjQty(key+'-'+mid,-1,mid);};})(r[0]);
+    div.appendChild(btnAdd);div.appendChild(span);div.appendChild(btnSub);
+    td3.appendChild(div);tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);table.appendChild(tr);
+  });
+  return table;
+}
+
+// SCOPE FORM: customer picks rooms/items so we can calculate duration BEFORE checking calendar
+function buildScopeForm(mid){
+  var f=document.createElement('div');f.className='bk-form';f.id='scope-'+mid;
+  var html='<h3>Tell us about your job</h3>';
+  html+='<div class="bk-note">Pick the rooms and items you would like cleaned. We use this to find times that fit your job length.</div>';
+  html+='<div class="bk-section"><div class="bk-section-hdr" onclick="toggleSection(\'scope-carpet-'+mid+'\',\'scope-carpet-arrow-'+mid+'\')">Carpet Cleaning <span id="scope-carpet-arrow-'+mid+'">\u2212</span></div>';
+  html+='<div id="scope-carpet-'+mid+'" class="bk-section-body" style="display:block"><div id="scope-carpet-table-wrap-'+mid+'"></div>';
+  html+='<div class="bk-addons"><label class="bk-check"><input type="checkbox" id="c-protect-'+mid+'"/> Fiber Protectant</label><label class="bk-check"><input type="checkbox" id="c-enzyme-'+mid+'"/> Enzyme Treatment</label></div>';
+  html+='</div></div>';
+  html+='<div class="bk-section"><div class="bk-section-hdr" onclick="toggleSection(\'scope-uphol-'+mid+'\',\'scope-uphol-arrow-'+mid+'\')">Upholstery Cleaning <span id="scope-uphol-arrow-'+mid+'">+</span></div>';
+  html+='<div id="scope-uphol-'+mid+'" class="bk-section-body" style="display:none"><div id="scope-uphol-table-wrap-'+mid+'"></div>';
+  html+='<div class="bk-addons"><label class="bk-check"><input type="checkbox" id="u-protect-'+mid+'"/> Fiber Protectant</label><label class="bk-check"><input type="checkbox" id="u-enzyme-'+mid+'"/> Deodorize / Enzyme</label><label class="bk-check"><input type="checkbox" id="u-antibac-'+mid+'"/> Antibacterial</label></div>';
+  html+='</div></div>';
+  html+='<div class="bk-duration-box" id="scope-duration-'+mid+'"><small style="color:#1e40af">Pick at least one room or item to see your job time</small></div>';
+  html+='<button class="bk-submit" id="find-times-'+mid+'" disabled style="opacity:0.4;cursor:not-allowed" onclick="submitScope(\''+mid+'\')">Find Available Times</button>';
+  html+='<button class="bk-cancel" onclick="cancelScope(\''+mid+'\')">Never mind, I will call instead</button>';
+  f.innerHTML=html;
+  setTimeout(function(){
+    var cWrap=document.getElementById('scope-carpet-table-wrap-'+mid);
+    if(cWrap){cWrap.appendChild(buildCarpetTable(mid));}
+    var uWrap=document.getElementById('scope-uphol-table-wrap-'+mid);
+    if(uWrap){uWrap.appendChild(buildUpholTable(mid));}
+  },50);
+  return f;
+}
+function cancelScope(id){var f=document.getElementById('scope-'+id);if(f)f.innerHTML='<p style="color:#333;font-size:13px">No problem! Call us at <strong>(847) 251-1200</strong> or email <strong>info@kashianbros.com</strong>!</p>';flow.active=false;}
+
+function submitScope(mid){
+  var mins=calcJobDuration(mid);
+  if(mins===0){alert('Please pick at least one room or upholstery item.');return;}
+  var carpetLines=[],upholLines=[];
+  Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)carpetLines.push(qty+'x '+CARPET_ROOMS[k]);});
+  Object.keys(UPHOL_ITEMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)upholLines.push(qty+'x '+UPHOL_ITEMS[k].name);});
+  var cProtect=document.getElementById('c-protect-'+mid);var cEnzyme=document.getElementById('c-enzyme-'+mid);
+  var uProtect=document.getElementById('u-protect-'+mid);var uEnzyme=document.getElementById('u-enzyme-'+mid);var uAntibac=document.getElementById('u-antibac-'+mid);
+  var upholSubtotal=0;
+  Object.keys(UPHOL_ITEMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)upholSubtotal+=qty*UPHOL_ITEMS[k].price;});
+  flow.scope={
+    carpetLines:carpetLines,upholLines:upholLines,
+    cProtect:cProtect&&cProtect.checked,cEnzyme:cEnzyme&&cEnzyme.checked,
+    uProtect:uProtect&&uProtect.checked,uEnzyme:uEnzyme&&uEnzyme.checked,uAntibac:uAntibac&&uAntibac.checked,
+    durationMin:mins,
+    upholSubtotal:upholSubtotal
+  };
+  var hasCarpet=carpetLines.length>0,hasUphol=upholLines.length>0;
+  flow.service=hasCarpet&&hasUphol?'both':(hasCarpet?'carpet':'upholstery');
+  flow.duration=mins;
+  var f=document.getElementById('scope-'+mid);
+  if(f){
+    var btns=f.querySelectorAll('button');btns.forEach(function(b){b.disabled=true;b.style.opacity='0.5';b.style.cursor='not-allowed';});
+    var inputs=f.querySelectorAll('input');inputs.forEach(function(i){i.disabled=true;});
+    var summary='<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e5e7eb;font-size:12px;color:#15803d"><strong>&#x2713; Job locked in:</strong> '+fmtDuration(mins)+'<br>'+carpetLines.concat(upholLines).join(', ')+'</div>';
+    f.insertAdjacentHTML('beforeend',summary);
+  }
+  hist.push({role:'user',content:'Scope: '+carpetLines.concat(upholLines).join(', ')+' ('+fmtDuration(mins)+')'});
+  flowMsg('Got it \u2014 looks like about '+fmtDuration(mins)+' of work. Let me check our schedule for slots that fit...');
+  checkAvailabilityForFlow();
+}
+
 function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime){
-  var isRug=svc==='RUG_PICKUP',isCarpet=svc==='CARPET',isUphol=svc==='UPHOLSTERY';
-  var lbl=isRug?'Rug Pickup and Delivery':(isCarpet?'Carpet Cleaning':'Upholstery Cleaning');
-  var showCarpet=isCarpet||isUphol||(flow&&flow.service==='both');
-  var showUphol=isCarpet||isUphol||(flow&&flow.service==='both');
+  var isRug=svc==='RUG_PICKUP';
+  var lbl=isRug?'Rug Pickup and Delivery':(flow.scope&&flow.service==='upholstery'?'Upholstery Cleaning':(flow.scope&&flow.service==='both'?'Carpet & Upholstery Cleaning':'Carpet Cleaning'));
+  var hasScopeData=!isRug&&flow.scope;
   var f=document.createElement('div');f.className='bk-form';f.id='bkf-'+mid;
   var html='<h3>Booking Request - '+lbl+'</h3>';
-  if(isCarpet||isUphol){html+='<div class="bk-note" style="background:#fff8e1;border-color:#f59e0b">Our team will measure and give you a quote when they arrive. Call <strong>(847) 251-1200</strong> and ask for Adolfo for a rough estimate.</div>';}
+  if(!isRug){html+='<div class="bk-note" style="background:#fff8e1;border-color:#f59e0b">Our team will measure and give you a final quote on-site. Call <strong>(847) 251-1200</strong> for a rough estimate beforehand.</div>';}
   html+='<div class="bk-note">Please fill in your details. Adolfo will confirm your appointment time.</div>';
   html+='<div class="bk-row-2"><div class="bk-row"><label class="bk-label">First Name *</label><input class="bk-input" id="bk-fname-'+mid+'" placeholder="Jane"/></div><div class="bk-row"><label class="bk-label">Last Name *</label><input class="bk-input" id="bk-lname-'+mid+'" placeholder="Smith"/></div></div>';
   html+='<div class="bk-row-2"><div class="bk-row"><label class="bk-label">Phone Number *</label><input class="bk-input" id="bk-phone-'+mid+'" placeholder="(847) 555-1234" type="tel"/></div><div class="bk-row"><label class="bk-label">Email Address *</label><input class="bk-input" id="bk-email-'+mid+'" placeholder="you@email.com" type="email"/></div></div>';
@@ -272,24 +377,30 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
     html+='<label class="bk-check"><input type="checkbox" id="bk-protect-'+mid+'" data-mid="'+mid+'" onchange="calcRugPrice(this.dataset.mid)"/> Fiber Protectant ($2/sq ft)</label>';
     html+='<label class="bk-check"><input type="checkbox" id="bk-enzyme-'+mid+'" data-mid="'+mid+'" onchange="calcRugPrice(this.dataset.mid)"/> Enzyme Treatment ($2/sq ft)</label></div>';
     html+='<div class="bk-row" id="bk-price-row-'+mid+'" style="display:none"><label class="bk-label">Estimated Price</label><div id="bk-price-'+mid+'" class="bk-price-box"></div></div>';
+  } else if(hasScopeData){
+    var scopeLines=flow.scope.carpetLines.concat(flow.scope.upholLines);
+    var addonsBits=[];
+    if(flow.scope.cProtect)addonsBits.push('Carpet Fiber Protectant');
+    if(flow.scope.cEnzyme)addonsBits.push('Carpet Enzyme');
+    if(flow.scope.uProtect)addonsBits.push('Upholstery Fiber Protectant');
+    if(flow.scope.uEnzyme)addonsBits.push('Upholstery Deodorize/Enzyme');
+    if(flow.scope.uAntibac)addonsBits.push('Upholstery Antibacterial');
+    html+='<div class="bk-row"><label class="bk-label">Your Job</label>';
+    html+='<div class="bk-price-box">'+scopeLines.join('<br>')+(addonsBits.length?'<br><small>Add-ons: '+addonsBits.join(', ')+'</small>':'');
+    if(flow.scope.upholLines.length>0){
+      html+='<br><strong>Upholstery Subtotal: $'+flow.scope.upholSubtotal.toFixed(2)+'</strong>';
+    }
+    html+='<br><small style="color:#166534">Estimated time: '+fmtDuration(flow.scope.durationMin)+'.';
+    if(flow.scope.carpetLines.length>0){
+      html+=' $199 minimum applies to the full job. Carpet pricing added on-site.';
+    } else {
+      html+=' $199 service minimum applies. Final price confirmed on-site.';
+    }
+    html+='</small></div>';
+    html+='<input type="hidden" id="bk-detail-'+mid+'" value="'+scopeLines.join(', ').replace(/"/g,'&quot;')+'"/></div>';
+  } else {
+    html+='<div class="bk-row"><label class="bk-label">Items to Clean *</label><input class="bk-input" id="bk-detail-'+mid+'" placeholder="e.g. sofa, 2 chairs"/></div>';
   }
-  if(showCarpet){
-    html+='<div class="bk-section"><div class="bk-section-hdr" onclick="toggleSection(\'carpet-'+mid+'\',\'carpet-arrow-'+mid+'\')">Carpet Cleaning <span id="carpet-arrow-'+mid+'">+</span></div>';
-    html+='<div id="carpet-'+mid+'" class="bk-section-body" style="display:none"><input type="hidden" id="bk-detail-'+mid+'" value=""/>';
-    html+='<table class="bk-qty-table" id="c-table-'+mid+'"><tr><th>Room</th><th>Qty</th></tr>';
-
-    html+='</table><div class="bk-addons"><label class="bk-check"><input type="checkbox" id="c-protect-'+mid+'" onchange="calcServicePrice(\''+mid+'\')"/> Fiber Protectant (+$0.35/sq ft)</label><label class="bk-check"><input type="checkbox" id="c-enzyme-'+mid+'" onchange="calcServicePrice(\''+mid+'\')"/> Enzyme Treatment (+$0.35/sq ft)</label></div>';
-    html+='<div id="c-price-row-'+mid+'" style="display:none"><div id="c-price-'+mid+'" class="bk-price-box"></div></div></div></div>';
-  }
-  if(showUphol){
-    html+='<div class="bk-section"><div class="bk-section-hdr" onclick="toggleSection(\'uphol-'+mid+'\',\'uphol-arrow-'+mid+'\')">Upholstery Cleaning <span id="uphol-arrow-'+mid+'">+</span></div>';
-    html+='<div id="uphol-'+mid+'" class="bk-section-body" style="display:none"><input type="hidden" id="bk-detail-'+mid+'u" value=""/>';
-    html+='<table class="bk-qty-table" id="u-table-'+mid+'"><tr><th>Item</th><th>Price</th><th>Qty</th></tr>';
-
-    html+='</table><div class="bk-addons"><label class="bk-check"><input type="checkbox" id="u-protect-'+mid+'" onchange="calcServicePrice(\''+mid+'\')"/> Fiber Protectant</label><label class="bk-check"><input type="checkbox" id="u-enzyme-'+mid+'" onchange="calcServicePrice(\''+mid+'\')"/> Deodorize / Enzyme</label><label class="bk-check"><input type="checkbox" id="u-antibac-'+mid+'" onchange="calcServicePrice(\''+mid+'\')"/> Antibacterial</label></div>';
-    html+='<div id="u-price-row-'+mid+'" style="display:none"><div id="u-price-'+mid+'" class="bk-price-box"></div></div></div></div>';
-  }
-  if(!isRug&&!showCarpet&&!showUphol){html+='<div class="bk-row"><label class="bk-label">Items to Clean *</label><input class="bk-input" id="bk-detail-'+mid+'" placeholder="e.g. sofa, 2 chairs"/></div>';}
   html+='<div class="bk-row"><label class="bk-label">Requested Time *</label><input class="bk-input" id="bk-appt-'+mid+'" placeholder="e.g. Thursday May 7 at 9:00 AM" autocomplete="off"/></div>';
   html+='<div class="bk-row"><label class="bk-check"><input type="checkbox" id="bk-self-'+mid+'" onchange="toggleContact(\''+mid+'\',this.checked)" checked/> I will be there to let your crew in</label></div>';
   html+='<div id="bk-contact-box-'+mid+'" class="contact-toggle"><div class="bk-note" style="margin-bottom:8px">Provide the contact who will let our crew in:</div><div class="bk-row-2"><div class="bk-row"><label class="bk-label">Contact Name *</label><input class="bk-input" id="bk-cname-'+mid+'" placeholder="On-site contact name"/></div><div class="bk-row"><label class="bk-label">Contact Phone *</label><input class="bk-input" id="bk-cphone-'+mid+'" placeholder="Their phone number"/></div></div></div>';
@@ -297,46 +408,9 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
   html+='<button class="bk-submit" onclick="submitBooking(\''+mid+'\',\''+svc+'\',\''+lbl+'\')">Send Booking Request</button><button class="bk-cancel" onclick="cancelBooking(\''+mid+'\')">Never mind, I will call instead</button>';
   f.innerHTML=html;
   setTimeout(function(){
-    // Populate carpet table
-    var cTable=document.getElementById('c-table-'+mid);
-    if(cTable){
-      var cRooms=[['c-liv','Living / Family Room'],['c-din','Dining Room'],['c-mbd','Master Bedroom'],['c-bed','Bedroom'],['c-off','Office / Den'],['c-bat','Bathroom'],['c-bas','Basement'],['c-hal','Hallway'],['c-sta','Stairs (per flight)'],['c-wic','Walk-in Closet']];
-      cRooms.forEach(function(r){
-        var tr=document.createElement('tr');
-        var td1=document.createElement('td');td1.textContent=r[1];
-        var td2=document.createElement('td');
-        var div=document.createElement('div');div.className='bk-qty';
-        var btnAdd=document.createElement('button');btnAdd.type='button';btnAdd.textContent='+';btnAdd.className='bk-qty-add';
-        (function(key){btnAdd.onclick=function(){adjQty(key+'-'+mid,1,mid);};})(r[0]);
-        var span=document.createElement('span');span.id=r[0]+'-'+mid;span.textContent='0';
-        var btnSub=document.createElement('button');btnSub.type='button';btnSub.innerHTML='&minus;';btnSub.className='bk-qty-sub';
-        (function(key){btnSub.onclick=function(){adjQty(key+'-'+mid,-1,mid);};})(r[0]);
-        div.appendChild(btnAdd);div.appendChild(span);div.appendChild(btnSub);
-        td2.appendChild(div);tr.appendChild(td1);tr.appendChild(td2);cTable.appendChild(tr);
-      });
-    }
-    // Populate upholstery table
-    var uTable=document.getElementById('u-table-'+mid);
-    if(uTable){
-      var uItems=[['u-sof',"Sofa (up to 7')","$245"],['u-lov',"Love Seat (up to 5')","$175"],['u-cha','Chair','$100'],['u-win','Wing Chair','$70'],['u-ott','Ottoman','$75'],['u-sec','Sectional (linear ft)','$35/ft'],['u-din','Dining Chair','$40'],['u-pil','Pillow / Cushion','$15']];
-      uItems.forEach(function(r){
-        var tr=document.createElement('tr');
-        var td1=document.createElement('td');td1.textContent=r[1];
-        var td2=document.createElement('td');td2.textContent=r[2];
-        var td3=document.createElement('td');
-        var div=document.createElement('div');div.className='bk-qty';
-        var btnAdd=document.createElement('button');btnAdd.type='button';btnAdd.textContent='+';btnAdd.className='bk-qty-add';
-        (function(key){btnAdd.onclick=function(){adjQty(key+'-'+mid,1,mid);};})(r[0]);
-        var span=document.createElement('span');span.id=r[0]+'-'+mid;span.textContent='0';
-        var btnSub=document.createElement('button');btnSub.type='button';btnSub.innerHTML='&minus;';btnSub.className='bk-qty-sub';
-        (function(key){btnSub.onclick=function(){adjQty(key+'-'+mid,-1,mid);};})(r[0]);
-        div.appendChild(btnAdd);div.appendChild(span);div.appendChild(btnSub);
-        td3.appendChild(div);tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);uTable.appendChild(tr);
-      });
-    }
     var fname=pName?pName.split(' ')[0]:'';
     var lname=pName&&pName.split(' ').length>1?pName.split(' ').slice(1).join(' '):'';
-    var flds=[['bk-fname-'+mid,fname],['bk-lname-'+mid,lname],['bk-phone-'+mid,pPhone],['bk-email-'+mid,pEmail],['bk-addr-'+mid,pAddr],['bk-detail-'+mid,pDetail]];
+    var flds=[['bk-fname-'+mid,fname],['bk-lname-'+mid,lname],['bk-phone-'+mid,pPhone],['bk-email-'+mid,pEmail],['bk-addr-'+mid,pAddr]];
     flds.forEach(function(pair){var el=document.getElementById(pair[0]);if(!el)return;if(pair[1]){el.value=pair[1];el.classList.add('bk-filled');}else{el.classList.add('bk-needs');}});
     var apptStr=(pDate&&pTime)?pDate+' at '+pTime:pDate||pTime||'';
     if(apptStr){var apptEl=document.getElementById('bk-appt-'+mid);if(apptEl){apptEl.value=apptStr;apptEl.classList.add('bk-filled');}}
@@ -359,35 +433,39 @@ function submitBooking(mid,svc,lbl){
   var notes=document.getElementById('bk-notes-'+mid).value.trim();
   var cnEl=document.getElementById('bk-cname-'+mid);var cpEl=document.getElementById('bk-cphone-'+mid);
   var cname=selfP?'':(cnEl?cnEl.value.trim():'');var cphone=selfP?'':(cpEl?cpEl.value.trim():'');
-  // Get price if available
-  var priceEl=document.getElementById('bk-price-'+mid);
-  var uPriceEl=document.getElementById('u-price-'+mid);
   var priceInfo='';
-  if(priceEl&&priceEl.textContent)priceInfo+=priceEl.textContent.replace(/<[^>]*>/g,' ').trim()+' ';
-  if(uPriceEl&&uPriceEl.textContent)priceInfo+=uPriceEl.textContent.replace(/<[^>]*>/g,' ').trim();
+  if(flow.scope){
+    priceInfo='Job: '+flow.scope.carpetLines.concat(flow.scope.upholLines).join(', ')+' (Est. '+fmtDuration(flow.scope.durationMin)+')';
+    if(flow.scope.upholSubtotal>0)priceInfo+=' Upholstery subtotal: $'+flow.scope.upholSubtotal.toFixed(2);
+  }
+  var priceEl=document.getElementById('bk-price-'+mid);
+  if(priceEl&&priceEl.textContent)priceInfo+=' '+priceEl.textContent.replace(/<[^>]*>/g,' ').trim();
   if(!name||!phone||!email||!addr||!appt){alert('Please fill in all required fields.');return;}
   if(!selfP&&(!cname||!cphone)){alert('Please provide the on-site contact, or check that you will be there yourself.');return;}
   var isChicago=/\bchicago\b/i.test(addr);
   var truck=svc==='CARPET'?'Truck 1 or Truck 2':svc==='UPHOLSTERY'?'Truck 1 preferred':'Rug Pickup Calendar - Tues and Thurs only';
-  var eb='NEW BOOKING - KASHIAN BROS KAY\nSERVICE: '+lbl+'\nCALENDAR: '+truck+'\n'+(isChicago?'*** CHICAGO - Adolfo must book manually ***\n':'')+'\nName: '+name+'\nPhone: '+phone+'\nEmail: '+email+'\nAddress: '+addr+'\n'+(detail?'Details: '+detail+'\n':'')+(priceInfo?'Price Quote: '+priceInfo+'\n':'')+'\nAppointment: '+appt+'\nOn-site: '+(selfP?'Customer present':'Contact: '+cname+' '+cphone)+(notes?'\nNotes: '+notes:'')+'\nSubmitted: '+new Date().toLocaleString();
-  fetch('/.netlify/functions/booking',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,phone:phone,email:email,addr:addr,svc:svc,lbl:lbl,detail:detail,stairs:'',date:appt,time:'',selfP:selfP,cname:cname,cphone:cphone,pets:'',notes:notes+(priceInfo?'\nPrice Quote: '+priceInfo:''),isChicago:isChicago,truck:truck,emailBody:eb})}).catch(function(){});
+  var eb='NEW BOOKING - KASHIAN BROS KAY\nSERVICE: '+lbl+'\nCALENDAR: '+truck+'\n'+(isChicago?'*** CHICAGO - Adolfo must book manually ***\n':'')+'\nName: '+name+'\nPhone: '+phone+'\nEmail: '+email+'\nAddress: '+addr+'\n'+(detail?'Details: '+detail+'\n':'')+(priceInfo?'Price/Duration: '+priceInfo+'\n':'')+'\nAppointment: '+appt+'\nOn-site: '+(selfP?'Customer present':'Contact: '+cname+' '+cphone)+(notes?'\nNotes: '+notes:'')+'\nSubmitted: '+new Date().toLocaleString();
+  fetch('/.netlify/functions/booking',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,phone:phone,email:email,addr:addr,svc:svc,lbl:lbl,detail:detail,stairs:'',date:appt,time:'',selfP:selfP,cname:cname,cphone:cphone,pets:'',notes:notes+(priceInfo?'\nPrice/Duration: '+priceInfo:''),isChicago:isChicago,truck:truck,emailBody:eb})}).catch(function(){});
   var timing=getConfirmTiming();
   var f=document.getElementById('bkf-'+mid);
   f.className='bk-success';
   f.innerHTML='<h3>Booking Request Sent!</h3><p style="margin-top:8px"><strong>Thank you, '+fname+'!</strong></p><p style="margin-top:6px">Your booking request for <strong>'+lbl+'</strong> has been sent.</p><p style="margin-top:8px;background:#dcfce7;border-radius:6px;padding:8px"><strong>'+timing+'</strong></p><p style="margin-top:8px">Confirmation will go to <strong>'+email+'</strong>. Questions? Call <strong>(847) 251-1200</strong>.</p>'+(isChicago?'<p style="margin-top:8px;background:#fef9c3;border-radius:6px;padding:8px">Chicago bookings are handled personally by our cleaning manager.</p>':'');
   hist.push({role:'user',content:'BOOKING SUBMITTED: '+name+' for '+lbl+' on '+appt});
   hist.push({role:'assistant',content:'Booking sent! '+timing});
+  flow.scope=null;
 }
 function addMsg(role,content,id){
   var msgs=document.getElementById('msgs'),isBot=role==='assistant';
   var fm=content.match(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)([^\]]*)\]/);
-  var cc=content.replace(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)[^\]]*\]/g,'').trim();
+  var sc=content.match(/\[SHOW_SCOPE_FORM\]/);
+  var cc=content.replace(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)[^\]]*\]/g,'').replace(/\[SHOW_SCOPE_FORM\]/g,'').trim();
   var row=document.createElement('div');row.className='row '+(isBot?'b':'u');row.id='r'+id;
   var ic=document.createElement('div');ic.className='ic '+(isBot?'b':'u');ic.innerHTML=isBot?'&#x1F9F9;':'&#x1F464;';
   var wrap=document.createElement('div');wrap.style.maxWidth='100%';
   var bub=document.createElement('div');bub.className='bub '+(isBot?'b':'u');
   bub.innerHTML=isBot?nl2html(cc):'<p>'+content+'</p>';
   wrap.appendChild(bub);
+  if(sc&&isBot){wrap.appendChild(buildScopeForm(id));}
   if(fm&&isBot){var pArr=(fm[2]||'').replace(/^\|/,'').split('|');wrap.appendChild(buildBookingForm(fm[1],id,pArr[0]||'',pArr[1]||'',pArr[2]||'',pArr[3]||'',pArr[4]||'',pArr[5]||'',pArr[6]||''));}
   if(isBot&&id>0){
     var fbr=document.createElement('div');fbr.className='fbr';
@@ -420,7 +498,7 @@ function getLastQ(){var f=hist.slice().reverse().find(function(m){return m.role=
 function addFb(entry){entry.tester=document.getElementById('tn').value||'Anonymous';entry.time=new Date().toLocaleTimeString();fbLog=fbLog.filter(function(f){return!(f.msgId===entry.msgId&&f.type===entry.type);});fbLog.push(entry);renderFb();}
 function renderFb(){var list=document.getElementById('fl');document.getElementById('fc').textContent=fbLog.length;if(!fbLog.length){list.innerHTML='No feedback yet.<br><br>Good = correct<br>Fix = wrong<br>Note = add comment';return;}var colors={good:'#16a34a',bad:'#dc2626',note:'#ca8a04'};var labels={good:'Correct',bad:'Needs fix',note:'Note'};list.innerHTML='';fbLog.slice().reverse().forEach(function(f){var d=document.createElement('div');d.style.cssText='background:#fff;border:1px solid #b8eeeb;border-left:3px solid '+colors[f.type]+';border-radius:8px;padding:9px;font-size:11.5px;color:#111';d.innerHTML='<div style="font-size:10px;color:#94a3b8;margin-bottom:3px;display:flex;justify-content:space-between"><span style="font-weight:600;color:'+colors[f.type]+'">'+labels[f.type]+'</span><span>'+f.tester+'</span></div>'+(f.q?'<div style="color:#333;font-style:italic;font-size:11px;margin-bottom:3px">'+f.q+'</div>':'')+'<div style="color:#111">'+(f.note||f.a+'...')+'</div>';list.appendChild(d);});}
 function exportFb(){if(!fbLog.length){alert('No feedback yet.');return;}var t=document.getElementById('tn').value||'Anonymous';var txt='KASHIAN BROS KAY FEEDBACK\nExported: '+new Date().toLocaleString()+'\nTester: '+t+'\nTotal: '+fbLog.length+'\n\n';fbLog.forEach(function(f,i){var lbl={good:'CORRECT',bad:'NEEDS FIX',note:'NOTE'}[f.type];txt+='['+(i+1)+'] '+lbl+' - '+f.tester+' at '+f.time+'\n';if(f.q)txt+='Asked: "'+f.q+'"\n';txt+=f.note?'Correction: '+f.note+'\n':'Response: '+f.a+'...\n';txt+='\n';});var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download='KashianBros_Kay_Feedback_'+new Date().toISOString().slice(0,10)+'.txt';a.click();}
-var flow={active:false,type:null,step:null,service:null,rugCount:null,detail:null,duration:0,address:null,awaitingText:false};
+var flow={active:false,type:null,step:null,service:null,rugCount:null,detail:null,duration:0,address:null,awaitingText:false,scope:null};
 function flowMsg(text,buttons){var msg=text;if(buttons&&buttons.length)msg+='\n[BUTTONS:'+buttons.join('|')+']';hist.push({role:'assistant',content:text});addMsg('assistant',msg,cnt);}
 function handleInput(text,btn){
   if(btn){var par=btn.parentNode;if(par){var sibs=par.querySelectorAll('.inline-btn');for(var i=0;i<sibs.length;i++){sibs[i].disabled=true;sibs[i].style.opacity='0.4';}}}
@@ -431,15 +509,14 @@ function handleInput(text,btn){
 function disableBubbles(wrap){var btns=wrap.querySelectorAll('.inline-btn');for(var i=0;i<btns.length;i++){btns[i].disabled=true;btns[i].style.opacity='0.4';}}
 function startCarpetFlow(){
   document.getElementById('qw').style.display='none';
-  flow={active:true,type:'carpet_upholstery',step:'show_slots',service:'both',rugCount:null,detail:null,duration:180,address:null,awaitingText:false};
+  flow={active:true,type:'carpet_upholstery',step:'scope',service:null,rugCount:null,detail:null,duration:0,address:null,awaitingText:false,scope:null};
   addMsg('user','Schedule Carpet & Upholstery Cleaning',cnt);
   hist.push({role:'user',content:'Schedule Carpet & Upholstery Cleaning'});
-  flowMsg('Let me check our schedule...');
-  checkAvailabilityForFlow();
+  flowMsg('Happy to help! Tell me what needs cleaning so I can find a time that fits your job.\n[SHOW_SCOPE_FORM]');
 }
 function startRugFlow(){
   document.getElementById('qw').style.display='none';
-  flow={active:true,type:'rug',step:'show_slots',service:'rug',rugCount:null,detail:null,duration:45,address:null,awaitingText:false};
+  flow={active:true,type:'rug',step:'show_slots',service:'rug',rugCount:null,detail:null,duration:45,address:null,awaitingText:false,scope:null};
   addMsg('user','Schedule Rug Pickup',cnt);
   hist.push({role:'user',content:'Schedule Rug Pickup'});
   flowMsg('Let me check our pickup schedule...');
@@ -460,7 +537,7 @@ function handleFlowButton(text){
 }
 function showBookingFormFromFlow(dateStr,timeStr){
   var svc=flow.type==='rug'?'RUG_PICKUP':flow.service==='upholstery'?'UPHOLSTERY':'CARPET';
-  var fakeReply='Great! Please fill in your details below and we will get you all set! [SHOW_BOOKING_FORM:'+svc+'|||||'+flow.detail+'|'+dateStr+'|'+timeStr+']';
+  var fakeReply='Great! Please fill in your details below and we will get you all set! [SHOW_BOOKING_FORM:'+svc+'|||||'+(flow.detail||'')+'|'+dateStr+'|'+timeStr+']';
   hist.push({role:'assistant',content:'Great! Please fill in your details below and we will get you all set!'});
   addMsg('assistant',fakeReply,cnt);flow.active=false;
 }
@@ -498,9 +575,10 @@ async function checkAvailabilityForFlow(){
       flow.step='time_choice';
       var btns=d.slots.slice(0,4).map(function(s){return s.label;});
       btns.push('I have a different time in mind');
-      flowMsg('Here are our next available times. Which works best for you?',btns);
+      var msg=flow.type==='rug'?'Here are our next available pickup times. Which works best?':'Here are our next available times that fit your '+fmtDuration(flow.duration)+' job. Which works best?';
+      flowMsg(msg,btns);
     } else {
-      flowMsg('Our schedule is quite full right now. Please call us at (847) 251-1200 and we will find you a time!');
+      flowMsg('Our schedule is quite full for a '+fmtDuration(flow.duration)+' job in the next two weeks. Please call us at (847) 251-1200 and we will find you a time!');
       flow.active=false;
     }
   }catch(e){flowMsg('Connection error: '+e.message+'. Please call (847) 251-1200!');flow.active=false;}
