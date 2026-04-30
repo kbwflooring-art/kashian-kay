@@ -128,17 +128,18 @@ function getConfirmTiming(){var now=new Date(),day=now.getDay(),hr=now.getHours(
 function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime){
   var isRug=svc==="RUG_PICKUP",isCarpet=svc==="CARPET",isUphol=svc==="UPHOLSTERY";
   var lbl=isRug?"Rug Pickup and Delivery":(isCarpet?"Carpet Cleaning":"Upholstery Cleaning");
-  var showCarpet=isCarpet||(flow&&flow.service==="both");
-  var showUphol=isUphol||(flow&&flow.service==="both");
+  var showCarpet=isCarpet||isUphol||(flow&&flow.service==="both");
+  var showUphol=isCarpet||isUphol||(flow&&flow.service==="both");
   var f=document.createElement("div");f.className="bk-form";f.id="bkf-"+mid;
   var html="<h3>Booking Request - "+lbl+"</h3>";
   if(isCarpet||isUphol){html+='<div class="bk-note" style="background:#fff8e1;border-color:#f59e0b">Our team will measure and give you a quote when they arrive. Call <strong>(847) 251-1200</strong> and ask for Adolfo for a rough estimate.</div>';}
   html+='<div class="bk-note">Please fill in your details. Adolfo will confirm your appointment time.</div>';
-  html+='<div class="bk-row-2"><div class="bk-row"><label class="bk-label">First and Last Name *</label><input class="bk-input" id="bk-name-'+mid+'" placeholder="Jane Smith"/></div><div class="bk-row"><label class="bk-label">Phone Number *</label><input class="bk-input" id="bk-phone-'+mid+'" placeholder="(847) 555-1234" type="tel"/></div></div>';
-  html+='<div class="bk-row"><label class="bk-label">Email Address *</label><input class="bk-input" id="bk-email-'+mid+'" placeholder="you@email.com" type="email"/></div>';
+  html+='<div class="bk-row-2"><div class="bk-row"><label class="bk-label">First Name *</label><input class="bk-input" id="bk-fname-'+mid+'" placeholder="Jane"/></div><div class="bk-row"><label class="bk-label">Last Name *</label><input class="bk-input" id="bk-lname-'+mid+'" placeholder="Smith"/></div></div>';
+  html+='<div class="bk-row-2"><div class="bk-row"><label class="bk-label">Phone Number *</label><input class="bk-input" id="bk-phone-'+mid+'" placeholder="(847) 555-1234" type="tel"/></div><div class="bk-row"><label class="bk-label">Email Address *</label><input class="bk-input" id="bk-email-'+mid+'" placeholder="you@email.com" type="email"/></div></div>';
+
   html+='<div class="bk-row"><label class="bk-label">Full Address (include city) *</label><input class="bk-input" id="bk-addr-'+mid+'" placeholder="123 Main St, Wilmette, IL 60091" autocomplete="off"/></div>';
   if(isRug){
-    html+='<div class="bk-row"><label class="bk-label">Rug Size(s) *</label><div id="bk-rug-rows-'+mid+'"><div class="bk-rug-row" style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><input class="bk-input" style="width:60px;text-align:center" placeholder="8" id="bk-rug-w1-'+mid+'" type="number" min="1" oninput="calcRugPrice(\''+mid+'\')"/><span style="font-weight:600">x</span><input class="bk-input" style="width:60px;text-align:center" placeholder="10" id="bk-rug-h1-'+mid+'" type="number" min="1" oninput="calcRugPrice(\''+mid+'\')"/><span style="font-size:12px;color:#666">ft</span></div></div><input type="hidden" id="bk-detail-'+mid+'" value=""/><button type="button" class="bk-cancel" style="width:auto;padding:5px 12px;font-size:12px;margin-top:4px" onclick="addRugRow(\''+mid+'\')">+ Add another rug</button></div>';
+    html+='<div class="bk-row"><label class="bk-label">Rug Size(s) *</label><div style="font-size:11px;color:#666;margin-bottom:6px">Enter feet and inches. Rounds up to next foot if 6+ inches.</div><div id="bk-rug-rows-'+mid+'"><div class="bk-rug-row" style="display:flex;align-items:center;gap:4px;margin-bottom:6px"><input class="bk-input" style="width:48px;text-align:center;padding:7px 4px" placeholder="8" id="bk-rug-wft1-'+mid+'" type="number" min="0" oninput="calcRugPrice(\''+mid+'\')"/><span style="font-size:11px;color:#666">ft</span><input class="bk-input" style="width:44px;text-align:center;padding:7px 4px" placeholder="0" id="bk-rug-win1-'+mid+'" type="number" min="0" max="11" oninput="calcRugPrice(\''+mid+'\')"/><span style="font-size:11px;color:#666">in</span><span style="font-weight:600;margin:0 4px">x</span><input class="bk-input" style="width:48px;text-align:center;padding:7px 4px" placeholder="10" id="bk-rug-hft1-'+mid+'" type="number" min="0" oninput="calcRugPrice(\''+mid+'\')"/><span style="font-size:11px;color:#666">ft</span><input class="bk-input" style="width:44px;text-align:center;padding:7px 4px" placeholder="0" id="bk-rug-hin1-'+mid+'" type="number" min="0" max="11" oninput="calcRugPrice(\''+mid+'\')"/><span style="font-size:11px;color:#666">in</span></div></div><input type="hidden" id="bk-detail-'+mid+'" value=""/><button type="button" class="bk-cancel" style="width:auto;padding:5px 12px;font-size:12px;margin-top:4px" onclick="addRugRow(\''+mid+'\')">+ Add another rug</button></div>';
     html+='<div class="bk-row"><label class="bk-label">Add-Ons</label><label class="bk-check"><input type="checkbox" id="bk-protect-'+mid+'" onchange="calcRugPrice(\''+mid+'\')"/> Fiber Protectant ($2/sq ft)</label><label class="bk-check"><input type="checkbox" id="bk-enzyme-'+mid+'" onchange="calcRugPrice(\''+mid+'\')"/> Enzyme Treatment for Pets ($2/sq ft)</label></div>';
     html+='<div class="bk-row" id="bk-price-row-'+mid+'" style="display:none"><label class="bk-label">Estimated Price</label><div id="bk-price-'+mid+'" class="bk-price-box"></div></div>';
   }
@@ -169,7 +170,7 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
   html+='<button class="bk-submit" onclick="submitBooking(\''+mid+'\',\''+svc+'\',\''+lbl+'\')">Send Booking Request</button><button class="bk-cancel" onclick="cancelBooking(\''+mid+'\')">Never mind, I will call instead</button>';
   f.innerHTML=html;
   setTimeout(function(){
-    var flds=[["bk-name-"+mid,pName],["bk-phone-"+mid,pPhone],["bk-email-"+mid,pEmail],["bk-addr-"+mid,pAddr],["bk-detail-"+mid,pDetail]];
+    var flds=[["bk-fname-"+mid,pName?pName.split(" ")[0]:""],["bk-lname-"+mid,pName&&pName.split(" ").length>1?pName.split(" ").slice(1).join(" "):""],["bk-phone-"+mid,pPhone],["bk-email-"+mid,pEmail],["bk-addr-"+mid,pAddr],["bk-detail-"+mid,pDetail]];
     flds.forEach(function(pair){var el=document.getElementById(pair[0]);if(!el)return;if(pair[1]){el.value=pair[1];el.classList.add("bk-filled");}else{el.classList.add("bk-needs");}});
     var apptStr=(pDate&&pTime)?pDate+" at "+pTime:pDate||pTime||"";
     if(apptStr){var apptEl=document.getElementById("bk-appt-"+mid);if(apptEl){apptEl.value=apptStr;apptEl.classList.add("bk-filled");}}
@@ -267,14 +268,17 @@ function addRugRow(mid){
   var count=container.querySelectorAll(".bk-rug-row").length+1;
   var row=document.createElement("div");
   row.className="bk-rug-row";
-  row.style.cssText="display:flex;align-items:center;gap:8px;margin-bottom:6px";
-  var wId="bk-rug-w"+count+"-"+mid;var hId="bk-rug-h"+count+"-"+mid;
-  var wIn=document.createElement("input");wIn.className="bk-input";wIn.style.cssText="width:60px;text-align:center";wIn.placeholder="8";wIn.id=wId;wIn.type="number";wIn.min="1";wIn.addEventListener("input",function(){calcRugPrice(mid);});
-  var xSpan=document.createElement("span");xSpan.style.fontWeight="600";xSpan.textContent="x";
-  var hIn=document.createElement("input");hIn.className="bk-input";hIn.style.cssText="width:60px;text-align:center";hIn.placeholder="10";hIn.id=hId;hIn.type="number";hIn.min="1";hIn.addEventListener("input",function(){calcRugPrice(mid);});
-  var ftSpan=document.createElement("span");ftSpan.style.cssText="font-size:12px;color:#666";ftSpan.textContent="ft";
-  var delBtn=document.createElement("button");delBtn.type="button";delBtn.style.cssText="background:none;border:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0 4px";delBtn.textContent="x";delBtn.onclick=function(){row.remove();calcRugPrice(mid);};
-  row.appendChild(wIn);row.appendChild(xSpan);row.appendChild(hIn);row.appendChild(ftSpan);row.appendChild(delBtn);
+  row.style.cssText="display:flex;align-items:center;gap:4px;margin-bottom:6px";
+  function mkNum(id,ph,w){var el=document.createElement("input");el.className="bk-input";el.style.cssText="width:"+w+"px;text-align:center;padding:7px 4px";el.placeholder=ph;el.id=id;el.type="number";el.min="0";el.addEventListener("input",function(){calcRugPrice(mid);});return el;}
+  function mkLbl(t){var s=document.createElement("span");s.style.cssText="font-size:11px;color:#666";s.textContent=t;return s;}
+  function mkX(){var s=document.createElement("span");s.style.cssText="font-weight:600;margin:0 4px";s.textContent="x";return s;}
+  var delBtn=document.createElement("button");delBtn.type="button";delBtn.style.cssText="background:none;border:none;color:#dc2626;cursor:pointer;font-size:18px;padding:0 4px;margin-left:4px";delBtn.textContent="x";delBtn.onclick=function(){row.remove();calcRugPrice(mid);};
+  row.appendChild(mkNum("bk-rug-wft"+count+"-"+mid,"8",48));row.appendChild(mkLbl("ft"));
+  row.appendChild(mkNum("bk-rug-win"+count+"-"+mid,"0",44));row.appendChild(mkLbl("in"));
+  row.appendChild(mkX());
+  row.appendChild(mkNum("bk-rug-hft"+count+"-"+mid,"10",48));row.appendChild(mkLbl("ft"));
+  row.appendChild(mkNum("bk-rug-hin"+count+"-"+mid,"0",44));row.appendChild(mkLbl("in"));
+  row.appendChild(delBtn);
   container.appendChild(row);
 }
 function calcRugPrice(mid){
@@ -282,19 +286,28 @@ function calcRugPrice(mid){
   if(!detail||!detail.value.trim()){document.getElementById("bk-price-row-"+mid).style.display="none";return;}
   var container=document.getElementById("bk-rug-rows-"+mid);
   var totalSqft=0;var rugDesc=[];
+  function roundFt(ft,inches){var i=parseInt(inches)||0;return (parseInt(ft)||0)+(i>=6?1:0);}
   if(container){
     var rows=container.querySelectorAll(".bk-rug-row");
     rows.forEach(function(row,i){
       var count=i+1;
-      var wEl=document.getElementById("bk-rug-w"+count+"-"+mid);
-      var hEl=document.getElementById("bk-rug-h"+count+"-"+mid);
-      if(wEl&&hEl&&wEl.value&&hEl.value){
-        var w=parseInt(wEl.value),h=parseInt(hEl.value);
-        if(w>0&&h>0){totalSqft+=w*h;rugDesc.push(w+"x"+h);}
+      var wftEl=document.getElementById("bk-rug-wft"+count+"-"+mid);
+      var winEl=document.getElementById("bk-rug-win"+count+"-"+mid);
+      var hftEl=document.getElementById("bk-rug-hft"+count+"-"+mid);
+      var hinEl=document.getElementById("bk-rug-hin"+count+"-"+mid);
+      if(wftEl&&hftEl){
+        var wft=parseInt(wftEl.value)||0,win=parseInt(winEl?winEl.value:0)||0;
+        var hft=parseInt(hftEl.value)||0,hin=parseInt(hinEl?hinEl.value:0)||0;
+        var w=roundFt(wft,win),h=roundFt(hft,hin);
+        if(w>0&&h>0){
+          totalSqft+=w*h;
+          var wDesc=wft+(win>0?"'"+win+'"':'ft');
+          var hDesc=hft+(hin>0?"'"+hin+'"':'ft');
+          rugDesc.push(wDesc+" x "+hDesc+" (billed as "+w+"x"+h+")");
+        }
       }
     });
   }
-  // Update hidden detail field
   if(detail)detail.value=rugDesc.join(", ");
   if(totalSqft===0){document.getElementById("bk-price-row-"+mid).style.display="none";return;}
   var basePrice=totalSqft*4.00;
@@ -311,7 +324,7 @@ function calcRugPrice(mid){
   document.getElementById("bk-price-"+mid).innerHTML=breakdown;
   document.getElementById("bk-price-row-"+mid).style.display="block";
 }
-function submitBooking(mid,svc,lbl){var name=document.getElementById("bk-name-"+mid).value.trim(),phone=document.getElementById("bk-phone-"+mid).value.trim(),email=document.getElementById("bk-email-"+mid).value.trim(),addr=document.getElementById("bk-addr-"+mid).value.trim(),detail=document.getElementById("bk-detail-"+mid).value.trim(),stEl=document.getElementById("bk-stairs-"+mid),stairs=stEl?stEl.value.trim():"",appt=document.getElementById("bk-appt-"+mid).value.trim(),selfP=document.getElementById("bk-self-"+mid).checked,pets="",notes=document.getElementById("bk-notes-"+mid).value.trim(),cnEl=document.getElementById("bk-cname-"+mid),cpEl=document.getElementById("bk-cphone-"+mid),cname=selfP?"":(cnEl?cnEl.value.trim():""),cphone=selfP?"":(cpEl?cpEl.value.trim():"");if(!name||!phone||!email||!addr||!detail||!appt){alert("Please fill in all required fields.");return;}if(!selfP&&(!cname||!cphone)){alert("Please provide the on-site contact, or check that you will be there yourself.");return;}var isChicago=/\bchicago\b/i.test(addr);var truck=svc==="CARPET"?"Truck 1 or Truck 2 - Hard Surface Calendar":svc==="UPHOLSTERY"?"Truck 1 preferred - Hard Surface Calendar":"Rug Pickup Calendar - Tues and Thurs only";var dd=appt||"Not specified";var eb="NEW BOOKING - KASHIAN BROS KAY\nSERVICE: "+lbl+"\nCALENDAR: "+truck+"\n"+(isChicago?"*** CHICAGO - Adolfo must book manually ***\n":"")+"\nName: "+name+"\nPhone: "+phone+"\nEmail: "+email+"\nAddress: "+addr+"\n"+(svc==="CARPET"?"Rooms: "+detail+"\n"+(stairs?"Stairs: "+stairs+"\n":""):svc==="UPHOLSTERY"?"Items: "+detail+"\n":"Rugs: "+detail+"\n")+(notes?"Notes: "+notes+"\n":"")+"\nDate: "+dd+"\nTime: "+time+"\nOn-site: "+(selfP?"Customer present":"Contact: "+cname+" "+cphone)+"\nSubmitted: "+new Date().toLocaleString();fetch("/.netlify/functions/booking",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:name,phone:phone,email:email,addr:addr,svc:svc,lbl:lbl,detail:detail,stairs:stairs,date:dd,time:time,selfP:selfP,cname:cname,cphone:cphone,pets:pets,notes:notes,isChicago:isChicago,truck:truck,emailBody:eb})}).catch(function(){});var timing=getConfirmTiming();var f=document.getElementById("bkf-"+mid);f.className="bk-success";f.innerHTML="<h3>Booking Request Sent!</h3><p style=\"margin-top:8px\"><strong>Thank you, "+name.split(" ")[0]+"!</strong></p><p style=\"margin-top:6px\">Booking request for <strong>"+lbl+"</strong> on <strong>"+dd+"</strong> has been sent.</p><p style=\"margin-top:8px;background:#dcfce7;border-radius:6px;padding:8px\"><strong>"+timing+"</strong></p><p style=\"margin-top:8px\">Confirmation will go to <strong>"+email+"</strong>. Questions? Call <strong>(847) 251-1200</strong>.</p>"+(isChicago?"<p style=\"margin-top:8px;background:#fef9c3;border-radius:6px;padding:8px\">Chicago bookings are handled personally by our cleaning manager.</p>":"");hist.push({role:"user",content:"BOOKING SUBMITTED: "+name+" for "+lbl+" on "+dd});hist.push({role:"assistant",content:"Booking sent! "+timing});}
+function submitBooking(mid,svc,lbl){var fname=document.getElementById("bk-fname-"+mid)?document.getElementById("bk-fname-"+mid).value.trim():"",lname=document.getElementById("bk-lname-"+mid)?document.getElementById("bk-lname-"+mid).value.trim():"",name=(fname+" "+lname).trim(),phone=document.getElementById("bk-phone-"+mid).value.trim(),email=document.getElementById("bk-email-"+mid).value.trim(),addr=document.getElementById("bk-addr-"+mid).value.trim(),detail=document.getElementById("bk-detail-"+mid).value.trim(),stEl=document.getElementById("bk-stairs-"+mid),stairs=stEl?stEl.value.trim():"",appt=document.getElementById("bk-appt-"+mid).value.trim(),selfP=document.getElementById("bk-self-"+mid).checked,pets="",notes=document.getElementById("bk-notes-"+mid).value.trim(),cnEl=document.getElementById("bk-cname-"+mid),cpEl=document.getElementById("bk-cphone-"+mid),cname=selfP?"":(cnEl?cnEl.value.trim():""),cphone=selfP?"":(cpEl?cpEl.value.trim():"");if((!fname&&!name)||!phone||!email||!addr||!appt){alert("Please fill in all required fields.");return;}if(!selfP&&(!cname||!cphone)){alert("Please provide the on-site contact, or check that you will be there yourself.");return;}var isChicago=/\bchicago\b/i.test(addr);var truck=svc==="CARPET"?"Truck 1 or Truck 2 - Hard Surface Calendar":svc==="UPHOLSTERY"?"Truck 1 preferred - Hard Surface Calendar":"Rug Pickup Calendar - Tues and Thurs only";var dd=appt||"Not specified";var eb="NEW BOOKING - KASHIAN BROS KAY\nSERVICE: "+lbl+"\nCALENDAR: "+truck+"\n"+(isChicago?"*** CHICAGO - Adolfo must book manually ***\n":"")+"\nName: "+name+"\nPhone: "+phone+"\nEmail: "+email+"\nAddress: "+addr+"\n"+(svc==="CARPET"?"Rooms: "+detail+"\n"+(stairs?"Stairs: "+stairs+"\n":""):svc==="UPHOLSTERY"?"Items: "+detail+"\n":"Rugs: "+detail+"\n")+(notes?"Notes: "+notes+"\n":"")+"\nDate: "+dd+"\nTime: "+time+"\nOn-site: "+(selfP?"Customer present":"Contact: "+cname+" "+cphone)+"\nSubmitted: "+new Date().toLocaleString();fetch("/.netlify/functions/booking",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:name,phone:phone,email:email,addr:addr,svc:svc,lbl:lbl,detail:detail,stairs:stairs,date:dd,time:time,selfP:selfP,cname:cname,cphone:cphone,pets:pets,notes:notes,isChicago:isChicago,truck:truck,emailBody:eb})}).catch(function(){});var timing=getConfirmTiming();var f=document.getElementById("bkf-"+mid);f.className="bk-success";f.innerHTML="<h3>Booking Request Sent!</h3><p style=\"margin-top:8px\"><strong>Thank you, "+name.split(" ")[0]+"!</strong></p><p style=\"margin-top:6px\">Booking request for <strong>"+lbl+"</strong> on <strong>"+dd+"</strong> has been sent.</p><p style=\"margin-top:8px;background:#dcfce7;border-radius:6px;padding:8px\"><strong>"+timing+"</strong></p><p style=\"margin-top:8px\">Confirmation will go to <strong>"+email+"</strong>. Questions? Call <strong>(847) 251-1200</strong>.</p>"+(isChicago?"<p style=\"margin-top:8px;background:#fef9c3;border-radius:6px;padding:8px\">Chicago bookings are handled personally by our cleaning manager.</p>":"");hist.push({role:"user",content:"BOOKING SUBMITTED: "+name+" for "+lbl+" on "+dd});hist.push({role:"assistant",content:"Booking sent! "+timing});}
 function addMsg(role,content,id){var msgs=document.getElementById("msgs"),isBot=role==="assistant";var fm=content.match(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)([^\]]*)\]/);var cc=content.replace(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)[^\]]*\]/g,"").trim();var row=mk("div","row "+(isBot?"b":"u"));row.id="r"+id;var ic=mk("div","ic "+(isBot?"b":"u"));ic.innerHTML=isBot?"&#x1F9F9;":"&#x1F464;";var wrap=mk("div");wrap.style.maxWidth="100%";var bub=mk("div","bub "+(isBot?"b":"u"));bub.innerHTML=isBot?nl2html(cc):"<p>"+content+"</p>";wrap.appendChild(bub);if(fm&&isBot){var pArr=(fm[2]||"").replace(/^\|/,"").split("|");wrap.appendChild(buildBookingForm(fm[1],id,pArr[0]||"",pArr[1]||"",pArr[2]||"",pArr[3]||"",pArr[4]||"",pArr[5]||"",pArr[6]||""));}if(isBot&&id>0){var fbr=mk("div","fbr");var bg=mk("button","fb good");bg.textContent="Good";bg.onclick=function(){thumb(id,"good",content);};fbr.appendChild(bg);var bb=mk("button","fb bad");bb.textContent="Fix";bb.onclick=function(){thumb(id,"bad",content);};fbr.appendChild(bb);var bn=mk("button","fb note");bn.id="fbn"+id;bn.textContent="Add note";bn.onclick=function(){toggleNote(id,content);};fbr.appendChild(bn);wrap.appendChild(fbr);var nb=mk("div","nb");nb.id="nb"+id;nb.style.display="none";var nl=mk("div");nl.style.cssText="font-size:12px;color:#92400e;margin-bottom:6px;font-weight:500";nl.textContent="Add a note:";var nt=mk("textarea");nt.id="nt"+id;nt.rows=3;nt.placeholder="Type correction or note...";nt.onkeydown=function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitNote(id,content);}};var na=mk("div","na");var ns=mk("button","ns");ns.textContent="Submit";ns.onclick=function(){submitNote(id,content);};var nc=mk("button","nc");nc.textContent="Cancel";nc.onclick=function(){document.getElementById("nb"+id).style.display="none";};var nh=mk("span");nh.style.cssText="font-size:11px;color:#94a3b8";nh.textContent="or press Enter";na.appendChild(ns);na.appendChild(nc);na.appendChild(nh);nb.appendChild(nl);nb.appendChild(nt);nb.appendChild(na);wrap.appendChild(nb);}row.appendChild(ic);row.appendChild(wrap);msgs.appendChild(row);msgs.scrollTop=msgs.scrollHeight;cnt++;document.getElementById("mc").textContent=cnt+" messages";setTimeout(function(){setupAllAddressFields();},200);}
 function addTyping(){var msgs=document.getElementById("msgs");var d=mk("div","row b");d.id="typing";var ic=mk("div","ic b");ic.innerHTML="&#x1F9F9;";var td=mk("div","td");[0,.2,.4].forEach(function(s){var dot=mk("div");dot.style.animationDelay=s+"s";td.appendChild(dot);});d.appendChild(ic);d.appendChild(td);msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;}
 function thumb(id,type,content){var btn=document.querySelector("#r"+id+" .fb."+type);if(!btn)return;var on=btn.classList.contains("on");document.querySelectorAll("#r"+id+" .fb.good, #r"+id+" .fb.bad").forEach(function(b){b.classList.remove("on");});if(!on){btn.classList.add("on");if(type==="bad"){document.getElementById("nb"+id).style.display="block";setTimeout(function(){document.getElementById("nt"+id).focus();},50);}addFb({type:type,msgId:id,q:getLastQ(),a:content.substring(0,120),note:""});}}
@@ -327,15 +340,7 @@ function handleInput(text,btn){if(btn){var par=btn.parentNode;if(par){var sibs=p
 function startCarpetFlow(){document.getElementById("qw").style.display="none";flow={active:true,type:"carpet_upholstery",step:"service_choice",service:null,rugCount:null,detail:null,duration:120,address:null,awaitingText:false};addMsg("user","Schedule Carpet & Upholstery Cleaning",cnt);hist.push({role:"user",content:"Schedule Carpet & Upholstery Cleaning"});flowMsg("What are we cleaning today?",["Carpet","Upholstery","Both"]);}
 function startRugFlow(){document.getElementById("qw").style.display="none";flow={active:true,type:"rug",step:"show_slots",service:"rug",rugCount:null,detail:null,duration:45,address:null,awaitingText:false};addMsg("user","Schedule Rug Pickup",cnt);hist.push({role:"user",content:"Schedule Rug Pickup"});flowMsg("Let me check our pickup schedule...");checkAvailabilityForFlow();}
 function handleFlowButton(text){
-  if(flow.step==="service_choice"){
-    addMsg("user",text,cnt);hist.push({role:"user",content:text});
-    flow.service=text.toLowerCase();
-    flow.duration=text==="Both"?180:120;
-    flow.step="show_slots";
-    flowMsg("Let me check our schedule...");
-    checkAvailabilityForFlow();
-  }
-  else if(flow.step==="time_choice"){
+  if(flow.step==="time_choice"){
     if(text==="I have a different time in mind"){
       addMsg("user",text,cnt);hist.push({role:"user",content:text});
       flow.step="custom_time";flow.awaitingText=true;
