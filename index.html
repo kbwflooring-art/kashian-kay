@@ -272,7 +272,7 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
   if(showCarpet){
     html+='<div class="bk-section"><div class="bk-section-hdr" onclick="toggleSection(\'carpet-'+mid+'\',\'carpet-arrow-'+mid+'\')">Carpet Cleaning <span id="carpet-arrow-'+mid+'">+</span></div>';
     html+='<div id="carpet-'+mid+'" class="bk-section-body" style="display:none"><input type="hidden" id="bk-detail-'+mid+'" value=""/>';
-    html+='<table class="bk-qty-table"><tr><th>Room</th><th>Qty</th></tr>';
+    html+='<table class="bk-qty-table" id="c-table-'+mid+'"><tr><th>Room</th><th>Qty</th></tr>';
     var cRooms=[['c-liv','Living / Family Room'],['c-din','Dining Room'],['c-mbd','Master Bedroom'],['c-bed','Bedroom'],['c-off','Office / Den'],['c-bat','Bathroom'],['c-bas','Basement'],['c-hal','Hallway'],['c-sta','Stairs (per flight)'],['c-wic','Walk-in Closet']];
     cRooms.forEach(function(r){html+='<tr><td>'+r[1]+'</td><td><div class="bk-qty"><button type="button" onclick="adjQty(\''+r[0]+'-'+mid+'\',-1,\''+mid+'\')">&minus;</button><span id="'+r[0]+'-'+mid+'">0</span><button type="button" onclick="adjQty(\''+r[0]+'-'+mid+'\',1,\''+mid+'\')">+</button></div></td></tr>';});
     html+='</table><div class="bk-addons"><label class="bk-check"><input type="checkbox" id="c-protect-'+mid+'" onchange="calcServicePrice(\''+mid+'\')"/> Fiber Protectant (+$0.35/sq ft)</label><label class="bk-check"><input type="checkbox" id="c-enzyme-'+mid+'" onchange="calcServicePrice(\''+mid+'\')"/> Enzyme Treatment (+$0.35/sq ft)</label></div>';
@@ -281,7 +281,7 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
   if(showUphol){
     html+='<div class="bk-section"><div class="bk-section-hdr" onclick="toggleSection(\'uphol-'+mid+'\',\'uphol-arrow-'+mid+'\')">Upholstery Cleaning <span id="uphol-arrow-'+mid+'">+</span></div>';
     html+='<div id="uphol-'+mid+'" class="bk-section-body" style="display:none"><input type="hidden" id="bk-detail-'+mid+'u" value=""/>';
-    html+='<table class="bk-qty-table"><tr><th>Item</th><th>Price</th><th>Qty</th></tr>';
+    html+='<table class="bk-qty-table" id="u-table-'+mid+'"><tr><th>Item</th><th>Price</th><th>Qty</th></tr>';
     var uItems=[['u-sof',"Sofa (up to 7')",'$245',245],['u-lov',"Love Seat (up to 5')",'$175',175],['u-cha','Chair','$100',100],['u-win','Wing Chair','$70',70],['u-ott','Ottoman','$75',75],['u-sec','Sectional (linear ft)','$35/ft',35],['u-din','Dining Chair','$40',40],['u-pil','Pillow / Cushion','$15',15]];
     uItems.forEach(function(r){html+='<tr><td>'+r[1]+'</td><td>'+r[2]+'</td><td><div class="bk-qty"><button type="button" onclick="adjQty(\''+r[0]+'-'+mid+'\',-1,\''+mid+'\')">&minus;</button><span id="'+r[0]+'-'+mid+'">0</span><button type="button" onclick="adjQty(\''+r[0]+'-'+mid+'\',1,\''+mid+'\')">+</button></div></td></tr>';});
     html+='</table><div class="bk-addons"><label class="bk-check"><input type="checkbox" id="u-protect-'+mid+'" onchange="calcServicePrice(\''+mid+'\')"/> Fiber Protectant</label><label class="bk-check"><input type="checkbox" id="u-enzyme-'+mid+'" onchange="calcServicePrice(\''+mid+'\')"/> Deodorize / Enzyme</label><label class="bk-check"><input type="checkbox" id="u-antibac-'+mid+'" onchange="calcServicePrice(\''+mid+'\')"/> Antibacterial</label></div>';
