@@ -4,6 +4,12 @@ var PICKUP_CAL = 'a19e4f2968fbefb546c8e0177788a8a3d6efcf2ce2eb251444197b4a84379e
 var TRUCK1_CAL = '9c77e8f3275959d025aacba0b2a15a3235e8e8ee02ed36d965ce6950304c22f1@group.calendar.google.com';
 var TRUCK2_CAL = '805de988185d3df181289a2bcdd242110c6e5ca38fb00424a2dab03af1ca4114@group.calendar.google.com';
 
+// === BUSINESS RULES ===
+var TRAVEL_BUFFER_MIN = 15; // 15 min buffer between jobs for travel
+var DAY_OPEN_HOUR = 9;      // weekday open
+var DAY_CLOSE_HOUR = 17;    // weekday close (5 PM)
+// Saturday: closed for cleaning crews (reserved for showroom only)
+
 function b64url(str){return Buffer.from(str).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
 
 async function getToken(creds){
@@ -29,6 +35,7 @@ async function getEvents(token,calId,tMin,tMax){
   }catch(e){return [];}
 }
 
+// Get next N WEEKDAYS only (Mon-Fri). Saturday and Sunday excluded.
 function weekdays(n){
   var days=[];
   var now=new Date();
@@ -38,9 +45,10 @@ function weekdays(n){
   var day=parseInt(parts[1]);
   var year=parseInt(parts[2]);
   for(var i=1;days.length<n;i++){
-    // Use 17:00 UTC = noon Chicago time (safe for both CDT and CST)
     var d=new Date(Date.UTC(year,month,day+i,17,0,0));
-    if(d.getDay()!==0&&d.getDay()!==6)days.push(d);
+    var dow=d.getDay();
+    // Skip Sunday (0) and Saturday (6) — Saturdays reserved for showroom only
+    if(dow!==0&&dow!==6)days.push(d);
   }
   return days;
 }
@@ -53,19 +61,40 @@ function getChicagoHourDecimal(date){
   return h+m/60;
 }
 
+// Returns true if the slot [slotStartH, slotEndH] does NOT overlap any event
+// AND has TRAVEL_BUFFER_MIN of clear space before AND after any neighboring event.
 function isSlotFree(events,day,slotStartH,slotEndH){
   var dayStr=chicagoDateStr(day);
+  var bufferH=TRAVEL_BUFFER_MIN/60;
   for(var i=0;i<events.length;i++){
     var e=events[i];
     if(!e.start)continue;
+    // Skip cancelled events
+    if(e.status==='cancelled')continue;
     var evStart=new Date(e.start.dateTime||e.start.date);
     var evEnd=new Date(e.end.dateTime||e.end.date);
     if(chicagoDateStr(evStart)!==dayStr)continue;
     var evStartH=getChicagoHourDecimal(evStart);
     var evEndH=getChicagoHourDecimal(evEnd);
-    if(slotStartH<evEndH&&slotEndH>evStartH)return false;
+    // Pad the EVENT with travel buffer on each side, then check overlap with the proposed slot
+    var paddedEvStart=evStartH-bufferH;
+    var paddedEvEnd=evEndH+bufferH;
+    if(slotStartH<paddedEvEnd&&slotEndH>paddedEvStart)return false;
   }
   return true;
+}
+
+// Check if a specific truck has any booking on a given day
+function truckHasBookingOnDay(events,day){
+  var dayStr=chicagoDateStr(day);
+  for(var i=0;i<events.length;i++){
+    var e=events[i];
+    if(!e.start)continue;
+    if(e.status==='cancelled')continue;
+    var evStart=new Date(e.start.dateTime||e.start.date);
+    if(chicagoDateStr(evStart)===dayStr)return true;
+  }
+  return false;
 }
 
 function fmtDay(d){return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'America/Chicago'});}
@@ -78,31 +107,45 @@ function fmtTime(h){
   return h12+':'+(min<10?'0'+min:min)+' '+ampm;
 }
 
-function findSlots(t1Events,t2Events,days,durationHours,type){
+// For a given Tue/Thu, decide which truck calendar to use for carpet.
+// Rule: if Truck 1 is already booked that day, keep using it. Otherwise default to Truck 1.
+// (Adolfo can override; this just keeps it consistent.)
+function pickCarpetTruckForTueThu(t1Events,t2Events,day){
+  if(truckHasBookingOnDay(t1Events,day))return t1Events;
+  if(truckHasBookingOnDay(t2Events,day))return t2Events;
+  return t1Events; // default to Truck 1
+}
+
+function findSlots(t1Events,t2Events,pickupEvents,days,durationHours,type){
   var slots=[];
-  var lastStart=durationHours>2?15:16;
+  // Slot must END by closing time (5 PM weekdays). No slots running past close.
+  var latestEndH=DAY_CLOSE_HOUR;
   for(var i=0;i<days.length&&slots.length<5;i++){
     var day=days[i];
     var dow=day.getDay();
     if(type==='RUG'&&dow!==2&&dow!==4)continue;
     var isTueThu=(dow===2||dow===4);
-    var useBothTrucks=(type==='CARPET'&&!isTueThu);
-    for(var startMin=9*60;startMin+durationHours*60<=lastStart*60&&slots.length<5;startMin+=30){
+    for(var startMin=DAY_OPEN_HOUR*60;startMin/60+durationHours<=latestEndH&&slots.length<5;startMin+=30){
       var startH=startMin/60;
       var endH=startH+durationHours;
       var free=false;
-        if(type==='RUG'){free=isSlotFree(t1Events,day,startH,endH);}
-      else if(isTueThu){
-        // Tue/Thu: only ONE truck runs carpet - if EITHER truck has a job, slot is taken
-        free=isSlotFree(t1Events,day,startH,endH)&&isSlotFree(t2Events,day,startH,endH);
-      }
-      else{
-        // Mon/Wed/Fri: both trucks available - slot open if EITHER is free
+      if(type==='RUG'){
+        // Rug pickups always go on Big Truck / Pickup calendar
+        free=isSlotFree(pickupEvents,day,startH,endH);
+      } else if(isTueThu){
+        // Tue/Thu carpet: only ONE truck runs carpet (the Big Truck / Pickup calendar
+        // is doing rug runs, so Truck 1 OR Truck 2 takes the carpet).
+        // Pick the consistent truck for this day.
+        var carpetEvents=pickCarpetTruckForTueThu(t1Events,t2Events,day);
+        free=isSlotFree(carpetEvents,day,startH,endH);
+      } else {
+        // Mon/Wed/Fri: BOTH Truck 1 and Truck 2 run carpet.
+        // Slot is open if EITHER truck has a clear window.
         free=isSlotFree(t1Events,day,startH,endH)||isSlotFree(t2Events,day,startH,endH);
       }
       if(free){
         slots.push({date:fmtDay(day),time:fmtTime(startH),label:fmtDay(day)+' at '+fmtTime(startH)});
-        break; // one slot per day
+        break; // one slot per day to keep options spread out
       }
     }
   }
@@ -110,23 +153,26 @@ function findSlots(t1Events,t2Events,days,durationHours,type){
 }
 
 function buildTextSummary(t1Events,t2Events,pickupEvents,days){
-  var summary='REAL-TIME CALENDAR AVAILABILITY:\n\nCARPET & UPHOLSTERY CLEANING:\nMon/Wed/Fri: Truck 1 AND Truck 2 available. Slot is open if EITHER truck has no overlapping jobs.\nTue/Thu: ONLY Truck 1 available for carpet (Truck 2 crew runs Big Truck for rug pickup).\n\n';
+  var summary='REAL-TIME CALENDAR AVAILABILITY:\n\nCARPET & UPHOLSTERY CLEANING (slots include 15 min travel buffer between jobs, must end by 5 PM):\nMon/Wed/Fri: Truck 1 AND Truck 2 both run carpet. Slot open if EITHER truck is free.\nTue/Thu: ONLY ONE truck runs carpet (the Big Truck does rug pickup that day).\n\n';
   days.forEach(function(day){
     var dow=day.getDay();
     var isTueThu=(dow===2||dow===4);
     var morningOpen,afternoonOpen;
     if(isTueThu){
-      // Tue/Thu: if EITHER truck has a job, slot is fully booked
-      morningOpen=isSlotFree(t1Events,day,9,12)&&isSlotFree(t2Events,day,9,12);
-      afternoonOpen=isSlotFree(t1Events,day,12,16)&&isSlotFree(t2Events,day,12,16);
+      var carpetEvents=pickCarpetTruckForTueThu(t1Events,t2Events,day);
+      morningOpen=isSlotFree(carpetEvents,day,9,12);
+      afternoonOpen=isSlotFree(carpetEvents,day,12,16);
+    } else {
+      morningOpen=isSlotFree(t1Events,day,9,12)||isSlotFree(t2Events,day,9,12);
+      afternoonOpen=isSlotFree(t1Events,day,12,16)||isSlotFree(t2Events,day,12,16);
     }
-    else{morningOpen=isSlotFree(t1Events,day,9,12)||isSlotFree(t2Events,day,9,12);afternoonOpen=isSlotFree(t1Events,day,12,16)||isSlotFree(t2Events,day,12,16);}
     var parts=[];if(morningOpen)parts.push('morning');if(afternoonOpen)parts.push('afternoon');
-    summary+='- '+fmtDay(day)+(isTueThu?' (Truck 1 only)':'')+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
+    summary+='- '+fmtDay(day)+(isTueThu?' (one truck only)':'')+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
   });
   summary+='\nRUG PICKUP & DELIVERY (Big Truck - Tuesdays & Thursdays only):\n';
   days.filter(function(d){return d.getDay()===2||d.getDay()===4;}).forEach(function(day){
-    var mo=isSlotFree(pickupEvents,day,9,12);var ao=isSlotFree(pickupEvents,day,12,16);
+    var mo=isSlotFree(pickupEvents,day,9,12);
+    var ao=isSlotFree(pickupEvents,day,12,16);
     var parts=[];if(mo)parts.push('morning');if(ao)parts.push('afternoon');
     summary+='- '+fmtDay(day)+': '+(parts.length?parts.join(' and ')+' available':'fully booked')+'\n';
   });
@@ -151,7 +197,7 @@ exports.handler=async function(event){
     var type=params.type||'CARPET';
     if(duration){
       var durationHours=duration/60;
-      var slots=findSlots(type==='RUG'?pickupEv:t1Ev,t2Ev,days,durationHours,type);
+      var slots=findSlots(t1Ev,t2Ev,pickupEv,days,durationHours,type);
       return{statusCode:200,headers,body:JSON.stringify({slots:slots})};
     }else{
       var summary=buildTextSummary(t1Ev,t2Ev,pickupEv,days.slice(0,10));
