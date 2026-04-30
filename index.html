@@ -99,6 +99,19 @@ body{font-family:'Raleway',Arial,sans-serif;letter-spacing:0.02em;background:#ee
 .bk-rug-size-row input{width:52px!important;text-align:center;padding:7px 4px!important}
 .bk-duration-box{background:#eff6ff;border:1.5px solid #60a5fa;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:13px;color:#1e40af;text-align:center}
 .bk-duration-box strong{font-size:15px;color:#1e3a8a}
+.bk-summary-box{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:0;margin-top:6px;overflow:hidden}
+.bk-summary-section{padding:12px 14px}
+.bk-summary-section-divider{border-top:1px solid #bbf7d0}
+.bk-summary-hdr{font-size:11px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+.bk-summary-list{list-style:none;padding:0;margin:0}
+.bk-summary-list li{font-size:13.5px;color:#111;padding:2px 0;font-weight:500}
+.bk-summary-list li.bk-summary-addon{font-size:12px;color:#166534;font-weight:400;padding-left:4px}
+.bk-summary-subtotal{margin-top:8px;padding-top:8px;border-top:1px dashed #bbf7d0;font-size:13.5px;color:#15803d;text-align:right}
+.bk-summary-subtotal strong{font-size:15px;color:#14532d}
+.bk-summary-footer{background:#dcfce7;padding:10px 14px;border-top:1.5px solid #86efac}
+.bk-summary-time{font-size:13.5px;color:#14532d;margin-bottom:3px}
+.bk-summary-time strong{color:#14532d;font-size:14px}
+.bk-summary-note{font-size:11.5px;color:#166534;font-style:italic}
 @media(max-width:600px){.side{display:none}}
 </style>
 </head><body>
@@ -379,24 +392,51 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
     html+='<div class="bk-row" id="bk-price-row-'+mid+'" style="display:none"><label class="bk-label">Estimated Price</label><div id="bk-price-'+mid+'" class="bk-price-box"></div></div>';
   } else if(hasScopeData){
     var scopeLines=flow.scope.carpetLines.concat(flow.scope.upholLines);
-    var addonsBits=[];
-    if(flow.scope.cProtect)addonsBits.push('Carpet Fiber Protectant');
-    if(flow.scope.cEnzyme)addonsBits.push('Carpet Enzyme');
-    if(flow.scope.uProtect)addonsBits.push('Upholstery Fiber Protectant');
-    if(flow.scope.uEnzyme)addonsBits.push('Upholstery Deodorize/Enzyme');
-    if(flow.scope.uAntibac)addonsBits.push('Upholstery Antibacterial');
+    var hasCarpet=flow.scope.carpetLines.length>0;
+    var hasUphol=flow.scope.upholLines.length>0;
+    var carpetAddons=[];
+    if(flow.scope.cProtect)carpetAddons.push('Fiber Protectant');
+    if(flow.scope.cEnzyme)carpetAddons.push('Enzyme Treatment');
+    var upholAddons=[];
+    if(flow.scope.uProtect)upholAddons.push('Fiber Protectant');
+    if(flow.scope.uEnzyme)upholAddons.push('Deodorize / Enzyme');
+    if(flow.scope.uAntibac)upholAddons.push('Antibacterial');
     html+='<div class="bk-row"><label class="bk-label">Your Job</label>';
-    html+='<div class="bk-price-box">'+scopeLines.join('<br>')+(addonsBits.length?'<br><small>Add-ons: '+addonsBits.join(', ')+'</small>':'');
-    if(flow.scope.upholLines.length>0){
-      html+='<br><strong>Upholstery Subtotal: $'+flow.scope.upholSubtotal.toFixed(2)+'</strong>';
+    html+='<div class="bk-summary-box">';
+    // Carpet section
+    if(hasCarpet){
+      html+='<div class="bk-summary-section">';
+      html+='<div class="bk-summary-hdr">Carpet Cleaning</div>';
+      html+='<ul class="bk-summary-list">';
+      flow.scope.carpetLines.forEach(function(line){html+='<li>'+line+'</li>';});
+      carpetAddons.forEach(function(a){html+='<li class="bk-summary-addon">+ '+a+'</li>';});
+      html+='</ul></div>';
     }
-    html+='<br><small style="color:#166534">Estimated time: '+fmtDuration(flow.scope.durationMin)+'.';
-    if(flow.scope.carpetLines.length>0){
-      html+=' $199 minimum applies to the full job. Carpet pricing added on-site.';
+    // Upholstery section
+    if(hasUphol){
+      html+='<div class="bk-summary-section'+(hasCarpet?' bk-summary-section-divider':'')+'">';
+      html+='<div class="bk-summary-hdr">Upholstery Cleaning</div>';
+      html+='<ul class="bk-summary-list">';
+      flow.scope.upholLines.forEach(function(line){html+='<li>'+line+'</li>';});
+      upholAddons.forEach(function(a){html+='<li class="bk-summary-addon">+ '+a+'</li>';});
+      html+='</ul>';
+      // Show subtotal ONLY when there's no carpet (otherwise it's misleading)
+      if(!hasCarpet){
+        html+='<div class="bk-summary-subtotal">Upholstery Subtotal: <strong>$'+flow.scope.upholSubtotal.toFixed(2)+'</strong></div>';
+      }
+      html+='</div>';
+    }
+    // Footer with time and disclaimer
+    html+='<div class="bk-summary-footer">';
+    html+='<div class="bk-summary-time">Estimated time: <strong>'+fmtDuration(flow.scope.durationMin)+'</strong></div>';
+    html+='<div class="bk-summary-note">';
+    if(hasCarpet){
+      html+='$199 minimum applies. Carpet pricing finalized on-site.';
     } else {
-      html+=' $199 service minimum applies. Final price confirmed on-site.';
+      html+='$199 minimum applies. Final price confirmed on-site.';
     }
-    html+='</small></div>';
+    html+='</div></div>';
+    html+='</div>';
     html+='<input type="hidden" id="bk-detail-'+mid+'" value="'+scopeLines.join(', ').replace(/"/g,'&quot;')+'"/></div>';
   } else {
     html+='<div class="bk-row"><label class="bk-label">Items to Clean *</label><input class="bk-input" id="bk-detail-'+mid+'" placeholder="e.g. sofa, 2 chairs"/></div>';
