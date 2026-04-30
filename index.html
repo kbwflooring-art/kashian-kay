@@ -309,7 +309,7 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
         var span=document.createElement('span');span.id=r[0]+'-'+mid;span.textContent='0';
         var plus=document.createElement('button');plus.type='button';plus.textContent='+';
         (function(key){plus.onclick=function(){adjQty(key+'-'+mid,1,mid);};})(r[0]);
-        div.appendChild(minus);div.appendChild(span);div.appendChild(plus);
+        div.appendChild(plus);div.appendChild(span);div.appendChild(minus);
         td2.appendChild(div);tr.appendChild(td1);tr.appendChild(td2);cTable.appendChild(tr);
       });
     }
@@ -328,7 +328,7 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
         var span=document.createElement('span');span.id=r[0]+'-'+mid;span.textContent='0';
         var plus=document.createElement('button');plus.type='button';plus.textContent='+';
         (function(key){plus.onclick=function(){adjQty(key+'-'+mid,1,mid);};})(r[0]);
-        div.appendChild(minus);div.appendChild(span);div.appendChild(plus);
+        div.appendChild(plus);div.appendChild(span);div.appendChild(minus);
         td3.appendChild(div);tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);uTable.appendChild(tr);
       });
     }
