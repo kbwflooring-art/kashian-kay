@@ -51,6 +51,10 @@ body{font-family:'Raleway',Arial,sans-serif;letter-spacing:0.02em;background:#ee
 .inline-btn{font-family:inherit;cursor:pointer;background:#5bcdc7;border:none;color:#111;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;white-space:nowrap}
 .inline-btn:hover{background:#7ddbd6}
 .inline-btn:disabled{opacity:0.5;cursor:not-allowed}
+.topic-bubbles{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid #e8f8f6;background:#fff}
+.topic-bubble{font-family:inherit;cursor:pointer;background:#fff;border:1.5px solid #9de8e4;color:#333;border-radius:20px;padding:5px 12px;font-size:11.5px;white-space:nowrap}
+.topic-bubble:hover{background:#f0fafa;border-color:#5bcdc7}
+.topic-section{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;width:100%;margin-top:4px}
 .ir{background:#fff;border-top:1px solid #b8eeeb;padding:11px 13px;display:flex;gap:8px;align-items:flex-end}
 .ir textarea{flex:1;border:1.5px solid #9de8e4;border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;resize:none;outline:none;line-height:1.5;max-height:80px;overflow-y:auto;color:#111}
 .sb{width:38px;height:38px;background:#5bcdc7;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -364,7 +368,74 @@ async function checkCustomTime(requestedTime){
   }catch(e){flowMsg("I had trouble checking the schedule. Please call (847) 251-1200!");flow.active=false;}
 }
 async function checkAvailabilityForFlow(){var type=flow.type==="rug"?"RUG":"CARPET";try{var r=await fetch("/.netlify/functions/availability?duration="+flow.duration+"&type="+type);var d=await r.json();if(d.slots&&d.slots.length){flow.step="time_choice";var btns=d.slots.slice(0,4).map(function(s){return s.label;});btns.push("I have a different time in mind");flowMsg("Here are our next available times. Which works best for you?",btns);}else{flowMsg("Our schedule is quite full right now. Please call us at (847) 251-1200 and we will find you a time!");flow.active=false;}}catch(e){flowMsg("I had trouble checking the schedule. Please call (847) 251-1200!");flow.active=false;}}
-function showMainButtons(){var qw=document.getElementById("qw");qw.innerHTML="";qw.style.cssText="padding:12px;background:#fff;display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid #e8f8f6;";var btns=[{label:"Schedule Carpet & Upholstery Cleaning",fn:startCarpetFlow},{label:"Schedule Rug Pickup",fn:startRugFlow},{label:"Rug Cleaning Prices",fn:function(){send("I would like to know about rug cleaning prices");}},{label:"Ask a Question",fn:function(){send("I have a question");}}];btns.forEach(function(b){var btn=mk("button","mb");btn.textContent=b.label;btn.onclick=b.fn;qw.appendChild(btn);});}
+function showMainButtons(){
+  var qw=document.getElementById("qw");
+  qw.innerHTML="";
+  qw.style.cssText="background:#fff;border-top:1px solid #e8f8f6;";
+
+  // Main action buttons
+  var mainDiv=document.createElement("div");
+  mainDiv.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;";
+  var mainBtns=[
+    {label:"Schedule Carpet & Upholstery Cleaning",fn:startCarpetFlow},
+    {label:"Schedule Rug Pickup",fn:startRugFlow},
+    {label:"Rug Cleaning Prices",fn:function(){send("I would like to know about rug cleaning prices");}},
+    {label:"Ask a Question",fn:function(){send("I have a question");}}
+  ];
+  mainBtns.forEach(function(b){var btn=mk("button","mb");btn.textContent=b.label;btn.onclick=b.fn;mainDiv.appendChild(btn);});
+  qw.appendChild(mainDiv);
+
+  // Topic bubbles
+  var topicDiv=document.createElement("div");
+  topicDiv.className="topic-bubbles";
+
+  var topics=[
+    {section:"Cleaning"},
+    {label:"My dog had an accident on my rug",msg:"My dog had an accident on my rug"},
+    {label:"I spilled red wine - what do I do?",msg:"I spilled red wine - what do I do?"},
+    {label:"How do I remove a stain?",msg:"How do I remove a stain?"},
+    {label:"Do you clean upholstery?",msg:"Do you clean upholstery?"},
+    {label:"Do you do commercial cleaning?",msg:"Do you do commercial cleaning?"},
+    {label:"Do you offer flood restoration?",msg:"Do you offer flood restoration?"},
+    {section:"Rugs & Carpet"},
+    {label:"How much is a rug pad?",msg:"How much is a rug pad?"},
+    {label:"Do you sell area rugs?",msg:"Do you sell area rugs?"},
+    {label:"Do you do custom rugs?",msg:"Do you do custom rugs?"},
+    {label:"Do you do stair runners?",msg:"Do you do stair runners?"},
+    {label:"Do you repair rugs?",msg:"Do you repair rugs?"},
+    {label:"Do you store rugs?",msg:"Do you store rugs?"},
+    {section:"Wood Floors"},
+    {label:"Tell me about wood floor refinishing",msg:"Tell me about wood floor refinishing"},
+    {label:"Do you install new hardwood floors?",msg:"Do you install new hardwood floors?"},
+    {label:"Do you do dust free sanding?",msg:"Do you do dust free sanding?"},
+    {section:"Remodeling"},
+    {label:"Do you remodel kitchens?",msg:"Do you remodel kitchens?"},
+    {label:"Do you remodel bathrooms?",msg:"Do you remodel bathrooms?"},
+    {label:"What cabinet brands do you carry?",msg:"What cabinet brands do you carry?"},
+    {label:"What countertop brands do you carry?",msg:"What countertop brands do you carry?"},
+    {section:"Flooring Sales"},
+    {label:"Do you sell wall to wall carpet?",msg:"Do you sell wall to wall carpet?"},
+    {label:"Do you sell vinyl flooring?",msg:"Do you sell vinyl flooring?"},
+    {label:"Do you sell tile?",msg:"Do you sell tile?"},
+    {label:"What carpet fibers do you carry?",msg:"What carpet fibers do you carry?"}
+  ];
+
+  topics.forEach(function(t){
+    if(t.section){
+      var sec=document.createElement("span");
+      sec.className="topic-section";
+      sec.textContent=t.section;
+      topicDiv.appendChild(sec);
+    } else {
+      var btn=document.createElement("button");
+      btn.className="topic-bubble";
+      btn.textContent=t.label;
+      btn.onclick=function(){send(t.msg);};
+      topicDiv.appendChild(btn);
+    }
+  });
+  qw.appendChild(topicDiv);
+}
 function send(text){if(!text||!text.trim())return;if(flow.active&&flow.awaitingText){flow.awaitingText=false;handleFlowText(text.trim());document.getElementById("inp").value="";return;}document.getElementById("qw").style.display="none";document.getElementById("inp").value="";document.getElementById("sb").disabled=true;var id=cnt;addMsg("user",text,id);hist.push({role:"user",content:text});addTyping();fetch("/.netlify/functions/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:800,system:SP+(availCache?"\n\n"+availCache:""),messages:hist})}).then(function(r){return r.json();}).then(function(data){var reply=data.content&&data.content[0]?data.content[0].text:"I had trouble with that. Please call (847) 251-1200!";var t=document.getElementById("typing");if(t)t.remove();hist.push({role:"assistant",content:reply});addMsg("assistant",reply,cnt);}).catch(function(){var t=document.getElementById("typing");if(t)t.remove();addMsg("assistant","I am having trouble connecting. Please call (847) 251-1200 or email info@kashianbros.com!",cnt);}).finally(function(){document.getElementById("sb").disabled=false;});}
 addMsg("assistant","Hi! I am Kay from Kashian Bros. How can I help you today?",0);
 showMainButtons();
