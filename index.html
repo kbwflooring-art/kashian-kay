@@ -143,9 +143,16 @@ function mk(tag,cls){var el=document.createElement(tag);if(cls)el.className=cls;
 function nl2html(t){var btnHtml="";t=t.replace(/\[BUTTONS:([^\]]+)\]/g,function(match,labels){var btns=labels.split("|").map(function(l){return l.trim();}).filter(Boolean);btnHtml+='<div class="inline-btns">'+btns.map(function(l){return '<button class="inline-btn" onclick="handleInput(this.textContent,this)">'+l+'</button>';}).join("")+"</div>";return "";});var html=t.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/#{1,3} (.*)/g,"<strong>$1</strong>").split("\n").map(function(l){var b=l.match(/^- (.*)/);return b?"<li>"+b[1]+"</li>":(l.trim()?"<p>"+l+"</p>":"");}).join("").replace(/(<li>.*?<\/li>)+/g,function(m){return"<ul>"+m+"</ul>";});return html+btnHtml;}
 function getConfirmTiming(){var now=new Date(),day=now.getDay(),hr=now.getHours(),min=now.getMinutes(),tv=hr+min/60;if(day===0)return"Our team is closed today. Adolfo will confirm your booking first thing Monday morning.";if(day===6){if(tv<10)return"Our team opens at 10am on Saturdays. Adolfo will confirm your booking by then.";if(tv<15)return"Adolfo will confirm your booking within about an hour, before we close at 3pm today.";return"Our Saturday hours have ended. Adolfo will confirm your booking first thing Monday morning.";}if(tv<9)return"Our team starts at 9am. Adolfo will confirm your booking by then this morning.";if(tv<17)return"Adolfo will confirm your booking within about an hour, and always before 5pm today.";return"Our team has closed for the day. Adolfo will confirm your booking first thing tomorrow morning.";}
 var CARPET_ROOMS={
-  'c-liv':'Living / Family Room','c-din':'Dining Room','c-mbd':'Master Bedroom',
-  'c-bed':'Bedroom','c-off':'Office / Den','c-bat':'Bathroom','c-bas':'Basement',
-  'c-hal':'Hallway','c-sta':'Stairs (per flight)','c-wic':'Walk-in Closet'
+  'c-liv':{name:'Living / Family Room',duration:48},
+  'c-din':{name:'Dining Room',duration:48},
+  'c-mbd':{name:'Master Bedroom',duration:72},
+  'c-bed':{name:'Bedroom',duration:48},
+  'c-off':{name:'Office / Den',duration:48},
+  'c-bat':{name:'Bathroom',duration:30},
+  'c-bas':{name:'Basement',duration:48},
+  'c-hal':{name:'Hallway',duration:48},
+  'c-sta':{name:'Stairs (per flight)',duration:25},
+  'c-wic':{name:'Walk-in Closet',duration:48}
 };
 var UPHOL_ITEMS={
   'u-sof':{name:'Sofa (up to 7\')',price:245,duration:60},
@@ -154,15 +161,16 @@ var UPHOL_ITEMS={
   'u-win':{name:'Wing Chair',price:70,duration:30},
   'u-ott':{name:'Ottoman',price:75,duration:20},
   'u-sec':{name:'Sectional (linear ft)',price:35,duration:120},
-  'u-din':{name:'Dining Chair',price:40,duration:15},
+  'u-din':{name:'Dining Chair',price:40,duration:20},
   'u-pil':{name:'Pillow / Cushion',price:15,duration:5}
 };
-var CARPET_DURATION_PER_ROOM=30;
 
 function calcJobDuration(mid){
   var totalMin=0;
-  Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)totalMin+=qty*CARPET_DURATION_PER_ROOM;});
+  Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)totalMin+=qty*CARPET_ROOMS[k].duration;});
   Object.keys(UPHOL_ITEMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)totalMin+=qty*UPHOL_ITEMS[k].duration;});
+  // Minimum job is 1 hour (per Kashian Bros scheduling rules)
+  if(totalMin>0&&totalMin<60)totalMin=60;
   return totalMin;
 }
 function fmtDuration(mins){
@@ -197,7 +205,7 @@ function updateScopeDuration(mid){
 
 function calcServicePrice(mid){
   var carpetLines=[];
-  Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)carpetLines.push(qty+'x '+CARPET_ROOMS[k]);});
+  Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)carpetLines.push(qty+'x '+CARPET_ROOMS[k].name);});
   var upholTotal=0,upholLines=[];
   Object.keys(UPHOL_ITEMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0){var item=UPHOL_ITEMS[k];upholTotal+=qty*item.price;upholLines.push(qty+'x '+item.name+' ($'+(qty*item.price)+')');}});
 }
@@ -333,7 +341,7 @@ function submitScope(mid){
   var mins=calcJobDuration(mid);
   if(mins===0){alert('Please pick at least one room or upholstery item.');return;}
   var carpetLines=[],upholLines=[];
-  Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)carpetLines.push(qty+'x '+CARPET_ROOMS[k]);});
+  Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)carpetLines.push(qty+'x '+CARPET_ROOMS[k].name);});
   Object.keys(UPHOL_ITEMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)upholLines.push(qty+'x '+UPHOL_ITEMS[k].name);});
   var cProtect=document.getElementById('c-protect-'+mid);var cEnzyme=document.getElementById('c-enzyme-'+mid);
   var uProtect=document.getElementById('u-protect-'+mid);var uEnzyme=document.getElementById('u-enzyme-'+mid);var uAntibac=document.getElementById('u-antibac-'+mid);
