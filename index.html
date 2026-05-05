@@ -112,6 +112,28 @@ body{font-family:'Raleway',Arial,sans-serif;letter-spacing:0.02em;background:#ee
 .bk-summary-time{font-size:13.5px;color:#14532d;margin-bottom:3px}
 .bk-summary-time strong{color:#14532d;font-size:14px}
 .bk-summary-note{font-size:11.5px;color:#166534;font-style:italic}
+/* Unified card flow: stages, summary lines, time pills */
+.flow-top-summary{background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:10px 14px;margin:-16px -16px 14px -16px;border-radius:10px 10px 0 0}
+.flow-summary-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:#111;padding:3px 0}
+.flow-summary-row+.flow-summary-row{border-top:1px solid #e2e8f0;margin-top:6px;padding-top:9px}
+.flow-summary-text{flex:1}
+.flow-check{color:#16a34a;font-weight:700;margin-right:4px}
+.flow-edit-btn{background:none;border:none;color:#0891b2;cursor:pointer;font-size:12px;font-family:inherit;text-decoration:underline;padding:2px 6px}
+.flow-edit-btn:hover{color:#0e7490}
+.flow-stage-2,.flow-stage-3{padding-top:14px;margin-top:14px;border-top:2px dashed #cbd5e1}
+.flow-stage-hdr{font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px}
+.flow-loading{font-size:13px;color:#64748b;font-style:italic;padding:8px 0}
+.flow-empty{font-size:13px;color:#475569;padding:8px 0;line-height:1.5}
+.flow-times-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.flow-time-btn{font-family:inherit;cursor:pointer;background:#fff;border:1.5px solid #5bcdc7;color:#0e7490;border-radius:8px;padding:10px 12px;font-size:13px;font-weight:500;text-align:center;line-height:1.3}
+.flow-time-btn:hover{background:#5bcdc7;color:#111}
+.flow-time-other{font-family:inherit;cursor:pointer;background:none;border:none;color:#0891b2;font-size:12.5px;text-decoration:underline;padding:6px 0;margin-top:4px;display:block;width:100%;text-align:center}
+.flow-time-other:hover{color:#0e7490}
+.flow-custom-time{display:flex;flex-direction:column;gap:8px}
+.flow-submit-btn{font-family:inherit;cursor:pointer;background:#5bcdc7;color:#111;border:none;border-radius:8px;padding:9px 16px;font-size:13.5px;font-weight:600}
+.flow-submit-btn:hover{background:#7ddbd6}
+.flow-link-btn{font-family:inherit;cursor:pointer;background:none;border:none;color:#0891b2;font-size:12px;text-decoration:underline;padding:4px 0}
+@media(max-width:480px){.flow-times-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.side{display:none}}
 </style>
 </head><body>
@@ -310,10 +332,15 @@ function buildUpholTable(mid){
   return table;
 }
 
-// SCOPE FORM: customer picks rooms/items so we can calculate duration BEFORE checking calendar
+// Unified card: Stage 1 (pickers) -> Stage 2 (times) -> Stage 3 (booking form)
+// Each stage is its own div so we can collapse/expand without rebuilding.
 function buildScopeForm(mid){
   var f=document.createElement('div');f.className='bk-form';f.id='scope-'+mid;
-  var html='<h3>Tell us about your job</h3>';
+  // Top summary area (hidden until stage 2+)
+  var html='<div class="flow-top-summary" id="flow-top-summary-'+mid+'" style="display:none"></div>';
+  // STAGE 1: pickers
+  html+='<div class="flow-stage-1">';
+  html+='<h3>Tell us about your job</h3>';
   html+='<div class="bk-note">Pick the rooms and items you would like cleaned. We use this to find times that fit your job length.</div>';
   html+='<div class="bk-section"><div class="bk-section-hdr" onclick="toggleSection(\'scope-carpet-'+mid+'\',\'scope-carpet-arrow-'+mid+'\')">Carpet Cleaning <span id="scope-carpet-arrow-'+mid+'">\u2212</span></div>';
   html+='<div id="scope-carpet-'+mid+'" class="bk-section-body" style="display:block"><div id="scope-carpet-table-wrap-'+mid+'"></div>';
@@ -326,6 +353,11 @@ function buildScopeForm(mid){
   html+='<div class="bk-duration-box" id="scope-duration-'+mid+'"><small style="color:#1e40af">Pick at least one room or item to see your job time</small></div>';
   html+='<button class="bk-submit" id="find-times-'+mid+'" disabled style="opacity:0.4;cursor:not-allowed" onclick="submitScope(\''+mid+'\')">Find Available Times</button>';
   html+='<button class="bk-cancel" onclick="cancelScope(\''+mid+'\')">Never mind, I will call instead</button>';
+  html+='</div>';
+  // STAGE 2: times (hidden initially)
+  html+='<div class="flow-stage-2" id="flow-stage-2-'+mid+'" style="display:none"></div>';
+  // STAGE 3: booking form (hidden initially)
+  html+='<div class="flow-stage-3" id="flow-stage-3-'+mid+'" style="display:none"></div>';
   f.innerHTML=html;
   setTimeout(function(){
     var cWrap=document.getElementById('scope-carpet-table-wrap-'+mid);
@@ -352,31 +384,153 @@ function submitScope(mid){
     cProtect:cProtect&&cProtect.checked,cEnzyme:cEnzyme&&cEnzyme.checked,
     uProtect:uProtect&&uProtect.checked,uEnzyme:uEnzyme&&uEnzyme.checked,uAntibac:uAntibac&&uAntibac.checked,
     durationMin:mins,
-    upholSubtotal:upholSubtotal
+    upholSubtotal:upholSubtotal,
+    cardId:mid // remember the card so we can advance it later
   };
   var hasCarpet=carpetLines.length>0,hasUphol=upholLines.length>0;
   flow.service=hasCarpet&&hasUphol?'both':(hasCarpet?'carpet':'upholstery');
   flow.duration=mins;
-  var f=document.getElementById('scope-'+mid);
-  if(f){
-    var btns=f.querySelectorAll('button');btns.forEach(function(b){b.disabled=true;b.style.opacity='0.5';b.style.cursor='not-allowed';});
-    var inputs=f.querySelectorAll('input');inputs.forEach(function(i){i.disabled=true;});
-    var summary='<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e5e7eb;font-size:12px;color:#15803d"><strong>&#x2713; Job locked in:</strong> '+fmtDuration(mins)+'<br>'+carpetLines.concat(upholLines).join(', ')+'</div>';
-    f.insertAdjacentHTML('beforeend',summary);
+  // Advance the SAME card to stage 2 (no new chat bubbles)
+  advanceToStage2(mid);
+  fetchAndRenderSlots(mid);
+}
+
+// Stage 1 -> Stage 2: collapse pickers into a summary line, show times area
+function advanceToStage2(mid){
+  var card=document.getElementById('scope-'+mid);
+  if(!card)return;
+  // Hide the picker sections
+  var pickers=card.querySelectorAll('.flow-stage-1');
+  pickers.forEach(function(el){el.style.display='none';});
+  // Replace header + show stage 2 (times) area
+  var topSummary=document.getElementById('flow-top-summary-'+mid);
+  if(topSummary){
+    topSummary.style.display='block';
+    topSummary.innerHTML=buildScopeSummaryLine(mid);
   }
-  hist.push({role:'user',content:'Scope: '+carpetLines.concat(upholLines).join(', ')+' ('+fmtDuration(mins)+')'});
-  flowMsg('Got it \u2014 looks like about '+fmtDuration(mins)+' of work. Let me check our schedule for slots that fit...');
-  checkAvailabilityForFlow();
+  // Show the stage-2 container
+  var stage2=document.getElementById('flow-stage-2-'+mid);
+  if(stage2)stage2.style.display='block';
+}
+
+function buildScopeSummaryLine(mid){
+  var lines=flow.scope.carpetLines.concat(flow.scope.upholLines);
+  var summary=lines.join(', ');
+  if(summary.length>60)summary=lines.length+' items';
+  return '<div class="flow-summary-row"><div class="flow-summary-text"><span class="flow-check">&#x2713;</span> <strong>'+fmtDuration(flow.scope.durationMin)+'</strong> &mdash; '+summary+'</div><button class="flow-edit-btn" onclick="editScope(\''+mid+'\')">edit</button></div>';
+}
+
+function buildTimeSummaryLine(mid){
+  return '<div class="flow-summary-row"><div class="flow-summary-text"><span class="flow-check">&#x2713;</span> '+flow.timeChoice+'</div><button class="flow-edit-btn" onclick="editTime(\''+mid+'\')">edit</button></div>';
+}
+
+// "Edit" link on scope summary -> back to stage 1
+function editScope(mid){
+  var card=document.getElementById('scope-'+mid);
+  if(!card)return;
+  // Re-show pickers
+  var pickers=card.querySelectorAll('.flow-stage-1');
+  pickers.forEach(function(el){el.style.display='';});
+  // Re-enable inputs
+  var btns=card.querySelectorAll('.flow-stage-1 button, .flow-stage-1 input');
+  btns.forEach(function(el){el.disabled=false;el.style.opacity='';el.style.cursor='';});
+  // Hide top summary, stage-2, stage-3
+  var topSummary=document.getElementById('flow-top-summary-'+mid);if(topSummary)topSummary.style.display='none';
+  var stage2=document.getElementById('flow-stage-2-'+mid);if(stage2)stage2.style.display='none';
+  var stage3=document.getElementById('flow-stage-3-'+mid);if(stage3){stage3.style.display='none';stage3.innerHTML='';}
+  flow.timeChoice=null;
+  // Re-enable Find Times button (already enabled if quantities > 0)
+  updateScopeDuration(mid);
+}
+
+// "Edit" link on time summary -> back to stage 2
+function editTime(mid){
+  var stage3=document.getElementById('flow-stage-3-'+mid);if(stage3){stage3.style.display='none';stage3.innerHTML='';}
+  // Show the times again
+  var stage2=document.getElementById('flow-stage-2-'+mid);if(stage2)stage2.style.display='block';
+  // Remove the time summary line, keep only the scope summary
+  var topSummary=document.getElementById('flow-top-summary-'+mid);
+  if(topSummary)topSummary.innerHTML=buildScopeSummaryLine(mid);
+  flow.timeChoice=null;
+}
+
+async function fetchAndRenderSlots(mid){
+  var stage2=document.getElementById('flow-stage-2-'+mid);
+  if(!stage2)return;
+  stage2.innerHTML='<div class="flow-stage-hdr">Pick a time</div><div class="flow-loading">Checking our schedule...</div>';
+  var type=flow.type==='rug'?'RUG':'CARPET';
+  try{
+    var r=await fetch('/.netlify/functions/availability?duration='+flow.duration+'&type='+type);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    var d=await r.json();
+    if(d.slots&&d.slots.length){
+      var html='<div class="flow-stage-hdr">Pick a time</div>';
+      html+='<div class="flow-times-grid">';
+      d.slots.slice(0,4).forEach(function(s){
+        html+='<button class="flow-time-btn" onclick="pickTime(\''+mid+'\',\''+s.label.replace(/'/g,"\\'")+'\')">'+s.label+'</button>';
+      });
+      html+='</div>';
+      html+='<button class="flow-time-other" onclick="pickCustomTime(\''+mid+'\')">I have a different time in mind</button>';
+      stage2.innerHTML=html;
+    } else {
+      stage2.innerHTML='<div class="flow-stage-hdr">Pick a time</div><div class="flow-empty">Our schedule is quite full for a '+fmtDuration(flow.duration)+' job in the next two weeks. Please call us at <strong>(847) 251-1200</strong>.</div>';
+    }
+  }catch(e){
+    stage2.innerHTML='<div class="flow-stage-hdr">Pick a time</div><div class="flow-empty">Connection error: '+e.message+'. Please call <strong>(847) 251-1200</strong>.</div>';
+  }
+}
+
+function pickTime(mid,label){
+  flow.timeChoice=label;
+  // Collapse stage 2
+  var stage2=document.getElementById('flow-stage-2-'+mid);if(stage2)stage2.style.display='none';
+  // Add time summary line below the scope summary
+  var topSummary=document.getElementById('flow-top-summary-'+mid);
+  if(topSummary)topSummary.innerHTML=buildScopeSummaryLine(mid)+buildTimeSummaryLine(mid);
+  // Show stage 3 (booking form)
+  advanceToStage3(mid);
+}
+
+function pickCustomTime(mid){
+  var stage2=document.getElementById('flow-stage-2-'+mid);
+  if(!stage2)return;
+  stage2.innerHTML='<div class="flow-stage-hdr">Pick a time</div><div class="flow-custom-time"><label class="bk-label">What date and time works for you?</label><input class="bk-input" id="custom-time-input-'+mid+'" placeholder="e.g. Monday May 12 at 10:00 AM"/><button class="flow-submit-btn" onclick="submitCustomTime(\''+mid+'\')">Use this time</button><button class="flow-link-btn" onclick="fetchAndRenderSlots(\''+mid+'\')">&larr; Back to suggested times</button></div>';
+  setTimeout(function(){var inp=document.getElementById('custom-time-input-'+mid);if(inp)inp.focus();},80);
+}
+
+function submitCustomTime(mid){
+  var inp=document.getElementById('custom-time-input-'+mid);
+  if(!inp||!inp.value.trim()){alert('Please enter a date and time.');return;}
+  pickTime(mid,inp.value.trim());
+}
+
+function advanceToStage3(mid){
+  var stage3=document.getElementById('flow-stage-3-'+mid);
+  if(!stage3)return;
+  stage3.style.display='block';
+  stage3.appendChild(buildBookingForm(flow.type==='rug'?'RUG_PICKUP':'CARPET',mid,'','','','','','',flow.timeChoice));
 }
 
 function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime){
   var isRug=svc==='RUG_PICKUP';
   var lbl=isRug?'Rug Pickup and Delivery':(flow.scope&&flow.service==='upholstery'?'Upholstery Cleaning':(flow.scope&&flow.service==='both'?'Carpet & Upholstery Cleaning':'Carpet Cleaning'));
   var hasScopeData=!isRug&&flow.scope;
-  var f=document.createElement('div');f.className='bk-form';f.id='bkf-'+mid;
-  var html='<h3>Booking Request - '+lbl+'</h3>';
-  if(!isRug){html+='<div class="bk-note" style="background:#fff8e1;border-color:#f59e0b">Our team will measure and give you a final quote on-site. Call <strong>(847) 251-1200</strong> for a rough estimate beforehand.</div>';}
-  html+='<div class="bk-note">Please fill in your details. Adolfo will confirm your appointment time.</div>';
+  var f=document.createElement('div');
+  // When inside the unified card (carpet/upholstery flow), skip the outer .bk-form wrapper
+  // since stage 3 sits inside the parent scope card already.
+  var inUnifiedCard=hasScopeData;
+  if(!inUnifiedCard){f.className='bk-form';}
+  f.id='bkf-'+mid;
+  var html='';
+  if(!inUnifiedCard){
+    html+='<h3>Booking Request - '+lbl+'</h3>';
+  } else {
+    html+='<div class="flow-stage-hdr">Your details</div>';
+  }
+  if(!isRug&&!inUnifiedCard){html+='<div class="bk-note" style="background:#fff8e1;border-color:#f59e0b">Our team will measure and give you a final quote on-site. Call <strong>(847) 251-1200</strong> for a rough estimate beforehand.</div>';}
+  if(!inUnifiedCard){
+    html+='<div class="bk-note">Please fill in your details. Adolfo will confirm your appointment time.</div>';
+  }
   html+='<div class="bk-row-2"><div class="bk-row"><label class="bk-label">First Name *</label><input class="bk-input" id="bk-fname-'+mid+'" placeholder="Jane"/></div><div class="bk-row"><label class="bk-label">Last Name *</label><input class="bk-input" id="bk-lname-'+mid+'" placeholder="Smith"/></div></div>';
   html+='<div class="bk-row-2"><div class="bk-row"><label class="bk-label">Phone Number *</label><input class="bk-input" id="bk-phone-'+mid+'" placeholder="(847) 555-1234" type="tel"/></div><div class="bk-row"><label class="bk-label">Email Address *</label><input class="bk-input" id="bk-email-'+mid+'" placeholder="you@email.com" type="email"/></div></div>';
   html+='<div class="bk-row"><label class="bk-label">Full Address (include city) *</label><input class="bk-input" id="bk-addr-'+mid+'" placeholder="123 Main St, Wilmette, IL 60091" autocomplete="off"/></div>';
@@ -399,69 +553,29 @@ function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime)
     html+='<label class="bk-check"><input type="checkbox" id="bk-enzyme-'+mid+'" data-mid="'+mid+'" onchange="calcRugPrice(this.dataset.mid)"/> Enzyme Treatment ($2/sq ft)</label></div>';
     html+='<div class="bk-row" id="bk-price-row-'+mid+'" style="display:none"><label class="bk-label">Estimated Price</label><div id="bk-price-'+mid+'" class="bk-price-box"></div></div>';
   } else if(hasScopeData){
+    // In unified card flow, scope is already shown in the top summary line, so we just store the detail string
     var scopeLines=flow.scope.carpetLines.concat(flow.scope.upholLines);
-    var hasCarpet=flow.scope.carpetLines.length>0;
-    var hasUphol=flow.scope.upholLines.length>0;
-    var carpetAddons=[];
-    if(flow.scope.cProtect)carpetAddons.push('Fiber Protectant');
-    if(flow.scope.cEnzyme)carpetAddons.push('Enzyme Treatment');
-    var upholAddons=[];
-    if(flow.scope.uProtect)upholAddons.push('Fiber Protectant');
-    if(flow.scope.uEnzyme)upholAddons.push('Deodorize / Enzyme');
-    if(flow.scope.uAntibac)upholAddons.push('Antibacterial');
-    html+='<div class="bk-row"><label class="bk-label">Your Job</label>';
-    html+='<div class="bk-summary-box">';
-    // Carpet section
-    if(hasCarpet){
-      html+='<div class="bk-summary-section">';
-      html+='<div class="bk-summary-hdr">Carpet Cleaning</div>';
-      html+='<ul class="bk-summary-list">';
-      flow.scope.carpetLines.forEach(function(line){html+='<li>'+line+'</li>';});
-      carpetAddons.forEach(function(a){html+='<li class="bk-summary-addon">+ '+a+'</li>';});
-      html+='</ul></div>';
-    }
-    // Upholstery section
-    if(hasUphol){
-      html+='<div class="bk-summary-section'+(hasCarpet?' bk-summary-section-divider':'')+'">';
-      html+='<div class="bk-summary-hdr">Upholstery Cleaning</div>';
-      html+='<ul class="bk-summary-list">';
-      flow.scope.upholLines.forEach(function(line){html+='<li>'+line+'</li>';});
-      upholAddons.forEach(function(a){html+='<li class="bk-summary-addon">+ '+a+'</li>';});
-      html+='</ul>';
-      // Show subtotal ONLY when there's no carpet (otherwise it's misleading)
-      if(!hasCarpet){
-        html+='<div class="bk-summary-subtotal">Upholstery Subtotal: <strong>$'+flow.scope.upholSubtotal.toFixed(2)+'</strong></div>';
-      }
-      html+='</div>';
-    }
-    // Footer with time and disclaimer
-    html+='<div class="bk-summary-footer">';
-    html+='<div class="bk-summary-time">Estimated time: <strong>'+fmtDuration(flow.scope.durationMin)+'</strong></div>';
-    html+='<div class="bk-summary-note">';
-    if(hasCarpet){
-      html+='$199 minimum applies. Carpet pricing finalized on-site.';
-    } else {
-      html+='$199 minimum applies. Final price confirmed on-site.';
-    }
-    html+='</div></div>';
-    html+='</div>';
-    html+='<input type="hidden" id="bk-detail-'+mid+'" value="'+scopeLines.join(', ').replace(/"/g,'&quot;')+'"/></div>';
+    html+='<input type="hidden" id="bk-detail-'+mid+'" value="'+scopeLines.join(', ').replace(/"/g,'&quot;')+'"/>';
   } else {
     html+='<div class="bk-row"><label class="bk-label">Items to Clean *</label><input class="bk-input" id="bk-detail-'+mid+'" placeholder="e.g. sofa, 2 chairs"/></div>';
   }
-  html+='<div class="bk-row"><label class="bk-label">Requested Time *</label><input class="bk-input" id="bk-appt-'+mid+'" placeholder="e.g. Thursday May 7 at 9:00 AM" autocomplete="off"/></div>';
+  // Hidden requested-time field (value comes from flow.timeChoice or pTime)
+  html+='<input type="hidden" id="bk-appt-'+mid+'" value=""/>';
   html+='<div class="bk-row"><label class="bk-check"><input type="checkbox" id="bk-self-'+mid+'" onchange="toggleContact(\''+mid+'\',this.checked)" checked/> I will be there to let your crew in</label></div>';
   html+='<div id="bk-contact-box-'+mid+'" class="contact-toggle"><div class="bk-note" style="margin-bottom:8px">Provide the contact who will let our crew in:</div><div class="bk-row-2"><div class="bk-row"><label class="bk-label">Contact Name *</label><input class="bk-input" id="bk-cname-'+mid+'" placeholder="On-site contact name"/></div><div class="bk-row"><label class="bk-label">Contact Phone *</label><input class="bk-input" id="bk-cphone-'+mid+'" placeholder="Their phone number"/></div></div></div>';
   html+='<div class="bk-row"><label class="bk-label">Additional Notes</label><textarea class="bk-input" id="bk-notes-'+mid+'" rows="2" placeholder="Anything else we should know..." style="resize:vertical"></textarea></div>';
-  html+='<button class="bk-submit" onclick="submitBooking(\''+mid+'\',\''+svc+'\',\''+lbl+'\')">Send Booking Request</button><button class="bk-cancel" onclick="cancelBooking(\''+mid+'\')">Never mind, I will call instead</button>';
+  html+='<button class="bk-submit" onclick="submitBooking(\''+mid+'\',\''+svc+'\',\''+lbl.replace(/'/g,"\\'")+'\')">Send Booking Request</button>';
+  if(!inUnifiedCard){html+='<button class="bk-cancel" onclick="cancelBooking(\''+mid+'\')">Never mind, I will call instead</button>';}
   f.innerHTML=html;
   setTimeout(function(){
     var fname=pName?pName.split(' ')[0]:'';
     var lname=pName&&pName.split(' ').length>1?pName.split(' ').slice(1).join(' '):'';
     var flds=[['bk-fname-'+mid,fname],['bk-lname-'+mid,lname],['bk-phone-'+mid,pPhone],['bk-email-'+mid,pEmail],['bk-addr-'+mid,pAddr]];
     flds.forEach(function(pair){var el=document.getElementById(pair[0]);if(!el)return;if(pair[1]){el.value=pair[1];el.classList.add('bk-filled');}else{el.classList.add('bk-needs');}});
-    var apptStr=(pDate&&pTime)?pDate+' at '+pTime:pDate||pTime||'';
-    if(apptStr){var apptEl=document.getElementById('bk-appt-'+mid);if(apptEl){apptEl.value=apptStr;apptEl.classList.add('bk-filled');}}
+    // Set the appt value from flow.timeChoice (unified card) or fallback to pDate/pTime
+    var apptStr=flow.timeChoice||((pDate&&pTime)?pDate+' at '+pTime:pDate||pTime||'');
+    var apptEl=document.getElementById('bk-appt-'+mid);
+    if(apptEl&&apptStr){apptEl.value=apptStr;}
     setTimeout(function(){setupAllAddressFields();},200);
   },80);
   return f;
@@ -495,9 +609,12 @@ function submitBooking(mid,svc,lbl){
   var eb='NEW BOOKING - KASHIAN BROS KAY\nSERVICE: '+lbl+'\nCALENDAR: '+truck+'\n'+(isChicago?'*** CHICAGO - Adolfo must book manually ***\n':'')+'\nName: '+name+'\nPhone: '+phone+'\nEmail: '+email+'\nAddress: '+addr+'\n'+(detail?'Details: '+detail+'\n':'')+(priceInfo?'Price/Duration: '+priceInfo+'\n':'')+'\nAppointment: '+appt+'\nOn-site: '+(selfP?'Customer present':'Contact: '+cname+' '+cphone)+(notes?'\nNotes: '+notes:'')+'\nSubmitted: '+new Date().toLocaleString();
   fetch('/.netlify/functions/booking',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,phone:phone,email:email,addr:addr,svc:svc,lbl:lbl,detail:detail,stairs:'',date:appt,time:'',selfP:selfP,cname:cname,cphone:cphone,pets:'',notes:notes+(priceInfo?'\nPrice/Duration: '+priceInfo:''),isChicago:isChicago,truck:truck,emailBody:eb})}).catch(function(){});
   var timing=getConfirmTiming();
-  var f=document.getElementById('bkf-'+mid);
-  f.className='bk-success';
-  f.innerHTML='<h3>Booking Request Sent!</h3><p style="margin-top:8px"><strong>Thank you, '+fname+'!</strong></p><p style="margin-top:6px">Your booking request for <strong>'+lbl+'</strong> has been sent.</p><p style="margin-top:8px;background:#dcfce7;border-radius:6px;padding:8px"><strong>'+timing+'</strong></p><p style="margin-top:8px">Confirmation will go to <strong>'+email+'</strong>. Questions? Call <strong>(847) 251-1200</strong>.</p>'+(isChicago?'<p style="margin-top:8px;background:#fef9c3;border-radius:6px;padding:8px">Chicago bookings are handled personally by our cleaning manager.</p>':'');
+  // In unified card flow, replace the WHOLE scope card with the success message.
+  // For rug flow (no unified card), replace just the booking form.
+  var unifiedCard=document.getElementById('scope-'+mid);
+  var target=unifiedCard||document.getElementById('bkf-'+mid);
+  target.className='bk-success';
+  target.innerHTML='<h3>Booking Request Sent!</h3><p style="margin-top:8px"><strong>Thank you, '+fname+'!</strong></p><p style="margin-top:6px">Your booking request for <strong>'+lbl+'</strong> has been sent.</p><p style="margin-top:8px;background:#dcfce7;border-radius:6px;padding:8px"><strong>'+timing+'</strong></p><p style="margin-top:8px">Confirmation will go to <strong>'+email+'</strong>. Questions? Call <strong>(847) 251-1200</strong>.</p>'+(isChicago?'<p style="margin-top:8px;background:#fef9c3;border-radius:6px;padding:8px">Chicago bookings are handled personally by our cleaning manager.</p>':'');
   hist.push({role:'user',content:'BOOKING SUBMITTED: '+name+' for '+lbl+' on '+appt});
   hist.push({role:'assistant',content:'Booking sent! '+timing});
   flow.scope=null;
