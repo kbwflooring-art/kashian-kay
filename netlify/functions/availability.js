@@ -7,8 +7,23 @@ var TRUCK2_CAL = '805de988185d3df181289a2bcdd242110c6e5ca38fb00424a2dab03af1ca41
 // === BUSINESS RULES ===
 var TRAVEL_BUFFER_MIN = 15;     // 15 min buffer between jobs for travel
 var DAY_OPEN_HOUR = 9;          // first job starts 9 AM
-var LAST_JOB_START_HOUR = 15;   // last job must START by 3 PM (per Kashian Bros scheduling rules)
-var DAY_CLOSE_HOUR = 17;        // weekday close (5 PM) — used only for daily summary view
+// Last job start time depends on job length:
+//   - Short jobs (<= 2 hrs):  must START by 3 PM (crew may finish after 5 PM)
+//   - Medium/long (> 2 hrs):  must END by 5 PM
+//   - Long jobs (>= 3 hrs):   must also START by 2 PM (additional cap)
+var SHORT_JOB_HOURS = 2;        // threshold for "short job"
+var SHORT_JOB_LATEST_START = 15;// 3 PM for short jobs
+var LONG_JOB_LATEST_START = 14; // 2 PM for long (3+ hr) jobs
+var DAY_CLOSE_HOUR = 17;        // 5 PM hard close for medium/long jobs
+
+function getLatestStartHour(durationHours){
+  if(durationHours<=SHORT_JOB_HOURS)return SHORT_JOB_LATEST_START;
+  // For jobs > 2 hours, must end by 5 PM
+  var endByCap=DAY_CLOSE_HOUR-durationHours;
+  // For jobs >= 3 hours, also must start by 2 PM
+  if(durationHours>=3)return Math.min(endByCap,LONG_JOB_LATEST_START);
+  return endByCap;
+}
 // Saturday: closed for cleaning crews (reserved for showroom only)
 
 function b64url(str){return Buffer.from(str).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
@@ -119,13 +134,14 @@ function pickCarpetTruckForTueThu(t1Events,t2Events,day){
 
 function findSlots(t1Events,t2Events,pickupEvents,days,durationHours,type){
   var slots=[];
-  // Per scheduling rules: last job must START by 3 PM. Crew may finish later if needed.
+  // Latest start time depends on job length (see business rules at top of file)
+  var latestStartH=getLatestStartHour(durationHours);
   for(var i=0;i<days.length&&slots.length<5;i++){
     var day=days[i];
     var dow=day.getDay();
     if(type==='RUG'&&dow!==2&&dow!==4)continue;
     var isTueThu=(dow===2||dow===4);
-    for(var startMin=DAY_OPEN_HOUR*60;startMin/60<=LAST_JOB_START_HOUR&&slots.length<5;startMin+=30){
+    for(var startMin=DAY_OPEN_HOUR*60;startMin/60<=latestStartH&&slots.length<5;startMin+=30){
       var startH=startMin/60;
       var endH=startH+durationHours;
       var free=false;
@@ -153,7 +169,7 @@ function findSlots(t1Events,t2Events,pickupEvents,days,durationHours,type){
 }
 
 function buildTextSummary(t1Events,t2Events,pickupEvents,days){
-  var summary='REAL-TIME CALENDAR AVAILABILITY:\n\nCARPET & UPHOLSTERY CLEANING (slots include 15 min travel buffer between jobs. First job 9 AM, last job starts by 3 PM):\nMon/Wed/Fri: Truck 1 AND Truck 2 both run carpet. Slot open if EITHER truck is free.\nTue/Thu: ONLY ONE truck runs carpet (the Big Truck does rug pickup that day).\n\n';
+  var summary='REAL-TIME CALENDAR AVAILABILITY:\n\nCARPET & UPHOLSTERY CLEANING (15 min travel buffer between jobs. First job 9 AM. Last start: 3 PM for short jobs, 2 PM for 3+ hour jobs, earlier if needed to end by 5 PM):\nMon/Wed/Fri: Truck 1 AND Truck 2 both run carpet. Slot open if EITHER truck is free.\nTue/Thu: ONLY ONE truck runs carpet (the Big Truck does rug pickup that day).\n\n';
   days.forEach(function(day){
     var dow=day.getDay();
     var isTueThu=(dow===2||dow===4);
