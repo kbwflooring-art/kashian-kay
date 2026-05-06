@@ -772,7 +772,47 @@ function advanceToStage3(mid){
 function buildReviewForm(mid){
   var div=document.createElement('div');
   var ci=flow.customerInfo||{};
+  var sc=flow.scope||{};
   var html='<div class="flow-stage-hdr">Review &amp; submit</div>';
+  // SERVICE block (job details + add-ons + time)
+  html+='<div class="bk-review-block">';
+  if(sc.isRug){
+    // Rug pickup
+    html+='<div class="bk-review-line"><span class="bk-review-label">Service</span><span>Rug Pickup &amp; Delivery</span></div>';
+    html+='<div class="bk-review-line"><span class="bk-review-label">Rugs</span><span>'+(sc.rugDesc||'')+' ('+sc.rugSqft+' sq ft)</span></div>';
+    var rugAddons=[];
+    if(sc.cProtect)rugAddons.push('Fiber Protectant');
+    if(sc.cEnzyme)rugAddons.push('Enzyme Treatment');
+    if(rugAddons.length){
+      html+='<div class="bk-review-line"><span class="bk-review-label">Add-ons</span><span>'+rugAddons.join(', ')+'</span></div>';
+    }
+    html+='<div class="bk-review-line"><span class="bk-review-label">Estimate</span><span><strong>$'+sc.rugTotal.toFixed(2)+'</strong> <small style="color:#64748b">($199 min, 7-10 day turnaround)</small></span></div>';
+  } else {
+    // Carpet / upholstery
+    var hasCarpet=sc.carpetLines&&sc.carpetLines.length>0;
+    var hasUphol=sc.upholLines&&sc.upholLines.length>0;
+    var svcLbl=hasCarpet&&hasUphol?'Carpet &amp; Upholstery Cleaning':(hasCarpet?'Carpet Cleaning':'Upholstery Cleaning');
+    html+='<div class="bk-review-line"><span class="bk-review-label">Service</span><span>'+svcLbl+'</span></div>';
+    if(hasCarpet){
+      var carpetAddons=[];
+      if(sc.cProtect)carpetAddons.push('Fiber Protectant');
+      if(sc.cEnzyme)carpetAddons.push('Enzyme');
+      var carpetText=sc.carpetLines.join(', ')+(carpetAddons.length?' <small style="color:#64748b">+ '+carpetAddons.join(', ')+' (extra)</small>':'');
+      html+='<div class="bk-review-line"><span class="bk-review-label">Carpet</span><span>'+carpetText+'</span></div>';
+    }
+    if(hasUphol){
+      var upholAddons=[];
+      if(sc.uProtect)upholAddons.push('Fiber Protectant');
+      if(sc.uEnzyme)upholAddons.push('Deodorize/Enzyme');
+      if(sc.uAntibac)upholAddons.push('Antibacterial');
+      var upholText=sc.upholLines.join(', ')+(upholAddons.length?' <small style="color:#64748b">+ '+upholAddons.join(', ')+' (extra)</small>':'');
+      html+='<div class="bk-review-line"><span class="bk-review-label">Upholstery</span><span>'+upholText+'</span></div>';
+    }
+    html+='<div class="bk-review-line"><span class="bk-review-label">Est. time</span><span>'+fmtDurationRounded(sc.durationMin)+'</span></div>';
+  }
+  html+='<div class="bk-review-line"><span class="bk-review-label">When</span><span><strong>'+(flow.timeChoice||'')+'</strong></span></div>';
+  html+='</div>';
+  // CONTACT block (customer info)
   html+='<div class="bk-review-block">';
   html+='<div class="bk-review-line"><span class="bk-review-label">Name</span><span>'+(ci.fname||'')+' '+(ci.lname||'')+'</span></div>';
   html+='<div class="bk-review-line"><span class="bk-review-label">Phone</span><span>'+(ci.phone||'')+'</span></div>';
