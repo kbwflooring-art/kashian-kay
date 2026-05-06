@@ -122,6 +122,11 @@ body{font-family:'Raleway',Arial,sans-serif;letter-spacing:0.02em;background:#ee
 .rs-price-total{margin-top:8px;padding-top:8px;border-top:1px solid #bbf7d0;font-size:14px;display:flex;justify-content:space-between;color:#14532d}
 .rs-price-total strong{font-size:16px;color:#14532d}
 .rs-price-note{margin-top:6px;font-size:11.5px;color:#166534;font-style:italic}
+/* Stage 3 review block */
+.bk-review-block{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;margin:8px 0}
+.bk-review-line{display:flex;gap:10px;padding:5px 0;font-size:13px;color:#111;border-bottom:1px solid #f1f5f9}
+.bk-review-line:last-child{border-bottom:none}
+.bk-review-label{min-width:70px;font-size:11.5px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;padding-top:1px}
 /* Unified card flow: stages, summary lines, time pills */
 .flow-top-summary{background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:10px 14px;margin:-16px -16px 14px -16px;border-radius:10px 10px 0 0}
 .flow-summary-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:#111;padding:3px 0}
@@ -180,8 +185,8 @@ var CARPET_ROOMS={
   'c-mbd':{name:'Master Bedroom',duration:72},
   'c-bed':{name:'Bedroom',duration:48},
   'c-off':{name:'Office / Den',duration:48},
-  'c-bat':{name:'Bathroom',duration:30},
-  'c-bas':{name:'Basement',duration:48},
+  'c-bsm':{name:'Small Basement',duration:30},
+  'c-bml':{name:'Large Basement',duration:60},
   'c-hal':{name:'Hallway',duration:48},
   'c-sta':{name:'Stairs (per flight)',duration:25},
   'c-wic':{name:'Walk-in Closet',duration:48}
@@ -457,7 +462,7 @@ function calcRugPrice(mid){
 function buildCarpetTable(mid){
   var table=document.createElement('table');table.className='bk-qty-table';table.id='c-table-'+mid;
   table.innerHTML='<tr><th>Room</th><th>Qty</th></tr>';
-  var cRooms=[['c-liv','Living / Family Room'],['c-din','Dining Room'],['c-mbd','Master Bedroom'],['c-bed','Bedroom'],['c-off','Office / Den'],['c-bat','Bathroom'],['c-bas','Basement'],['c-hal','Hallway'],['c-sta','Stairs (per flight)'],['c-wic','Walk-in Closet']];
+  var cRooms=[['c-liv','Living / Family Room'],['c-din','Dining Room'],['c-mbd','Master Bedroom'],['c-bed','Bedroom'],['c-off','Office / Den'],['c-bsm','Small Basement'],['c-bml','Large Basement'],['c-hal','Hallway'],['c-sta','Stairs (per flight)'],['c-wic','Walk-in Closet']];
   cRooms.forEach(function(r){
     var tr=document.createElement('tr');
     var td1=document.createElement('td');td1.textContent=r[1];
@@ -494,7 +499,81 @@ function buildUpholTable(mid){
   return table;
 }
 
-// Unified card: Stage 1 (pickers) -> Stage 2 (times) -> Stage 3 (booking form)
+// === CARD 1: CUSTOMER INFO FORM ===
+// Collected first so the customer doesn't have to fill in details after picking everything.
+function buildInfoForm(mid,nextType){
+  var f=document.createElement('div');f.className='bk-form';f.id='info-'+mid;
+  var html='<h3>Your Information</h3>';
+  html+='<div class="bk-note">We will use this to confirm your appointment and reach you if needed.</div>';
+  html+='<div class="bk-row-2"><div class="bk-row"><label class="bk-label">First Name *</label><input class="bk-input" id="info-fname-'+mid+'" placeholder="Jane"/></div><div class="bk-row"><label class="bk-label">Last Name *</label><input class="bk-input" id="info-lname-'+mid+'" placeholder="Smith"/></div></div>';
+  html+='<div class="bk-row-2"><div class="bk-row"><label class="bk-label">Phone Number *</label><input class="bk-input" id="info-phone-'+mid+'" placeholder="(847) 555-1234" type="tel"/></div><div class="bk-row"><label class="bk-label">Email Address *</label><input class="bk-input" id="info-email-'+mid+'" placeholder="you@email.com" type="email"/></div></div>';
+  html+='<div class="bk-row"><label class="bk-label">Full Address (include city) *</label><input class="bk-input" id="info-addr-'+mid+'" placeholder="123 Main St, Wilmette, IL 60091" autocomplete="off"/></div>';
+  html+='<div class="bk-row"><label class="bk-check"><input type="checkbox" id="info-self-'+mid+'" onchange="toggleInfoContact(\''+mid+'\',this.checked)" checked/> I will be there to let your crew in</label></div>';
+  html+='<div id="info-contact-box-'+mid+'" class="contact-toggle"><div class="bk-note" style="margin-bottom:8px">Provide the contact who will let our crew in:</div><div class="bk-row-2"><div class="bk-row"><label class="bk-label">Contact Name *</label><input class="bk-input" id="info-cname-'+mid+'" placeholder="On-site contact name"/></div><div class="bk-row"><label class="bk-label">Contact Phone *</label><input class="bk-input" id="info-cphone-'+mid+'" placeholder="Their phone number"/></div></div></div>';
+  html+='<div class="bk-row"><label class="bk-label">Additional Notes</label><textarea class="bk-input" id="info-notes-'+mid+'" rows="2" placeholder="Anything else we should know..." style="resize:vertical"></textarea></div>';
+  html+='<button class="bk-submit" onclick="submitInfoForm(\''+mid+'\',\''+nextType+'\')">Continue</button>';
+  html+='<button class="bk-cancel" onclick="cancelInfo(\''+mid+'\')">Never mind, I will call instead</button>';
+  f.innerHTML=html;
+  setTimeout(function(){setupAllAddressFields();},100);
+  return f;
+}
+
+function toggleInfoContact(id,checked){var b=document.getElementById('info-contact-box-'+id);if(b)b.style.display=checked?'none':'block';}
+
+function cancelInfo(mid){var f=document.getElementById('info-'+mid);if(f)f.innerHTML='<p style="color:#333;font-size:13px">No problem! Call us at <strong>(847) 251-1200</strong> or email <strong>info@kashianbros.com</strong>!</p>';flow.active=false;}
+
+function submitInfoForm(mid,nextType){
+  // Collect fields
+  var fname=document.getElementById('info-fname-'+mid).value.trim();
+  var lname=document.getElementById('info-lname-'+mid).value.trim();
+  var phone=document.getElementById('info-phone-'+mid).value.trim();
+  var email=document.getElementById('info-email-'+mid).value.trim();
+  var addr=document.getElementById('info-addr-'+mid).value.trim();
+  var selfP=document.getElementById('info-self-'+mid).checked;
+  var notes=document.getElementById('info-notes-'+mid).value.trim();
+  var cname=selfP?'':document.getElementById('info-cname-'+mid).value.trim();
+  var cphone=selfP?'':document.getElementById('info-cphone-'+mid).value.trim();
+  if(!fname||!lname||!phone||!email||!addr){alert('Please fill in all required fields.');return;}
+  if(!selfP&&(!cname||!cphone)){alert('Please provide the on-site contact, or check that you will be there yourself.');return;}
+  flow.customerInfo={fname:fname,lname:lname,phone:phone,email:email,addr:addr,selfP:selfP,cname:cname,cphone:cphone,notes:notes,cardId:mid};
+  // Hide info form (don't destroy — we may revisit via "edit")
+  var infoCard=document.getElementById('info-'+mid);
+  if(infoCard)infoCard.style.display='none';
+  // Show next card (scope or rug-scope) right after, as a fresh chat message so it appears below
+  if(nextType==='RUG'){
+    flowMsg('Great! Now tell us about your rugs.\n[SHOW_RUG_SCOPE_FORM]');
+  } else {
+    flowMsg('Great! Now pick what needs cleaning.\n[SHOW_SCOPE_FORM]');
+  }
+}
+
+// "Edit" link on the info summary line -> jump back to the info form
+function editInfo(mid){
+  // The info card stays in DOM (just hidden) with the customer's previous values.
+  // Re-show it; the user can edit and click Continue again.
+  if(flow.customerInfo&&flow.customerInfo.cardId){
+    var infoCard=document.getElementById('info-'+flow.customerInfo.cardId);
+    if(infoCard){
+      infoCard.style.display='';
+      // Remove the scope card that was previously generated, so a fresh one will be created on Continue.
+      var scopeCard=document.getElementById('scope-'+mid);
+      if(scopeCard){
+        // Find and remove the entire chat row that contains this scope card
+        var row=scopeCard.closest('.row');
+        if(row)row.remove();
+        else scopeCard.remove();
+      }
+      // Also clear timeChoice and scope so user starts fresh from scope picker
+      flow.scope=null;flow.timeChoice=null;
+      // Scroll to info card
+      infoCard.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+  }
+  alert('Please refresh and start a new booking to change your info.');
+}
+
+// Unified card: Stage 1 (pickers) -> Stage 2 (times) -> Stage 3 (review/submit)
 // Each stage is its own div so we can collapse/expand without rebuilding.
 function buildScopeForm(mid){
   var f=document.createElement('div');f.className='bk-form';f.id='scope-'+mid;
@@ -569,11 +648,19 @@ function advanceToStage2(mid){
   var topSummary=document.getElementById('flow-top-summary-'+mid);
   if(topSummary){
     topSummary.style.display='block';
-    topSummary.innerHTML=buildScopeSummaryLine(mid);
+    topSummary.innerHTML=buildInfoSummaryLine(mid)+buildScopeSummaryLine(mid);
   }
   // Show the stage-2 container
   var stage2=document.getElementById('flow-stage-2-'+mid);
   if(stage2)stage2.style.display='block';
+}
+
+function buildInfoSummaryLine(mid){
+  var ci=flow.customerInfo;
+  if(!ci)return '';
+  var disp=ci.fname+' '+ci.lname+' &mdash; '+ci.addr;
+  if(disp.length>70)disp=ci.fname+' '+ci.lname+' &mdash; '+ci.addr.substring(0,50)+'...';
+  return '<div class="flow-summary-row"><div class="flow-summary-text"><span class="flow-check">&#x2713;</span> '+disp+'</div><button class="flow-edit-btn" onclick="editInfo(\''+mid+'\')">edit</button></div>';
 }
 
 function buildScopeSummaryLine(mid){
@@ -616,9 +703,9 @@ function editTime(mid){
   var stage3=document.getElementById('flow-stage-3-'+mid);if(stage3){stage3.style.display='none';stage3.innerHTML='';}
   // Show the times again
   var stage2=document.getElementById('flow-stage-2-'+mid);if(stage2)stage2.style.display='block';
-  // Remove the time summary line, keep only the scope summary
+  // Keep info + scope summary, drop time summary
   var topSummary=document.getElementById('flow-top-summary-'+mid);
-  if(topSummary)topSummary.innerHTML=buildScopeSummaryLine(mid);
+  if(topSummary)topSummary.innerHTML=buildInfoSummaryLine(mid)+buildScopeSummaryLine(mid);
   flow.timeChoice=null;
 }
 
@@ -652,10 +739,10 @@ function pickTime(mid,label){
   flow.timeChoice=label;
   // Collapse stage 2
   var stage2=document.getElementById('flow-stage-2-'+mid);if(stage2)stage2.style.display='none';
-  // Add time summary line below the scope summary
+  // Top summary: info + scope + time
   var topSummary=document.getElementById('flow-top-summary-'+mid);
-  if(topSummary)topSummary.innerHTML=buildScopeSummaryLine(mid)+buildTimeSummaryLine(mid);
-  // Show stage 3 (booking form)
+  if(topSummary)topSummary.innerHTML=buildInfoSummaryLine(mid)+buildScopeSummaryLine(mid)+buildTimeSummaryLine(mid);
+  // Show stage 3 (review form)
   advanceToStage3(mid);
 }
 
@@ -676,7 +763,86 @@ function advanceToStage3(mid){
   var stage3=document.getElementById('flow-stage-3-'+mid);
   if(!stage3)return;
   stage3.style.display='block';
-  stage3.appendChild(buildBookingForm(flow.type==='rug'?'RUG_PICKUP':'CARPET',mid,'','','','','','',flow.timeChoice));
+  stage3.innerHTML='';
+  stage3.appendChild(buildReviewForm(mid));
+}
+
+// Stage 3 in the new flow: a clean "Review & Submit" panel.
+// All data has already been collected in flow.customerInfo + flow.scope + flow.timeChoice.
+function buildReviewForm(mid){
+  var div=document.createElement('div');
+  var ci=flow.customerInfo||{};
+  var html='<div class="flow-stage-hdr">Review &amp; submit</div>';
+  html+='<div class="bk-review-block">';
+  html+='<div class="bk-review-line"><span class="bk-review-label">Name</span><span>'+(ci.fname||'')+' '+(ci.lname||'')+'</span></div>';
+  html+='<div class="bk-review-line"><span class="bk-review-label">Phone</span><span>'+(ci.phone||'')+'</span></div>';
+  html+='<div class="bk-review-line"><span class="bk-review-label">Email</span><span>'+(ci.email||'')+'</span></div>';
+  html+='<div class="bk-review-line"><span class="bk-review-label">Address</span><span>'+(ci.addr||'')+'</span></div>';
+  if(ci.selfP){
+    html+='<div class="bk-review-line"><span class="bk-review-label">On-site</span><span>Customer present</span></div>';
+  } else {
+    html+='<div class="bk-review-line"><span class="bk-review-label">On-site</span><span>'+(ci.cname||'')+' &mdash; '+(ci.cphone||'')+'</span></div>';
+  }
+  if(ci.notes){
+    html+='<div class="bk-review-line"><span class="bk-review-label">Notes</span><span>'+ci.notes.replace(/</g,'&lt;')+'</span></div>';
+  }
+  html+='</div>';
+  if(flow.scope&&!flow.scope.isRug){
+    html+='<div class="bk-pricing-note" style="margin:14px 0 10px"><strong>Reminder:</strong> Final quote given on-site once our crew measures. Add-ons are extra. Need a quote first? Call <strong>(847) 251-1200</strong> and ask for Adolfo.</div>';
+  }
+  html+='<button class="bk-submit" onclick="submitFinalBooking(\''+mid+'\')">Send Booking Request</button>';
+  div.innerHTML=html;
+  return div;
+}
+
+// Final submit when user clicks "Send Booking Request" on the review card.
+// Combines flow.customerInfo + flow.scope + flow.timeChoice and posts to the booking endpoint.
+function submitFinalBooking(mid){
+  var ci=flow.customerInfo;
+  if(!ci){alert('Missing customer info. Please start over.');return;}
+  var sc=flow.scope||{};
+  var name=(ci.fname+' '+ci.lname).trim();
+  var detail='';
+  var priceInfo='';
+  var svc='CARPET',lbl='Carpet Cleaning';
+  if(sc.isRug){
+    svc='RUG_PICKUP';lbl='Rug Pickup and Delivery';
+    detail=sc.rugDesc||'';
+    priceInfo='Rugs: '+sc.rugDesc+' ('+sc.rugSqft+' sq ft) | Base: $'+sc.rugBase.toFixed(2);
+    if(sc.rugProtect>0)priceInfo+=' + Protectant: $'+sc.rugProtect.toFixed(2);
+    if(sc.rugEnzyme>0)priceInfo+=' + Enzyme: $'+sc.rugEnzyme.toFixed(2);
+    priceInfo+=' | Estimated total: $'+sc.rugTotal.toFixed(2);
+    priceInfo+=' | Est. pickup time: '+fmtDuration(sc.durationMin);
+  } else if(flow.scope){
+    var hasCarpet=sc.carpetLines&&sc.carpetLines.length>0;
+    var hasUphol=sc.upholLines&&sc.upholLines.length>0;
+    if(hasCarpet&&hasUphol){svc='CARPET';lbl='Carpet & Upholstery Cleaning';}
+    else if(hasUphol){svc='UPHOLSTERY';lbl='Upholstery Cleaning';}
+    else{svc='CARPET';lbl='Carpet Cleaning';}
+    detail=(sc.carpetLines||[]).concat(sc.upholLines||[]).join(', ');
+    priceInfo='Job: '+detail+' (Est. '+fmtDuration(sc.durationMin)+')';
+    if(sc.upholSubtotal>0)priceInfo+=' | Upholstery subtotal: $'+sc.upholSubtotal.toFixed(2);
+  }
+  var appt=flow.timeChoice||'';
+  var isChicago=/\bchicago\b/i.test(ci.addr);
+  var truck=svc==='CARPET'?'Truck 1 or Truck 2':svc==='UPHOLSTERY'?'Truck 1 preferred':'Rug Pickup Calendar - Tues and Thurs only';
+  var eb='NEW BOOKING - KASHIAN BROS KAY\nSERVICE: '+lbl+'\nCALENDAR: '+truck+'\n'+(isChicago?'*** CHICAGO - Adolfo must book manually ***\n':'')+'\nName: '+name+'\nPhone: '+ci.phone+'\nEmail: '+ci.email+'\nAddress: '+ci.addr+'\n'+(detail?'Details: '+detail+'\n':'')+(priceInfo?'Price/Duration: '+priceInfo+'\n':'')+'\nAppointment: '+appt+'\nOn-site: '+(ci.selfP?'Customer present':'Contact: '+ci.cname+' '+ci.cphone)+(ci.notes?'\nNotes: '+ci.notes:'')+'\nSubmitted: '+new Date().toLocaleString();
+  fetch('/.netlify/functions/booking',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,phone:ci.phone,email:ci.email,addr:ci.addr,svc:svc,lbl:lbl,detail:detail,stairs:'',date:appt,time:'',selfP:ci.selfP,cname:ci.cname,cphone:ci.cphone,pets:'',notes:(ci.notes||'')+(priceInfo?'\nPrice/Duration: '+priceInfo:''),isChicago:isChicago,truck:truck,emailBody:eb})}).catch(function(){});
+  var timing=getConfirmTiming();
+  // Replace the unified card with the success message
+  var card=document.getElementById('scope-'+mid);
+  if(card){
+    card.className='bk-success';
+    card.innerHTML='<h3>Booking Request Sent!</h3><p style="margin-top:8px"><strong>Thank you, '+ci.fname+'!</strong></p><p style="margin-top:6px">Your booking request for <strong>'+lbl+'</strong> has been sent.</p><p style="margin-top:8px;background:#dcfce7;border-radius:6px;padding:8px"><strong>'+timing+'</strong></p><p style="margin-top:8px">Confirmation will go to <strong>'+ci.email+'</strong>. Questions? Call <strong>(847) 251-1200</strong>.</p>'+(isChicago?'<p style="margin-top:8px;background:#fef9c3;border-radius:6px;padding:8px">Chicago bookings are handled personally by our cleaning manager.</p>':'');
+  }
+  // Also collapse the info card if still around
+  if(ci.cardId){
+    var infoCard=document.getElementById('info-'+ci.cardId);
+    if(infoCard)infoCard.style.display='none';
+  }
+  hist.push({role:'user',content:'BOOKING SUBMITTED: '+name+' for '+lbl+' on '+appt});
+  hist.push({role:'assistant',content:'Booking sent! '+timing});
+  flow.scope=null;flow.customerInfo=null;flow.timeChoice=null;flow.active=false;
 }
 
 function buildBookingForm(svc,mid,pName,pPhone,pEmail,pAddr,pDetail,pDate,pTime){
@@ -806,13 +972,15 @@ function addMsg(role,content,id){
   var fm=content.match(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)([^\]]*)\]/);
   var sc=content.match(/\[SHOW_SCOPE_FORM\]/);
   var rsc=content.match(/\[SHOW_RUG_SCOPE_FORM\]/);
-  var cc=content.replace(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)[^\]]*\]/g,'').replace(/\[SHOW_SCOPE_FORM\]/g,'').replace(/\[SHOW_RUG_SCOPE_FORM\]/g,'').trim();
+  var info=content.match(/\[SHOW_INFO_FORM:(CARPET|RUG)\]/);
+  var cc=content.replace(/\[SHOW_BOOKING_FORM:(CARPET|UPHOLSTERY|RUG_PICKUP)[^\]]*\]/g,'').replace(/\[SHOW_SCOPE_FORM\]/g,'').replace(/\[SHOW_RUG_SCOPE_FORM\]/g,'').replace(/\[SHOW_INFO_FORM:(CARPET|RUG)\]/g,'').trim();
   var row=document.createElement('div');row.className='row '+(isBot?'b':'u');row.id='r'+id;
   var ic=document.createElement('div');ic.className='ic '+(isBot?'b':'u');ic.innerHTML=isBot?'&#x1F9F9;':'&#x1F464;';
   var wrap=document.createElement('div');wrap.style.maxWidth='100%';
   var bub=document.createElement('div');bub.className='bub '+(isBot?'b':'u');
   bub.innerHTML=isBot?nl2html(cc):'<p>'+content+'</p>';
   wrap.appendChild(bub);
+  if(info&&isBot){wrap.appendChild(buildInfoForm(id,info[1]));}
   if(sc&&isBot){wrap.appendChild(buildScopeForm(id));}
   if(rsc&&isBot){wrap.appendChild(buildRugScopeForm(id));}
   if(fm&&isBot){var pArr=(fm[2]||'').replace(/^\|/,'').split('|');wrap.appendChild(buildBookingForm(fm[1],id,pArr[0]||'',pArr[1]||'',pArr[2]||'',pArr[3]||'',pArr[4]||'',pArr[5]||'',pArr[6]||''));}
@@ -858,18 +1026,17 @@ function handleInput(text,btn){
 function disableBubbles(wrap){var btns=wrap.querySelectorAll('.inline-btn');for(var i=0;i<btns.length;i++){btns[i].disabled=true;btns[i].style.opacity='0.4';}}
 function startCarpetFlow(){
   document.getElementById('qw').style.display='none';
-  flow={active:true,type:'carpet_upholstery',step:'scope',service:null,rugCount:null,detail:null,duration:0,address:null,awaitingText:false,scope:null};
+  flow={active:true,type:'carpet_upholstery',step:'info',service:null,rugCount:null,detail:null,duration:0,address:null,awaitingText:false,scope:null,customerInfo:null,timeChoice:null};
   addMsg('user','Schedule Carpet & Upholstery Cleaning',cnt);
   hist.push({role:'user',content:'Schedule Carpet & Upholstery Cleaning'});
-  flowMsg('Happy to help! Tell me what needs cleaning so I can find a time that fits your job.\n[SHOW_SCOPE_FORM]');
+  flowMsg('Happy to help! Let\'s get you scheduled. First, tell us a bit about you.\n[SHOW_INFO_FORM:CARPET]');
 }
 function startRugFlow(){
   document.getElementById('qw').style.display='none';
-  flow={active:true,type:'rug',step:'scope',service:'rug',rugCount:null,detail:null,duration:0,address:null,awaitingText:false,scope:null};
+  flow={active:true,type:'rug',step:'info',service:'rug',rugCount:null,detail:null,duration:0,address:null,awaitingText:false,scope:null,customerInfo:null,timeChoice:null};
   addMsg('user','Schedule Rug Pickup',cnt);
   hist.push({role:'user',content:'Schedule Rug Pickup'});
-  // Show the rug scope form FIRST inside a unified card (same as carpet/upholstery flow)
-  flowMsg('Happy to help with your rug pickup! Tell me about your rugs so we can get you scheduled.\n[SHOW_RUG_SCOPE_FORM]');
+  flowMsg('Happy to help with your rug pickup! Let\'s get you scheduled. First, tell us a bit about you.\n[SHOW_INFO_FORM:RUG]');
 }
 
 // Rug duration math (per Kashian Bros scheduling sheet)
