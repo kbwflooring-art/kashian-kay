@@ -180,44 +180,47 @@ function mk(tag,cls){var el=document.createElement(tag);if(cls)el.className=cls;
 function nl2html(t){var btnHtml="";t=t.replace(/\[BUTTONS:([^\]]+)\]/g,function(match,labels){var btns=labels.split("|").map(function(l){return l.trim();}).filter(Boolean);btnHtml+='<div class="inline-btns">'+btns.map(function(l){return '<button class="inline-btn" onclick="handleInput(this.textContent,this)">'+l+'</button>';}).join("")+"</div>";return "";});var html=t.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/#{1,3} (.*)/g,"<strong>$1</strong>").split("\n").map(function(l){var b=l.match(/^- (.*)/);return b?"<li>"+b[1]+"</li>":(l.trim()?"<p>"+l+"</p>":"");}).join("").replace(/(<li>.*?<\/li>)+/g,function(m){return"<ul>"+m+"</ul>";});return html+btnHtml;}
 function getConfirmTiming(){var now=new Date(),day=now.getDay(),hr=now.getHours(),min=now.getMinutes(),tv=hr+min/60;if(day===0)return"Our team is closed today. Adolfo will confirm your booking first thing Monday morning.";if(day===6){if(tv<10)return"Our team opens at 10am on Saturdays. Adolfo will confirm your booking by then.";if(tv<15)return"Adolfo will confirm your booking within about an hour, before we close at 3pm today.";return"Our Saturday hours have ended. Adolfo will confirm your booking first thing Monday morning.";}if(tv<9)return"Our team starts at 9am. Adolfo will confirm your booking by then this morning.";if(tv<17)return"Adolfo will confirm your booking within about an hour, and always before 5pm today.";return"Our team has closed for the day. Adolfo will confirm your booking first thing tomorrow morning.";}
 var CARPET_ROOMS={
-  'c-liv':{name:'Living / Family Room',duration:48,low:35,high:60},
-  'c-din':{name:'Dining Room',duration:48,low:35,high:60},
-  'c-mbd':{name:'Master Bedroom',duration:72,low:53,high:90},
-  'c-bed':{name:'Bedroom',duration:48,low:35,high:60},
-  'c-off':{name:'Office / Den',duration:48,low:35,high:60},
-  'c-bsm':{name:'Small Basement',duration:30,low:20,high:40},
-  'c-bml':{name:'Large Basement',duration:95,low:70,high:120},
-  'c-hal':{name:'Hallway',duration:48,low:35,high:60},
-  'c-sta':{name:'Stairs (per flight)',duration:25,low:20,high:30}
+  'c-liv':{name:'Living / Family Room',duration:30,low:25,high:40},
+  'c-din':{name:'Dining Room',duration:30,low:25,high:40},
+  'c-mbd':{name:'Master Bedroom',duration:50,low:40,high:65},
+  'c-bed':{name:'Bedroom',duration:30,low:25,high:40},
+  'c-off':{name:'Office / Den',duration:30,low:25,high:40},
+  'c-bsm':{name:'Small Basement',duration:45,low:35,high:55},
+  'c-bml':{name:'Large Basement',duration:75,low:60,high:100},
+  'c-hal':{name:'Hallway',duration:20,low:15,high:30},
+  'c-sta':{name:'Stairs (per flight)',duration:20,low:15,high:25}
 };
 var UPHOL_ITEMS={
-  'u-sof':{name:'Sofa (up to 7\')',price:245,duration:60,low:60,high:60},
-  'u-lov':{name:'Love Seat (up to 5\')',price:175,duration:45,low:40,high:50},
-  'u-cha':{name:'Chair',price:100,duration:30,low:30,high:30},
-  'u-win':{name:'Wing Chair',price:70,duration:30,low:25,high:35},
-  'u-ott':{name:'Ottoman',price:75,duration:20,low:20,high:20},
-  'u-sec':{name:'Sectional (linear ft)',price:35,duration:120,low:90,high:150},
-  'u-din':{name:'Dining Chair',price:40,duration:20,low:15,high:25},
+  'u-sof':{name:'Sofa (up to 7\')',price:245,duration:45,low:40,high:55},
+  'u-lov':{name:'Love Seat (up to 5\')',price:175,duration:35,low:30,high:45},
+  'u-cha':{name:'Chair',price:100,duration:20,low:20,high:25},
+  'u-win':{name:'Wing Chair',price:70,duration:20,low:20,high:25},
+  'u-ott':{name:'Ottoman',price:75,duration:15,low:15,high:20},
+  'u-sec':{name:'Sectional (linear ft)',price:35,duration:100,low:80,high:130},
+  'u-din':{name:'Dining Chair',price:40,duration:15,low:10,high:20},
   'u-pil':{name:'Pillow / Cushion',price:15,duration:5,low:5,high:10}
 };
 
+var SETUP_MIN=20; // One-time setup at the start of every job (hoses, equipment, walkthrough)
+
 function calcJobDuration(mid){
-  var totalMin=0;
-  Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)totalMin+=qty*CARPET_ROOMS[k].duration;});
-  Object.keys(UPHOL_ITEMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0)totalMin+=qty*UPHOL_ITEMS[k].duration;});
+  var totalMin=0,hasItems=false;
+  Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0){totalMin+=qty*CARPET_ROOMS[k].duration;hasItems=true;}});
+  Object.keys(UPHOL_ITEMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0){totalMin+=qty*UPHOL_ITEMS[k].duration;hasItems=true;}});
+  if(hasItems)totalMin+=SETUP_MIN;
   // Minimum job is 1 hour (per Kashian Bros scheduling rules)
   if(totalMin>0&&totalMin<60)totalMin=60;
   return totalMin;
 }
 
-// Customer-facing: returns the LOW and HIGH minutes summed across selected items.
-// Used to show a range like "2-3 hours" instead of a single number.
+// Customer-facing: returns the LOW and HIGH minutes summed across selected items, plus setup.
 function calcJobDurationRange(mid){
   var lowMin=0,highMin=0,hasItems=false;
   Object.keys(CARPET_ROOMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0){lowMin+=qty*CARPET_ROOMS[k].low;highMin+=qty*CARPET_ROOMS[k].high;hasItems=true;}});
   Object.keys(UPHOL_ITEMS).forEach(function(k){var qty=getQty(k+'-'+mid);if(qty>0){lowMin+=qty*UPHOL_ITEMS[k].low;highMin+=qty*UPHOL_ITEMS[k].high;hasItems=true;}});
-  // Apply 60-min minimum to both ends so "1 pillow" still says "about 1 hour" instead of "5 min"
   if(hasItems){
+    lowMin+=SETUP_MIN;
+    highMin+=SETUP_MIN;
     if(lowMin<60)lowMin=60;
     if(highMin<60)highMin=60;
   }
