@@ -223,16 +223,19 @@ function calcJobDurationRange(mid){
   return {low:low,high:high};
 }
 
-// Format a range as "2-3 hours" — rounds endpoints to nearest half hour for clean display
+// Format a range as "2-3 hours" — snaps midpoint to nearest 30 min, then shows ±30 for a clean 1-hour-wide range.
 function fmtDurationRange(lowMin,highMin){
-  // Round low DOWN to nearest 30 min, high UP to nearest 30 min — slightly wider, friendlier range
-  var lo=Math.floor(lowMin/30)*30;if(lo<60)lo=60;
-  var hi=Math.ceil(highMin/30)*30;if(hi<lo)hi=lo;
+  // Treat the average as the midpoint, snap to nearest 30 min
+  var midM=Math.round(((lowMin+highMin)/2)/30)*30;
+  if(midM<60)midM=60;
+  var lo=midM-30,hi=midM+30;
+  if(lo<60)lo=60;
+  if(hi<lo)hi=lo;
   if(lo===hi)return fmtDuration(lo);
   function asHours(m){
     var h=m/60;
     if(h===Math.floor(h))return h+'';
-    return h.toFixed(1); // half-hours show as e.g. "2.5"
+    return h.toFixed(1);
   }
   return asHours(lo)+'-'+asHours(hi)+' hours';
 }
