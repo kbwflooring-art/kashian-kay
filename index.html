@@ -1216,7 +1216,9 @@ function showMainButtons(){
       {label:'Kitchen & Bathroom Remodeling',msg:'Tell me about your kitchen and bathroom remodeling services'}
     ]},
     {title:'Services',buttons:[
-      {label:'Wood Floor Refinishing',msg:'Tell me about wood floor refinishing'}
+      {label:'Wood Floor Refinishing',msg:'Tell me about wood floor refinishing'},
+      {label:'Schedule Carpet & Upholstery Cleaning',action:'carpet'},
+      {label:'Schedule Rug Pickup',action:'rug'}
     ]},
     {title:'Questions',buttons:[
       {label:'Rug Cleaning Prices',msg:'I would like to know about rug cleaning prices'},
@@ -1224,10 +1226,6 @@ function showMainButtons(){
       {label:'I Spilled Red Wine — What Do I Do?',msg:'I spilled red wine - what do I do?'},
       {label:'How Much Is a Rug Pad?',msg:'How much is a rug pad?'},
       {label:'Ask Another Question',msg:'I have a question'}
-    ]},
-    {title:'Schedule',buttons:[
-      {label:'Schedule Carpet & Upholstery Cleaning',action:'carpet'},
-      {label:'Schedule Rug Pickup',action:'rug'}
     ]}
   ];
   sections.forEach(function(group){
