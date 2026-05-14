@@ -115,6 +115,7 @@ body{font-family:'Raleway',Arial,sans-serif;letter-spacing:0.02em;background:#ee
 .bk-extra-tag{font-size:10.5px;color:#92400e;background:#fef9c3;padding:1px 6px;border-radius:4px;margin-left:2px;font-weight:600;letter-spacing:0.02em}
 .bk-pricing-note{background:#fffbeb;border:1px solid #fcd34d;border-left:4px solid #f59e0b;border-radius:6px;padding:10px 12px;margin:10px 0;font-size:12.5px;color:#7c2d12;line-height:1.55}
 .bk-pricing-note strong{color:#7c2d12}
+.bk-uphol-banner{background:#fffbeb;border:1px solid #fcd34d;border-left:4px solid #f59e0b;border-radius:6px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:#7c2d12;line-height:1.5;font-style:italic}
 /* Rug scope: actual quote box (we DO quote rugs unlike carpet) */
 .rs-price-box{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px 14px;margin:10px 0;font-size:13px;color:#14532d}
 .rs-price-line{padding:3px 0;display:flex;justify-content:space-between}
@@ -626,7 +627,7 @@ function buildScopeForm(mid){
   html+='<div class="bk-addons"><label class="bk-check"><input type="checkbox" id="c-protect-'+mid+'"/> Fiber Protectant <span class="bk-extra-tag">(extra)</span></label><label class="bk-check"><input type="checkbox" id="c-enzyme-'+mid+'"/> Enzyme Treatment <span class="bk-extra-tag">(extra)</span></label></div>';
   html+='</div></div>';
   html+='<div class="bk-section"><div class="bk-section-hdr" onclick="toggleSection(\'scope-uphol-'+mid+'\',\'scope-uphol-arrow-'+mid+'\')">Upholstery Cleaning <span id="scope-uphol-arrow-'+mid+'">+</span></div>';
-  html+='<div id="scope-uphol-'+mid+'" class="bk-section-body" style="display:none"><div id="scope-uphol-table-wrap-'+mid+'"></div>';
+  html+='<div id="scope-uphol-'+mid+'" class="bk-section-body" style="display:none"><div class="bk-uphol-banner">Prices shown are rough estimates. Final quote determined when our crew measures on-site.</div><div id="scope-uphol-table-wrap-'+mid+'"></div>';
   html+='<div class="bk-addons"><label class="bk-check"><input type="checkbox" id="u-protect-'+mid+'"/> Fiber Protectant <span class="bk-extra-tag">(extra)</span></label><label class="bk-check"><input type="checkbox" id="u-enzyme-'+mid+'"/> Deodorize / Enzyme <span class="bk-extra-tag">(extra)</span></label><label class="bk-check"><input type="checkbox" id="u-antibac-'+mid+'"/> Antibacterial <span class="bk-extra-tag">(extra)</span></label></div>';
   html+='</div></div>';
   html+='<div class="bk-duration-box" id="scope-duration-'+mid+'"><small style="color:#1e40af">Pick at least one room or item to see your job time</small></div>';
@@ -1202,28 +1203,62 @@ function showMainButtons(){
   if(!lastRow)return;
   var bub=lastRow.querySelector('.bub');
   if(!bub)return;
-  var wrap=document.createElement('div');
-  wrap.style.cssText='display:flex;flex-wrap:wrap;gap:7px;margin-top:12px';
-  var bubbles=[
-    {label:'Schedule Carpet & Upholstery Cleaning',fn:function(){disableBubbles(wrap);startCarpetFlow();}},
-    {label:'Schedule Rug Pickup',fn:function(){disableBubbles(wrap);startRugFlow();}},
-    {label:'Rug Cleaning Prices',fn:function(){disableBubbles(wrap);send('I would like to know about rug cleaning prices');}},
-    {label:'My Dog Had an Accident on My Rug',fn:function(){disableBubbles(wrap);send('My dog had an accident on my rug');}},
-    {label:'I Spilled Red Wine — What Do I Do?',fn:function(){disableBubbles(wrap);send('I spilled red wine - what do I do?');}},
-    {label:'How Much Is a Rug Pad?',fn:function(){disableBubbles(wrap);send('How much is a rug pad?');}},
-    {label:'Tell Me About Wood Floor Refinishing',fn:function(){disableBubbles(wrap);send('Tell me about wood floor refinishing');}},
-    {label:'Kitchen & Bathroom Remodeling',fn:function(){disableBubbles(wrap);send('Tell me about your kitchen and bathroom remodeling services');}},
-    {label:'Carpet & Area Rugs',fn:function(){disableBubbles(wrap);send('Tell me about your carpet and area rug sales');}},
-    {label:'Ask a Question',fn:function(){disableBubbles(wrap);send('I have a question');}}
+  var container=document.createElement('div');
+  container.style.cssText='margin-top:12px;display:flex;flex-direction:column;gap:14px';
+  // Four groups: Materials, Services, Quick Questions, Scheduling
+  var sections=[
+    [
+      {label:'Carpet & Area Rugs',msg:'Tell me about your carpet and area rug sales'},
+      {label:'Wood Floors',msg:'Tell me about wood floors'},
+      {label:'Vinyl',msg:'Tell me about vinyl flooring'},
+      {label:'Tile',msg:'Tell me about tile flooring'},
+      {label:'Kitchen & Bathroom Remodeling',msg:'Tell me about your kitchen and bathroom remodeling services'}
+    ],
+    [
+      {label:'Wood Floor Refinishing',msg:'Tell me about wood floor refinishing'}
+    ],
+    [
+      {label:'Rug Cleaning Prices',msg:'I would like to know about rug cleaning prices'},
+      {label:'My Dog Had an Accident on My Rug',msg:'My dog had an accident on my rug'},
+      {label:'I Spilled Red Wine — What Do I Do?',msg:'I spilled red wine - what do I do?'},
+      {label:'How Much Is a Rug Pad?',msg:'How much is a rug pad?'}
+    ],
+    [
+      {label:'Schedule Carpet & Upholstery Cleaning',action:'carpet'},
+      {label:'Schedule Rug Pickup',action:'rug'}
+    ]
   ];
-  bubbles.forEach(function(b){
-    var btn=document.createElement('button');
-    btn.className='inline-btn';
-    btn.textContent=b.label;
-    btn.onclick=b.fn;
-    wrap.appendChild(btn);
+  sections.forEach(function(group){
+    var wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;flex-wrap:wrap;gap:6px';
+    group.forEach(function(b){
+      var btn=document.createElement('button');
+      btn.className='inline-btn';
+      btn.textContent=b.label;
+      btn.onclick=function(){
+        // Disable all buttons across all sections once one is clicked
+        container.querySelectorAll('.inline-btn').forEach(function(x){x.disabled=true;x.style.opacity='0.4';});
+        if(b.action==='carpet')startCarpetFlow();
+        else if(b.action==='rug')startRugFlow();
+        else send(b.msg);
+      };
+      wrap.appendChild(btn);
+    });
+    container.appendChild(wrap);
   });
-  bub.appendChild(wrap);
+  // Ask a Question (its own small row at the bottom, slightly separated)
+  var askWrap=document.createElement('div');
+  askWrap.style.cssText='display:flex;flex-wrap:wrap;gap:6px';
+  var askBtn=document.createElement('button');
+  askBtn.className='inline-btn';
+  askBtn.textContent='Ask a Question';
+  askBtn.onclick=function(){
+    container.querySelectorAll('.inline-btn').forEach(function(x){x.disabled=true;x.style.opacity='0.4';});
+    send('I have a question');
+  };
+  askWrap.appendChild(askBtn);
+  container.appendChild(askWrap);
+  bub.appendChild(container);
   document.getElementById('qw').style.display='none';
 }
 function send(text){
