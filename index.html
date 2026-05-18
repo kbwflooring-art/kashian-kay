@@ -1206,19 +1206,35 @@ function showMainButtons(){
   if(!bub)return;
   var container=document.createElement('div');
   container.style.cssText='margin-top:12px;display:flex;flex-direction:column;gap:14px';
-  // Four groups with titles: Materials, Services, Questions, Schedule
+  // Sections in display order
   var sections=[
-    {title:'Materials',buttons:[
-      {label:'Carpet & Area Rugs',msg:'Tell me about your carpet and area rug sales'},
-      {label:'Wood Floors',msg:'Tell me about wood floors'},
-      {label:'Vinyl',msg:'Tell me about vinyl flooring'},
-      {label:'Tile',msg:'Tell me about tile flooring'},
-      {label:'Kitchen & Bathroom Remodeling',msg:'Tell me about your kitchen and bathroom remodeling services'}
-    ]},
-    {title:'Services',buttons:[
-      {label:'Wood Floor Refinishing',msg:'Tell me about wood floor refinishing'},
+    {title:'Schedule',buttons:[
       {label:'Schedule Carpet & Upholstery Cleaning',action:'carpet'},
       {label:'Schedule Rug Pickup',action:'rug'}
+    ]},
+    {title:'Carpet & Rugs',buttons:[
+      {label:'Custom Carpet',msg:'Tell me about custom carpet'},
+      {label:'In-stock Carpets',msg:'Tell me about your in-stock carpets'},
+      {label:'Custom Area Rugs',msg:'Tell me about custom area rugs'},
+      {label:'Quick Ship Area Rugs',msg:'Tell me about quick ship area rugs'},
+      {label:'Custom Stair Runners',msg:'Tell me about custom stair runners'}
+    ]},
+    {title:'Hard Surface Flooring',buttons:[
+      {label:'Wood Flooring',msg:'Tell me about wood flooring'},
+      {label:'Hardwood Floor Refinishing',msg:'Tell me about hardwood floor refinishing'},
+      {label:'Vinyl Flooring',msg:'Tell me about vinyl flooring'},
+      {label:'Tile & Backsplash',msg:'Tell me about tile and backsplash'}
+    ]},
+    {title:'Kitchen & Bath',buttons:[
+      {label:'Kitchen Remodeling',msg:'Tell me about kitchen remodeling'},
+      {label:'Bathroom Remodeling',msg:'Tell me about bathroom remodeling'},
+      {label:'Wood Cabinets',msg:'Tell me about wood cabinets'},
+      {label:'Cabinet Hardware',msg:'Tell me about cabinet hardware'},
+      {label:'Countertops',msg:'Tell me about countertops'}
+    ]},
+    {title:'Cleaning Services',buttons:[
+      {label:'Rug Repair & Restoration',msg:'Tell me about rug repair and restoration'},
+      {label:'Commercial Carpet Cleaning',msg:'Tell me about commercial carpet cleaning'}
     ]},
     {title:'Questions',buttons:[
       {label:'Rug Cleaning Prices',msg:'I would like to know about rug cleaning prices'},
