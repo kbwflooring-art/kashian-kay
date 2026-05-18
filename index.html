@@ -179,6 +179,23 @@ function setupAddressAutocomplete(input){if(input.dataset.ac)return;input.datase
 var addrObserver=new MutationObserver(function(){setupAllAddressFields();});
 addrObserver.observe(document.body,{childList:true,subtree:true});
 function mk(tag,cls){var el=document.createElement(tag);if(cls)el.className=cls;return el;}
+
+// Scroll a target element so it sits comfortably in view inside the chat scroll area.
+// Tries to align the element near the top of the visible chat window with a small offset.
+function scrollIntoNiceView(el,offsetTop){
+  if(!el)return;
+  offsetTop=offsetTop||40;
+  // Use a small delay so the DOM has time to render (especially after innerHTML changes)
+  setTimeout(function(){
+    var msgs=document.getElementById('msgs');
+    if(!msgs){el.scrollIntoView({behavior:'smooth',block:'start'});return;}
+    var msgsRect=msgs.getBoundingClientRect();
+    var elRect=el.getBoundingClientRect();
+    // Calculate where we need to scroll the msgs container so el sits near the top
+    var targetScroll=msgs.scrollTop+(elRect.top-msgsRect.top)-offsetTop;
+    msgs.scrollTo({top:targetScroll,behavior:'smooth'});
+  },80);
+}
 function nl2html(t){var btnHtml="";t=t.replace(/\[BUTTONS:([^\]]+)\]/g,function(match,labels){var btns=labels.split("|").map(function(l){return l.trim();}).filter(Boolean);btnHtml+='<div class="inline-btns">'+btns.map(function(l){return '<button class="inline-btn" onclick="handleInput(this.textContent,this)">'+l+'</button>';}).join("")+"</div>";return "";});var html=t.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/#{1,3} (.*)/g,"<strong>$1</strong>").split("\n").map(function(l){var b=l.match(/^- (.*)/);return b?"<li>"+b[1]+"</li>":(l.trim()?"<p>"+l+"</p>":"");}).join("").replace(/(<li>.*?<\/li>)+/g,function(m){return"<ul>"+m+"</ul>";});return html+btnHtml;}
 function getConfirmTiming(){var now=new Date(),day=now.getDay(),hr=now.getHours(),min=now.getMinutes(),tv=hr+min/60;if(day===0)return"Our team is closed today. Adolfo will confirm your booking first thing Monday morning.";if(day===6){if(tv<10)return"Our team opens at 10am on Saturdays. Adolfo will confirm your booking by then.";if(tv<15)return"Adolfo will confirm your booking within about an hour, before we close at 3pm today.";return"Our Saturday hours have ended. Adolfo will confirm your booking first thing Monday morning.";}if(tv<9)return"Our team starts at 9am. Adolfo will confirm your booking by then this morning.";if(tv<17)return"Adolfo will confirm your booking within about an hour, and always before 5pm today.";return"Our team has closed for the day. Adolfo will confirm your booking first thing tomorrow morning.";}
 var CARPET_ROOMS={
@@ -585,6 +602,9 @@ function submitInfoForm(mid,nextType){
   } else {
     flowMsg('Great! Now pick what needs cleaning.\n[SHOW_SCOPE_FORM]');
   }
+  // Auto-scroll the new scope card into view (mid+1 because flowMsg/addMsg bumped cnt)
+  var newScopeId=cnt-1;
+  scrollIntoNiceView(document.getElementById('scope-'+newScopeId));
 }
 
 // "Edit" link on the info summary line -> jump back to the info form
@@ -696,6 +716,8 @@ function advanceToStage2(mid){
   // Show the stage-2 container
   var stage2=document.getElementById('flow-stage-2-'+mid);
   if(stage2)stage2.style.display='block';
+  // Auto-scroll the top of the scope card (so user sees summary + new time picker)
+  scrollIntoNiceView(topSummary||stage2);
 }
 
 function buildInfoSummaryLine(mid){
@@ -810,6 +832,9 @@ function advanceToStage3(mid){
   stage3.style.display='block';
   stage3.innerHTML='';
   stage3.appendChild(buildReviewForm(mid));
+  // Auto-scroll to the top of the scope card so user sees all 3 summary lines + review
+  var topSummary=document.getElementById('flow-top-summary-'+mid);
+  scrollIntoNiceView(topSummary||stage3);
 }
 
 // Stage 3 in the new flow: a clean "Review & Submit" panel.
@@ -923,6 +948,7 @@ function submitFinalBooking(mid){
   if(card){
     card.className='bk-success';
     card.innerHTML='<h3>Booking Request Sent!</h3><p style="margin-top:8px"><strong>Thank you, '+ci.fname+'!</strong></p><p style="margin-top:6px">Your booking request for <strong>'+lbl+'</strong> has been sent.</p><p style="margin-top:8px;background:#dcfce7;border-radius:6px;padding:8px"><strong>'+timing+'</strong></p><p style="margin-top:8px">Confirmation will go to <strong>'+ci.email+'</strong>. Questions? Call <strong>(847) 251-1200</strong>.</p>'+(isChicago?'<p style="margin-top:8px;background:#fef9c3;border-radius:6px;padding:8px">Chicago bookings are handled personally by our cleaning manager.</p>':'');
+    scrollIntoNiceView(card);
   }
   // Also collapse the info card if still around
   if(ci.cardId){
