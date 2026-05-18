@@ -32,9 +32,9 @@ exports.handler = async function(event) {
       ? 'Rug Pickup & Delivery Calendar (Tues/Thurs)'
       : 'In-Home Cleaning Calendar (Mon-Fri)';
 
-    // --- Build confirm link ---
+    // --- Build confirm link (now includes detail for customer-facing job summary) ---
     const confirmData = encodeURIComponent(JSON.stringify({
-      name, email, lbl, addr, date, time, svc
+      name, email, lbl, addr, date, time, svc, detail
     }));
     const confirmLink = `https://warm-dolphin-79489e.netlify.app/.netlify/functions/confirm?data=${confirmData}`;
 
