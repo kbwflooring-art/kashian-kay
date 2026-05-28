@@ -1,280 +1,536 @@
 (function () {
 
-  if (document.getElementById("kay-widget")) return;
+  // Prevent duplicate load
+  if (document.getElementById("kashian-chat-widget")) return;
 
   // =========================
-  // STATE
+  // CONFIG
   // =========================
+
+  const API_URL = "/.netlify/functions/chat";
+
+  const SYSTEM_PROMPT = `
+You are Kay, the AI assistant for Kashian Bros.
+
+You help customers with:
+- Flooring
+- Carpet cleaning
+- Rug cleaning
+- Upholstery cleaning
+- Kitchen remodeling
+- Bathroom remodeling
+- Cabinets
+- Tile
+- Countertops
+
+Be warm, concise, helpful, and professional.
+
+If unsure:
+Please recommend calling (847) 251-1200.
+`;
+
   let history = [];
 
   // =========================
-  // FLOAT BUTTON
+  // STYLES
   // =========================
-  const btn = document.createElement("button");
-  btn.innerHTML = "💬";
-  btn.style.cssText = `
-    position:fixed;bottom:22px;right:22px;
-    width:58px;height:58px;border-radius:50%;
-    border:none;background:#5bcdc7;color:#111;
-    font-size:22px;cursor:pointer;z-index:99999;
-    box-shadow:0 8px 22px rgba(0,0,0,0.2);
+
+  const style = document.createElement("style");
+  style.innerHTML = `
+
+  * {
+    box-sizing: border-box;
+  }
+
+  #kashian-chat-button {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: none;
+    background: #5bcdc7;
+    color: #000;
+    font-size: 26px;
+    cursor: pointer;
+    z-index: 999999;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    transition: all .2s ease;
+  }
+
+  #kashian-chat-button:hover {
+    transform: scale(1.05);
+  }
+
+  #kashian-chat-widget {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    width: 380px;
+    height: 680px;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    z-index: 999999;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+    border: 1px solid #dbe7ef;
+    font-family: Raleway, Arial, sans-serif;
+    color: #000;
+  }
+
+  .k-header {
+    background: #5bcdc7;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #9de8e4;
+  }
+
+  .k-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #7ddbd6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .k-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #000;
+  }
+
+  .k-sub {
+    font-size: 11px;
+    color: #111;
+    margin-top: 2px;
+  }
+
+  .k-status {
+    margin-left: auto;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+  }
+
+  .k-messages {
+    flex: 1;
+    overflow-y: auto;
+    background: #fff;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .k-row {
+    display: flex;
+    gap: 10px;
+    max-width: 90%;
+  }
+
+  .k-row.user {
+    margin-left: auto;
+    flex-direction: row-reverse;
+  }
+
+  .k-row.bot {
+    margin-right: auto;
+  }
+
+  .k-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    font-size: 14px;
+  }
+
+  .k-icon.bot {
+    background: #dff8f6;
+  }
+
+  .k-icon.user {
+    background: #e6eeff;
+  }
+
+  .k-bubble {
+    padding: 12px 15px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #000 !important;
+    word-wrap: break-word;
+  }
+
+  .k-bubble * {
+    color: #000 !important;
+  }
+
+  .k-bubble.bot {
+    background: #f0fafa;
+    border-radius: 4px 16px 16px 16px;
+  }
+
+  .k-bubble.user {
+    background: #5bcdc7;
+    border-radius: 16px 4px 16px 16px;
+  }
+
+  .k-quick {
+    padding: 10px;
+    border-top: 1px solid #eef2f7;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: #fff;
+  }
+
+  .k-qbtn {
+    border: 1px solid #9de8e4;
+    background: #f0fafa;
+    color: #000;
+    border-radius: 18px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+  }
+
+  .k-input-wrap {
+    border-top: 1px solid #dbe7ef;
+    padding: 12px;
+    display: flex;
+    gap: 10px;
+    background: #fff;
+  }
+
+  .k-input {
+    flex: 1;
+    resize: none;
+    border: 1.5px solid #9de8e4;
+    border-radius: 12px;
+    padding: 10px 12px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #000;
+    max-height: 100px;
+  }
+
+  .k-send {
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: #5bcdc7;
+    border-radius: 10px;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 18px;
+    color: #000;
+  }
+
+  .k-send:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .k-typing {
+    display: flex;
+    gap: 4px;
+    padding: 14px;
+    background: #f0fafa;
+    border-radius: 4px 16px 16px 16px;
+  }
+
+  .k-typing div {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #5bcdc7;
+    animation: bounce 1.2s infinite;
+  }
+
+  .k-typing div:nth-child(2) {
+    animation-delay: .2s;
+  }
+
+  .k-typing div:nth-child(3) {
+    animation-delay: .4s;
+  }
+
+  @keyframes bounce {
+    0%,60%,100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-5px);
+    }
+  }
+
+  @media(max-width:600px){
+    #kashian-chat-widget{
+      width:calc(100vw - 24px);
+      height:calc(100vh - 120px);
+      right:12px;
+      bottom:88px;
+    }
+  }
+
   `;
+  document.head.appendChild(style);
+
+  // =========================
+  // BUTTON
+  // =========================
+
+  const button = document.createElement("button");
+  button.id = "kashian-chat-button";
+  button.innerHTML = "💬";
 
   // =========================
   // WIDGET
   // =========================
-  const box = document.createElement("div");
-  box.id = "kay-widget";
 
-  box.style.cssText = `
-    position:fixed;bottom:90px;right:22px;
-    width:400px;height:640px;
-    background:#eef2f7;border-radius:14px;
-    box-shadow:0 15px 40px rgba(0,0,0,0.25);
-    display:none;flex-direction:column;
-    overflow:hidden;font-family:Raleway,Arial,sans-serif;
-    z-index:99999;
-  `;
+  const widget = document.createElement("div");
+  widget.id = "kashian-chat-widget";
 
-  // mobile fullscreen
-  function isMobile() {
-    return window.innerWidth < 520;
-  }
+  widget.innerHTML = `
+    <div class="k-header">
+      <div class="k-avatar">🧹</div>
 
-  function applyMobile() {
-    if (!isMobile()) return;
-    box.style.width = "100%";
-    box.style.height = "100%";
-    box.style.bottom = "0";
-    box.style.right = "0";
-    box.style.borderRadius = "0";
-  }
+      <div>
+        <div class="k-title">Kay - Kashian Bros</div>
+        <div class="k-sub">
+          Flooring, Remodeling & Cleaning
+        </div>
+      </div>
 
-  window.addEventListener("resize", applyMobile);
-
-  // =========================
-  // HEADER
-  // =========================
-  const header = document.createElement("div");
-  header.style.cssText = `
-    background:#5bcdc7;padding:12px 14px;
-    display:flex;justify-content:space-between;
-    align-items:center;
-  `;
-
-  header.innerHTML = `
-    <div>
-      <div style="font-weight:700;font-size:14px;color:#111">Kay - Kashian Bros</div>
-      <div style="font-size:11px;color:#111;opacity:.8">AI Assistant • Pro Mode</div>
+      <div class="k-status"></div>
     </div>
-    <div style="width:10px;height:10px;background:#22c55e;border-radius:50%"></div>
+
+    <div class="k-messages" id="k-messages"></div>
+
+    <div class="k-quick">
+      <button class="k-qbtn">Schedule Service</button>
+      <button class="k-qbtn">Cleaning Pricing</button>
+      <button class="k-qbtn">Remodeling Help</button>
+    </div>
+
+    <div class="k-input-wrap">
+      <textarea
+        id="k-input"
+        class="k-input"
+        rows="1"
+        placeholder="Ask Kay anything..."
+      ></textarea>
+
+      <button id="k-send" class="k-send">➤</button>
+    </div>
   `;
 
-  // =========================
-  // CHAT AREA
-  // =========================
-  const msgs = document.createElement("div");
-  msgs.style.cssText = `
-    flex:1;overflow-y:auto;
-    padding:14px;display:flex;
-    flex-direction:column;gap:10px;
-  `;
+  document.body.appendChild(button);
+  document.body.appendChild(widget);
 
   // =========================
-  // QUICK ACTIONS
+  // ELEMENTS
   // =========================
-  const quick = document.createElement("div");
-  quick.style.cssText = `
-    display:flex;flex-wrap:wrap;gap:6px;
-    padding:10px;background:#fff;
-    border-top:1px solid #dbe7ea;
-  `;
 
-  function q(text, msg) {
-    const b = document.createElement("button");
-    b.textContent = text;
-    b.style.cssText = `
-      font-size:11px;padding:6px 10px;
-      border-radius:999px;border:1px solid #5bcdc7;
-      background:#f0fafa;cursor:pointer;
-    `;
-    b.onclick = () => send(msg);
-    return b;
-  }
-
-  quick.appendChild(q("Schedule", "I want to schedule a service"));
-  quick.appendChild(q("Pricing", "Tell me about pricing"));
-  quick.appendChild(q("Services", "What services do you offer?"));
-
-  // =========================
-  // INPUT
-  // =========================
-  const inputBar = document.createElement("div");
-  inputBar.style.cssText = `
-    display:flex;gap:8px;padding:10px;
-    background:#fff;border-top:1px solid #dbe7ea;
-  `;
-
-  const input = document.createElement("textarea");
-  input.rows = 1;
-  input.placeholder = "Ask Kay anything...";
-  input.style.cssText = `
-    flex:1;resize:none;padding:10px;
-    border:1px solid #9de8e4;border-radius:10px;
-    font-family:inherit;font-size:13px;
-    outline:none;
-  `;
-
-  const sendBtn = document.createElement("button");
-  sendBtn.textContent = "➤";
-  sendBtn.style.cssText = `
-    width:42px;height:42px;border:none;
-    border-radius:10px;background:#5bcdc7;
-    cursor:pointer;
-  `;
-
-  inputBar.appendChild(input);
-  inputBar.appendChild(sendBtn);
-
-  // =========================
-  // BUILD
-  // =========================
-  box.appendChild(header);
-  box.appendChild(msgs);
-  box.appendChild(quick);
-  box.appendChild(inputBar);
-
-  document.body.appendChild(btn);
-  document.body.appendChild(box);
+  const msgs = document.getElementById("k-messages");
+  const input = document.getElementById("k-input");
+  const sendBtn = document.getElementById("k-send");
 
   // =========================
   // TOGGLE
   // =========================
-  btn.onclick = () => {
-    box.style.display = box.style.display === "flex" ? "none" : "flex";
-    applyMobile();
+
+  button.onclick = () => {
+    widget.style.display =
+      widget.style.display === "flex"
+        ? "none"
+        : "flex";
   };
 
   // =========================
-  // MESSAGE UI
+  // ADD MESSAGE
   // =========================
-  function addBubble(text, user = false) {
-    const row = document.createElement("div");
-    row.style.display = "flex";
-    row.style.justifyContent = user ? "flex-end" : "flex-start";
 
-    const bubble = document.createElement("div");
-    bubble.style.cssText = `
-      max-width:82%;
-      padding:10px 12px;
-      font-size:13px;
-      line-height:1.4;
-      border-radius:${user ? "14px 14px 3px 14px" : "14px 14px 14px 3px"};
-      background:${user ? "#5bcdc7" : "#fff"};
-      border:${user ? "none" : "1px solid #dbe7ea"};
-      color:#111;
-      white-space:pre-wrap;
+  function addMessage(role, text) {
+
+    const row = document.createElement("div");
+    row.className = `k-row ${role}`;
+
+    row.innerHTML = `
+      <div class="k-icon ${role}">
+        ${role === "bot" ? "🧹" : "👤"}
+      </div>
+
+      <div class="k-bubble ${role}">
+        ${text}
+      </div>
     `;
 
-    row.appendChild(bubble);
     msgs.appendChild(row);
-    msgs.scrollTop = msgs.scrollHeight;
 
-    return bubble;
+    msgs.scrollTop = msgs.scrollHeight;
   }
 
   // =========================
-  // TYPING (PRO MODE STREAM SIMULATION)
+  // TYPING
   // =========================
-  function typeText(el, text) {
-    let i = 0;
-    const speed = 8; // faster than real typing but feels live
 
-    function step() {
-      el.textContent += text[i];
-      i++;
-      msgs.scrollTop = msgs.scrollHeight;
-      if (i < text.length) requestAnimationFrame(step);
-    }
+  function addTyping() {
 
-    step();
-  }
-
-  function showLoading() {
     const row = document.createElement("div");
-    row.style.display = "flex";
+    row.className = "k-row bot";
+    row.id = "k-typing-row";
 
-    const dot = document.createElement("div");
-    dot.textContent = "Kay is thinking...";
-    dot.style.cssText = `
-      font-size:12px;color:#666;
-      padding:8px 10px;
+    row.innerHTML = `
+      <div class="k-icon bot">🧹</div>
+
+      <div class="k-typing">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
     `;
 
-    row.appendChild(dot);
     msgs.appendChild(row);
-    msgs.scrollTop = msgs.scrollHeight;
 
-    return row;
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById("k-typing-row");
+    if (el) el.remove();
   }
 
   // =========================
   // SEND
   // =========================
-  async function send(text) {
-    if (!text?.trim()) return;
+
+  async function sendMessage(text) {
+
+    if (!text.trim()) return;
+
+    addMessage("user", text);
+
+    history.push({
+      role: "user",
+      content: text
+    });
 
     input.value = "";
-    addBubble(text, true);
 
-    history.push({ role: "user", content: text });
+    sendBtn.disabled = true;
 
-    const loading = showLoading();
+    addTyping();
 
     try {
-      const res = await fetch("/.netlify/functions/chat", {
+
+      const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           model: "claude-3-5-sonnet-20241022",
           max_tokens: 800,
+          system: SYSTEM_PROMPT,
           messages: history
         })
       });
 
       const data = await res.json();
-      const reply = data?.content?.[0]?.text || "Sorry — I had trouble responding.";
 
-      loading.remove();
-
-      const bubble = addBubble("", false);
-      typeText(bubble, reply);
-
-      history.push({ role: "assistant", content: reply });
-
-      // OPTIONAL: booking form trigger support
-      if (reply.includes("[SHOW_BOOKING_FORM")) {
-        console.log("Booking form trigger detected");
+      if (!res.ok) {
+        throw new Error(
+          data.error || "Server error"
+        );
       }
 
-    } catch (e) {
-      loading.remove();
-      addBubble("Connection error. Please try again.", false);
+      const reply =
+        data?.content?.[0]?.text ||
+        "I had trouble with that.";
+
+      removeTyping();
+
+      addMessage("bot", reply);
+
+      history.push({
+        role: "assistant",
+        content: reply
+      });
+
+    } catch (err) {
+
+      console.error(err);
+
+      removeTyping();
+
+      addMessage(
+        "bot",
+        "Connection error. Please call (847) 251-1200."
+      );
+
+    } finally {
+
+      sendBtn.disabled = false;
     }
   }
 
-  sendBtn.onclick = () => send(input.value);
+  // =========================
+  // EVENTS
+  // =========================
 
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  sendBtn.onclick = () => {
+    sendMessage(input.value);
+  };
+
+  input.addEventListener("keydown", function (e) {
+
+    if (
+      e.key === "Enter" &&
+      !e.shiftKey
+    ) {
       e.preventDefault();
-      send(input.value);
+      sendMessage(input.value);
     }
   });
 
   // =========================
+  // QUICK BUTTONS
+  // =========================
+
+  document.querySelectorAll(".k-qbtn")
+    .forEach(btn => {
+
+      btn.onclick = () => {
+        sendMessage(btn.innerText);
+      };
+
+    });
+
+  // =========================
   // WELCOME
   // =========================
-  addBubble("Hi! I’m Kay from Kashian Bros. How can I help you today?", false);
+
+  addMessage(
+    "bot",
+    "Hi! I’m Kay from Kashian Bros. How can I help you today?"
+  );
 
 })();
