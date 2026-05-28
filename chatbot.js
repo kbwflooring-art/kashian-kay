@@ -121,7 +121,7 @@
   // =========================
   var btn = document.createElement('button');
   btn.id = 'kb-chat-btn';
-  btn.innerHTML = '&#x1F9F9;';
+  btn.innerHTML = '&#x1F4AC;';
   btn.title = 'Chat with Kay';
 
   var widget = document.createElement('div');
