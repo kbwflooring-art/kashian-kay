@@ -3,46 +3,69 @@
   if (document.getElementById("kay-widget")) return;
 
   // =========================
+  // STATE
+  // =========================
+  let history = [];
+
+  // =========================
   // FLOAT BUTTON
   // =========================
   const btn = document.createElement("button");
   btn.innerHTML = "💬";
   btn.style.cssText = `
     position:fixed;bottom:22px;right:22px;
-    width:56px;height:56px;border-radius:50%;
+    width:58px;height:58px;border-radius:50%;
     border:none;background:#5bcdc7;color:#111;
     font-size:22px;cursor:pointer;z-index:99999;
-    box-shadow:0 6px 18px rgba(0,0,0,0.18);
+    box-shadow:0 8px 22px rgba(0,0,0,0.2);
   `;
 
   // =========================
-  // WIDGET WRAPPER
+  // WIDGET
   // =========================
   const box = document.createElement("div");
   box.id = "kay-widget";
+
   box.style.cssText = `
     position:fixed;bottom:90px;right:22px;
-    width:390px;height:620px;
+    width:400px;height:640px;
     background:#eef2f7;border-radius:14px;
-    box-shadow:0 12px 35px rgba(0,0,0,0.25);
+    box-shadow:0 15px 40px rgba(0,0,0,0.25);
     display:none;flex-direction:column;
     overflow:hidden;font-family:Raleway,Arial,sans-serif;
     z-index:99999;
   `;
 
+  // mobile fullscreen
+  function isMobile() {
+    return window.innerWidth < 520;
+  }
+
+  function applyMobile() {
+    if (!isMobile()) return;
+    box.style.width = "100%";
+    box.style.height = "100%";
+    box.style.bottom = "0";
+    box.style.right = "0";
+    box.style.borderRadius = "0";
+  }
+
+  window.addEventListener("resize", applyMobile);
+
   // =========================
-  // HEADER (matches full app)
+  // HEADER
   // =========================
   const header = document.createElement("div");
   header.style.cssText = `
     background:#5bcdc7;padding:12px 14px;
-    display:flex;align-items:center;justify-content:space-between;
+    display:flex;justify-content:space-between;
+    align-items:center;
   `;
 
   header.innerHTML = `
     <div>
       <div style="font-weight:700;font-size:14px;color:#111">Kay - Kashian Bros</div>
-      <div style="font-size:11px;color:#111;opacity:.8">AI Assistant</div>
+      <div style="font-size:11px;color:#111;opacity:.8">AI Assistant • Pro Mode</div>
     </div>
     <div style="width:10px;height:10px;background:#22c55e;border-radius:50%"></div>
   `;
@@ -58,7 +81,7 @@
   `;
 
   // =========================
-  // QUICK ACTIONS (like your app)
+  // QUICK ACTIONS
   // =========================
   const quick = document.createElement("div");
   quick.style.cssText = `
@@ -67,7 +90,7 @@
     border-top:1px solid #dbe7ea;
   `;
 
-  function qBtn(text, msg) {
+  function q(text, msg) {
     const b = document.createElement("button");
     b.textContent = text;
     b.style.cssText = `
@@ -79,12 +102,12 @@
     return b;
   }
 
-  quick.appendChild(qBtn("Schedule", "I want to schedule a service"));
-  quick.appendChild(qBtn("Pricing", "Tell me about pricing"));
-  quick.appendChild(qBtn("Services", "What services do you offer?"));
+  quick.appendChild(q("Schedule", "I want to schedule a service"));
+  quick.appendChild(q("Pricing", "Tell me about pricing"));
+  quick.appendChild(q("Services", "What services do you offer?"));
 
   // =========================
-  // INPUT BAR
+  // INPUT
   // =========================
   const inputBar = document.createElement("div");
   inputBar.style.cssText = `
@@ -105,7 +128,7 @@
   const sendBtn = document.createElement("button");
   sendBtn.textContent = "➤";
   sendBtn.style.cssText = `
-    width:40px;height:40px;border:none;
+    width:42px;height:42px;border:none;
     border-radius:10px;background:#5bcdc7;
     cursor:pointer;
   `;
@@ -114,7 +137,7 @@
   inputBar.appendChild(sendBtn);
 
   // =========================
-  // ASSEMBLE
+  // BUILD
   // =========================
   box.appendChild(header);
   box.appendChild(msgs);
@@ -129,21 +152,20 @@
   // =========================
   btn.onclick = () => {
     box.style.display = box.style.display === "flex" ? "none" : "flex";
+    applyMobile();
   };
 
   // =========================
-  // MESSAGE RENDERING
+  // MESSAGE UI
   // =========================
-  function addMsg(text, user = false) {
+  function addBubble(text, user = false) {
     const row = document.createElement("div");
     row.style.display = "flex";
     row.style.justifyContent = user ? "flex-end" : "flex-start";
 
     const bubble = document.createElement("div");
-    bubble.textContent = text;
-
     bubble.style.cssText = `
-      max-width:80%;
+      max-width:82%;
       padding:10px 12px;
       font-size:13px;
       line-height:1.4;
@@ -151,21 +173,63 @@
       background:${user ? "#5bcdc7" : "#fff"};
       border:${user ? "none" : "1px solid #dbe7ea"};
       color:#111;
+      white-space:pre-wrap;
     `;
 
     row.appendChild(bubble);
     msgs.appendChild(row);
     msgs.scrollTop = msgs.scrollHeight;
+
+    return bubble;
   }
 
   // =========================
-  // SEND FUNCTION (matches Netlify chat)
+  // TYPING (PRO MODE STREAM SIMULATION)
+  // =========================
+  function typeText(el, text) {
+    let i = 0;
+    const speed = 8; // faster than real typing but feels live
+
+    function step() {
+      el.textContent += text[i];
+      i++;
+      msgs.scrollTop = msgs.scrollHeight;
+      if (i < text.length) requestAnimationFrame(step);
+    }
+
+    step();
+  }
+
+  function showLoading() {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+
+    const dot = document.createElement("div");
+    dot.textContent = "Kay is thinking...";
+    dot.style.cssText = `
+      font-size:12px;color:#666;
+      padding:8px 10px;
+    `;
+
+    row.appendChild(dot);
+    msgs.appendChild(row);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    return row;
+  }
+
+  // =========================
+  // SEND
   // =========================
   async function send(text) {
-    if (!text || !text.trim()) return;
+    if (!text?.trim()) return;
 
     input.value = "";
-    addMsg(text, true);
+    addBubble(text, true);
+
+    history.push({ role: "user", content: text });
+
+    const loading = showLoading();
 
     try {
       const res = await fetch("/.netlify/functions/chat", {
@@ -173,21 +237,34 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "claude-3-5-sonnet-20241022",
-          max_tokens: 600,
-          messages: [{ role: "user", content: text }]
+          max_tokens: 800,
+          messages: history
         })
       });
 
       const data = await res.json();
-      const reply = data?.content?.[0]?.text || "Sorry, I had trouble responding.";
-      addMsg(reply, false);
+      const reply = data?.content?.[0]?.text || "Sorry — I had trouble responding.";
+
+      loading.remove();
+
+      const bubble = addBubble("", false);
+      typeText(bubble, reply);
+
+      history.push({ role: "assistant", content: reply });
+
+      // OPTIONAL: booking form trigger support
+      if (reply.includes("[SHOW_BOOKING_FORM")) {
+        console.log("Booking form trigger detected");
+      }
 
     } catch (e) {
-      addMsg("Connection error. Please try again.", false);
+      loading.remove();
+      addBubble("Connection error. Please try again.", false);
     }
   }
 
   sendBtn.onclick = () => send(input.value);
+
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -196,8 +273,8 @@
   });
 
   // =========================
-  // WELCOME MESSAGE
+  // WELCOME
   // =========================
-  addMsg("Hi! I’m Kay from Kashian Bros. How can I help you today?", false);
+  addBubble("Hi! I’m Kay from Kashian Bros. How can I help you today?", false);
 
 })();
