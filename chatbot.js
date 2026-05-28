@@ -21,7 +21,7 @@
   // =========================
   var style = document.createElement('style');
   style.innerHTML = [
-    '#kb-chat-btn{position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;border:none;background:#a2eae4;color:#fff;font-size:24px;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.2);transition:transform .2s ease;display:flex;align-items:center;justify-content:center;}',
+    '#kb-chat-btn{position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;border:none;background:#C0FAF6;color:#fff;font-size:24px;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.2);transition:transform .2s ease;display:flex;align-items:center;justify-content:center;}',
     '#kb-chat-btn:hover{transform:scale(1.07);}',
     '#kb-chat-widget{position:fixed;bottom:96px;right:24px;width:400px;height:680px;background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;z-index:999998;box-shadow:0 20px 60px rgba(0,0,0,0.22);border:1px solid #b8eeeb;font-family:Raleway,Arial,sans-serif;color:#111;letter-spacing:0.02em;}',
     '#kb-chat-widget *{box-sizing:border-box;}',
