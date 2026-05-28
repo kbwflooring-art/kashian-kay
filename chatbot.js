@@ -13,8 +13,8 @@
   button.style.height = "60px";
   button.style.borderRadius = "50%";
   button.style.border = "none";
-  button.style.background = "#000";
-  button.style.color = "#fff";
+  button.style.background = "#88EAE4";
+  button.style.color = "#000";
   button.style.fontSize = "24px";
   button.style.cursor = "pointer";
   button.style.zIndex = "9999";
