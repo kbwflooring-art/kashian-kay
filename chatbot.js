@@ -14,7 +14,7 @@
   button.style.borderRadius = "50%";
   button.style.border = "none";
   button.style.background = "#000";
-  button.style.color = "#88EAE4";
+  button.style.color = "#ffffff";
   button.style.fontSize = "24px";
   button.style.cursor = "pointer";
   button.style.zIndex = "9999";
