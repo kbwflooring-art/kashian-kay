@@ -52,7 +52,7 @@
     '.kb-sb{width:36px;height:36px;background:#5bcdc7;border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}',
     '.kb-sb:disabled{background:#94a3b8;cursor:not-allowed;}',
     '.kb-inline-btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}',
-    '.kb-inline-btn{font-family:inherit;cursor:pointer;background:#fff;border:1.5px solid #0891b2;color:#0891b2;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:500;white-space:normal;line-height:1.3;text-align:center;text-shadow:none!important;-webkit-text-stroke:0!important;filter:none!important;}',
+    '.kb-inline-btn{font-family:inherit;cursor:pointer;background:#fff;border:1.5px solid #0891b2;color:#0891b2;border-radius:6px;padding:5px 10px;font-size:12px!important;font-weight:500!important;white-space:normal;line-height:1.3;text-align:center;width:auto!important;display:inline-block!important;text-shadow:none!important;}',
     '.kb-inline-btn:hover{background:#0891b2;color:#fff;}',
     '.kb-inline-btn:disabled{opacity:0.4;cursor:not-allowed;}',
     '.kb-menu-title{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;padding-bottom:2px;border-bottom:1px solid #e2e8f0;}',
@@ -115,7 +115,7 @@
     '#kb-chat-widget .kb-inline-btn *{text-shadow:none!important;}',
     '#kb-chat-widget .kb-inline-btn{text-shadow:none!important;}',
     '#kb-chat-widget button{text-shadow:none!important;}',
-    '@media(max-width:480px){#kb-chat-widget{width:calc(100vw - 20px);height:calc(100vh - 110px);right:10px;bottom:84px;}.kb-times-grid{grid-template-columns:1fr;}.kb-inline-btn{font-size:11px;padding:4px 8px;}}'
+    '@media(max-width:480px){#kb-chat-widget{width:calc(100vw - 20px);height:calc(100vh - 110px);right:10px;bottom:84px;}.kb-times-grid{grid-template-columns:1fr;}.kb-inline-btn{font-size:11px!important;padding:4px 8px!important;font-weight:500!important;width:auto!important;display:inline-block!important;line-height:1.3!important;}}'
   ].join('');
   document.head.appendChild(style);
 
