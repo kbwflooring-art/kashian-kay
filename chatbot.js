@@ -115,7 +115,7 @@
     '#kb-chat-widget .kb-inline-btn *{text-shadow:none!important;}',
     '#kb-chat-widget .kb-inline-btn{text-shadow:none!important;}',
     '#kb-chat-widget button{text-shadow:none!important;}',
-    '@media(max-width:480px){#kb-chat-widget{width:calc(100vw - 20px);height:calc(100vh - 110px);right:10px;bottom:84px;}.kb-times-grid{grid-template-columns:1fr;}}'
+    '@media(max-width:480px){#kb-chat-widget{width:calc(100vw - 20px);height:calc(100vh - 110px);right:10px;bottom:84px;}.kb-times-grid{grid-template-columns:1fr;}.kb-inline-btn{font-size:11px;padding:4px 8px;}}'
   ].join('');
   document.head.appendChild(style);
 
