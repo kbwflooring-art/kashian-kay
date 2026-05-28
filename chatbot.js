@@ -116,8 +116,8 @@
     '#kb-chat-widget .kb-inline-btn{text-shadow:none!important;}',
     '#kb-chat-widget button{text-shadow:none!important;}',
     '@media(max-width:480px){#kb-chat-widget{width:calc(100vw - 20px);height:calc(100vh - 140px);right:10px;bottom:80px;}.kb-times-grid{grid-template-columns:1fr;}.kb-inline-btn{font-size:11px!important;padding:4px 8px!important;font-weight:500!important;width:auto!important;display:inline-block!important;line-height:1.3!important;}}'
-    ].join('');
-    document.head.appendChild(style);
+  ].join('');
+  document.head.appendChild(style);
 
   // =========================
   // BUILD WIDGET
