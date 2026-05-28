@@ -1,171 +1,203 @@
 (function () {
 
-  // Avoid loading twice
-  if (document.getElementById("native-chatbot")) return;
+  if (document.getElementById("kay-widget")) return;
 
-  // ===== Chat Button =====
-  const button = document.createElement("button");
-  button.innerHTML = "💬";
-  button.style.position = "fixed";
-  button.style.bottom = "20px";
-  button.style.right = "20px";
-  button.style.width = "60px";
-  button.style.height = "60px";
-  button.style.borderRadius = "50%";
-  button.style.border = "none";
-  button.style.background = "#88EAE4";
-  button.style.color = "#000";
-  button.style.fontSize = "24px";
-  button.style.cursor = "pointer";
-  button.style.zIndex = "9999";
+  // =========================
+  // FLOAT BUTTON
+  // =========================
+  const btn = document.createElement("button");
+  btn.innerHTML = "💬";
+  btn.style.cssText = `
+    position:fixed;bottom:22px;right:22px;
+    width:56px;height:56px;border-radius:50%;
+    border:none;background:#5bcdc7;color:#111;
+    font-size:22px;cursor:pointer;z-index:99999;
+    box-shadow:0 6px 18px rgba(0,0,0,0.18);
+  `;
 
-  // ===== Chat Window =====
-  const chatWindow = document.createElement("div");
-  chatWindow.id = "native-chatbot";
-  chatWindow.style.position = "fixed";
-  chatWindow.style.bottom = "90px";
-  chatWindow.style.right = "20px";
-  chatWindow.style.width = "350px";
-  chatWindow.style.height = "500px";
-  chatWindow.style.background = "#fff";
-  chatWindow.style.border = "1px solid #ccc";
-  chatWindow.style.borderRadius = "12px";
-  chatWindow.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
-  chatWindow.style.display = "none";
-  chatWindow.style.flexDirection = "column";
-  chatWindow.style.overflow = "hidden";
-  chatWindow.style.zIndex = "9999";
+  // =========================
+  // WIDGET WRAPPER
+  // =========================
+  const box = document.createElement("div");
+  box.id = "kay-widget";
+  box.style.cssText = `
+    position:fixed;bottom:90px;right:22px;
+    width:390px;height:620px;
+    background:#eef2f7;border-radius:14px;
+    box-shadow:0 12px 35px rgba(0,0,0,0.25);
+    display:none;flex-direction:column;
+    overflow:hidden;font-family:Raleway,Arial,sans-serif;
+    z-index:99999;
+  `;
 
-  // Header
+  // =========================
+  // HEADER (matches full app)
+  // =========================
   const header = document.createElement("div");
-  header.innerHTML = "Chat Assistant";
-  header.style.padding = "12px";
-  header.style.background = "#88EAE4";
-  header.style.color = "#fff";
-  header.style.fontWeight = "bold";
+  header.style.cssText = `
+    background:#5bcdc7;padding:12px 14px;
+    display:flex;align-items:center;justify-content:space-between;
+  `;
 
-  // Messages
-  const messages = document.createElement("div");
-  messages.style.flex = "1";
-  messages.style.padding = "10px";
-  messages.style.overflowY = "auto";
-  messages.style.fontFamily = "Arial";
+  header.innerHTML = `
+    <div>
+      <div style="font-weight:700;font-size:14px;color:#111">Kay - Kashian Bros</div>
+      <div style="font-size:11px;color:#111;opacity:.8">AI Assistant</div>
+    </div>
+    <div style="width:10px;height:10px;background:#22c55e;border-radius:50%"></div>
+  `;
 
-  function addMessage(text, type = "bot") {
-    const msg = document.createElement("div");
-    msg.innerText = text;
-    msg.style.margin = "6px 0";
-    msg.style.padding = "8px 10px";
-    msg.style.borderRadius = "8px";
-    msg.style.maxWidth = "80%";
+  // =========================
+  // CHAT AREA
+  // =========================
+  const msgs = document.createElement("div");
+  msgs.style.cssText = `
+    flex:1;overflow-y:auto;
+    padding:14px;display:flex;
+    flex-direction:column;gap:10px;
+  `;
 
-    if (type === "user") {
-      msg.style.marginLeft = "auto";
-      msg.style.background = "#e6f7f6";
-      msg.style.textAlign = "right";
-    } else {
-      msg.style.background = "#f1f1f1";
-    }
+  // =========================
+  // QUICK ACTIONS (like your app)
+  // =========================
+  const quick = document.createElement("div");
+  quick.style.cssText = `
+    display:flex;flex-wrap:wrap;gap:6px;
+    padding:10px;background:#fff;
+    border-top:1px solid #dbe7ea;
+  `;
 
-    messages.appendChild(msg);
-    messages.scrollTop = messages.scrollHeight;
+  function qBtn(text, msg) {
+    const b = document.createElement("button");
+    b.textContent = text;
+    b.style.cssText = `
+      font-size:11px;padding:6px 10px;
+      border-radius:999px;border:1px solid #5bcdc7;
+      background:#f0fafa;cursor:pointer;
+    `;
+    b.onclick = () => send(msg);
+    return b;
   }
 
-  // Input Area
-  const inputArea = document.createElement("div");
-  inputArea.style.display = "flex";
-  inputArea.style.borderTop = "1px solid #eee";
+  quick.appendChild(qBtn("Schedule", "I want to schedule a service"));
+  quick.appendChild(qBtn("Pricing", "Tell me about pricing"));
+  quick.appendChild(qBtn("Services", "What services do you offer?"));
 
-  const input = document.createElement("input");
-  input.placeholder = "Type a message...";
-  input.style.flex = "1";
-  input.style.padding = "10px";
-  input.style.border = "none";
-  input.style.outline = "none";
+  // =========================
+  // INPUT BAR
+  // =========================
+  const inputBar = document.createElement("div");
+  inputBar.style.cssText = `
+    display:flex;gap:8px;padding:10px;
+    background:#fff;border-top:1px solid #dbe7ea;
+  `;
 
-  const send = document.createElement("button");
-  send.innerHTML = "Send";
-  send.style.padding = "10px";
-  send.style.border = "none";
-  send.style.background = "#88EAE4";
-  send.style.color = "#000";
-  send.style.cursor = "pointer";
+  const input = document.createElement("textarea");
+  input.rows = 1;
+  input.placeholder = "Ask Kay anything...";
+  input.style.cssText = `
+    flex:1;resize:none;padding:10px;
+    border:1px solid #9de8e4;border-radius:10px;
+    font-family:inherit;font-size:13px;
+    outline:none;
+  `;
 
-  inputArea.appendChild(input);
-  inputArea.appendChild(send);
+  const sendBtn = document.createElement("button");
+  sendBtn.textContent = "➤";
+  sendBtn.style.cssText = `
+    width:40px;height:40px;border:none;
+    border-radius:10px;background:#5bcdc7;
+    cursor:pointer;
+  `;
 
-  chatWindow.appendChild(header);
-  chatWindow.appendChild(messages);
-  chatWindow.appendChild(inputArea);
+  inputBar.appendChild(input);
+  inputBar.appendChild(sendBtn);
 
-  document.body.appendChild(button);
-  document.body.appendChild(chatWindow);
+  // =========================
+  // ASSEMBLE
+  // =========================
+  box.appendChild(header);
+  box.appendChild(msgs);
+  box.appendChild(quick);
+  box.appendChild(inputBar);
 
-  // Toggle chatbot
-  button.onclick = () => {
-    chatWindow.style.display =
-      chatWindow.style.display === "none" ? "flex" : "none";
+  document.body.appendChild(btn);
+  document.body.appendChild(box);
+
+  // =========================
+  // TOGGLE
+  // =========================
+  btn.onclick = () => {
+    box.style.display = box.style.display === "flex" ? "none" : "flex";
   };
 
-  // ===== SEND MESSAGE =====
-  async function sendMessage() {
+  // =========================
+  // MESSAGE RENDERING
+  // =========================
+  function addMsg(text, user = false) {
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.justifyContent = user ? "flex-end" : "flex-start";
 
-    const text = input.value.trim();
-    if (!text) return;
+    const bubble = document.createElement("div");
+    bubble.textContent = text;
 
-    addMessage(text, "user");
+    bubble.style.cssText = `
+      max-width:80%;
+      padding:10px 12px;
+      font-size:13px;
+      line-height:1.4;
+      border-radius:${user ? "14px 14px 3px 14px" : "14px 14px 14px 3px"};
+      background:${user ? "#5bcdc7" : "#fff"};
+      border:${user ? "none" : "1px solid #dbe7ea"};
+      color:#111;
+    `;
+
+    row.appendChild(bubble);
+    msgs.appendChild(row);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  // =========================
+  // SEND FUNCTION (matches Netlify chat)
+  // =========================
+  async function send(text) {
+    if (!text || !text.trim()) return;
+
     input.value = "";
-
-    const loadingId = Date.now();
-    const loadingMsg = document.createElement("div");
-    loadingMsg.innerText = "Thinking...";
-    loadingMsg.id = loadingId;
-    messages.appendChild(loadingMsg);
+    addMsg(text, true);
 
     try {
+      const res = await fetch("/.netlify/functions/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-3-5-sonnet-20241022",
+          max_tokens: 600,
+          messages: [{ role: "user", content: text }]
+        })
+      });
 
-      const response = await fetch(
-        "https://warm-dolphin-79489e.netlify.app/.netlify/functions/chat",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            messages: [
-              {
-                role: "user",
-                content: text
-              }
-            ]
-          })
-        }
-      );
+      const data = await res.json();
+      const reply = data?.content?.[0]?.text || "Sorry, I had trouble responding.";
+      addMsg(reply, false);
 
-      const data = await response.json();
-
-      // remove loading
-      loadingMsg.remove();
-
-      const reply = data.reply || "No response from server.";
-
-      addMessage(reply, "bot");
-
-    } catch (err) {
-
-      console.error(err);
-
-      loadingMsg.remove();
-
-      addMessage("Connection error. Please try again.", "bot");
+    } catch (e) {
+      addMsg("Connection error. Please try again.", false);
     }
   }
 
-  // Events
-  send.onclick = sendMessage;
-
+  sendBtn.onclick = () => send(input.value);
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendMessage();
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send(input.value);
+    }
   });
+
+  // =========================
+  // WELCOME MESSAGE
+  // =========================
+  addMsg("Hi! I’m Kay from Kashian Bros. How can I help you today?", false);
 
 })();
