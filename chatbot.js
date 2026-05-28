@@ -41,19 +41,32 @@
   header.innerHTML = "Chat Assistant";
   header.style.padding = "12px";
   header.style.background = "#88EAE4";
-  header.style.color = "#000";
+  header.style.color = "#fff";
+  header.style.fontWeight = "bold";
 
   // Messages
   const messages = document.createElement("div");
   messages.style.flex = "1";
   messages.style.padding = "10px";
   messages.style.overflowY = "auto";
+  messages.style.fontFamily = "Arial";
 
   function addMessage(text, type = "bot") {
     const msg = document.createElement("div");
     msg.innerText = text;
     msg.style.margin = "6px 0";
-    msg.style.textAlign = type === "user" ? "right" : "left";
+    msg.style.padding = "8px 10px";
+    msg.style.borderRadius = "8px";
+    msg.style.maxWidth = "80%";
+
+    if (type === "user") {
+      msg.style.marginLeft = "auto";
+      msg.style.background = "#e6f7f6";
+      msg.style.textAlign = "right";
+    } else {
+      msg.style.background = "#f1f1f1";
+    }
+
     messages.appendChild(msg);
     messages.scrollTop = messages.scrollHeight;
   }
@@ -94,7 +107,7 @@
       chatWindow.style.display === "none" ? "flex" : "none";
   };
 
-  // ===== SEND MESSAGE (THIS WAS MISSING) =====
+  // ===== SEND MESSAGE =====
   async function sendMessage() {
 
     const text = input.value.trim();
@@ -103,7 +116,11 @@
     addMessage(text, "user");
     input.value = "";
 
-    addMessage("Thinking...");
+    const loadingId = Date.now();
+    const loadingMsg = document.createElement("div");
+    loadingMsg.innerText = "Thinking...";
+    loadingMsg.id = loadingId;
+    messages.appendChild(loadingMsg);
 
     try {
 
@@ -127,33 +144,26 @@
 
       const data = await response.json();
 
-      // remove "Thinking..." (last message)
-      messages.removeChild(messages.lastChild);
+      // remove loading
+      loadingMsg.remove();
 
-      const reply =
-        data.content &&
-        data.content[0] &&
-        data.content[0].text
-          ? data.content[0].text
-          : data.error || "No response";
+      const reply = data.reply || "No response from server.";
 
-      addMessage(reply);
+      addMessage(reply, "bot");
 
     } catch (err) {
 
       console.error(err);
 
-      messages.removeChild(messages.lastChild);
+      loadingMsg.remove();
 
-      addMessage("Connection error. Please try again.");
-
+      addMessage("Connection error. Please try again.", "bot");
     }
   }
 
-  // Send button click
+  // Events
   send.onclick = sendMessage;
 
-  // Enter key support
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") sendMessage();
   });
