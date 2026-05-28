@@ -1,33 +1,40 @@
 exports.handler = async (event) => {
   try {
 
-    // Handle missing body safely
-    if (!event.body) {
+    // 1. Safely parse request
+    let body = {};
+
+    try {
+      body = event.body ? JSON.parse(event.body) : {};
+    } catch (err) {
       return {
         statusCode: 400,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          error: "Missing request body"
-        })
+          error: "Invalid JSON input",
+        }),
       };
     }
 
-    const body = JSON.parse(event.body);
+    const messages = body.messages || [];
+    const lastMessage = messages[messages.length - 1]?.content || "Hello";
 
-    const userMessage = body?.messages?.slice(-1)?.[0]?.content || "No message";
+    // 2. MOCK RESPONSE (replace later with Claude/OpenAI)
+    const reply = `Thanks for your message: "${lastMessage}" — how can I help with your flooring or remodeling project?`;
 
+    // 3. ALWAYS return JSON (critical fix)
     return {
       statusCode: 200,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
       },
       body: JSON.stringify({
         content: [
           {
-            text: `Hello! You said: "${userMessage}"`
-          }
-        ]
-      })
+            text: reply,
+          },
+        ],
+      }),
     };
 
   } catch (err) {
@@ -35,12 +42,11 @@ exports.handler = async (event) => {
       statusCode: 500,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
       },
       body: JSON.stringify({
         error: "Server error",
-        details: err.message
-      })
+        details: err.message,
+      }),
     };
   }
 };
