@@ -7,7 +7,7 @@
   // CONFIG
   // =========================
 
-  const API_URL = "/.netlify/functions/chat";
+  const API_URL = "https://warm-dolphin-79489e.netlify.app/.netlify/functions/chat";
 
   const SYSTEM_PROMPT = `
 You are Kay, the AI assistant for Kashian Bros.
@@ -530,7 +530,7 @@ Please recommend calling (847) 251-1200.
 
   addMessage(
     "bot",
-    "Hi! I’m Kay from Kashian Bros. How can I help you today?"
+    "Hi! I'm Kay from Kashian Bros. How can I help you today?"
   );
 
 })();
