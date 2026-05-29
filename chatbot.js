@@ -18,8 +18,16 @@
   // =========================
   var style = document.createElement('style');
   style.innerHTML = [
-    '#kb-chat-btn{position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;border:none;background:#88EAE4;color:#fff;font-size:24px;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.2);transition:transform .2s ease;display:flex;align-items:center;justify-content:center;}',
-    '#kb-chat-btn:hover{transform:scale(1.07);}',
+    '#kb-chat-btn{position:fixed;bottom:24px;right:24px;height:54px;padding:0 22px 0 18px;border-radius:27px;border:none;background:#5bcdc7;color:#111;font-size:15px;font-weight:700;font-family:Raleway,Arial,sans-serif;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.22);transition:transform .2s ease,box-shadow .2s ease;display:flex;align-items:center;gap:10px;letter-spacing:0.01em;}',
+    '#kb-chat-btn:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,0.28);}',
+    '#kb-chat-btn svg{flex-shrink:0;}',
+    '#kb-chat-teaser{position:fixed;bottom:96px;right:24px;background:#fff;border:1.5px solid #5bcdc7;border-radius:14px;padding:13px 38px 13px 16px;font-family:Raleway,Arial,sans-serif;font-size:13.5px;color:#111;font-weight:500;box-shadow:0 12px 36px rgba(0,0,0,0.18);max-width:280px;z-index:999997;line-height:1.45;display:none;animation:kb-teaser-in 0.4s ease-out;}',
+    '#kb-chat-teaser::after{content:"";position:absolute;bottom:-9px;right:34px;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:9px solid #fff;}',
+    '#kb-chat-teaser::before{content:"";position:absolute;bottom:-11px;right:33px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:10px solid #5bcdc7;}',
+    '#kb-teaser-close{position:absolute;top:6px;right:8px;background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;line-height:1;padding:2px 6px;font-family:inherit;}',
+    '#kb-teaser-close:hover{color:#475569;}',
+    '@keyframes kb-teaser-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}',
+    '@keyframes kb-teaser-out{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(8px)}}',
     '#kb-chat-widget{position:fixed;bottom:96px;right:24px;width:450px;height:720px;background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;z-index:999998;box-shadow:0 20px 60px rgba(0,0,0,0.22);border:1px solid #b8eeeb;font-family:Raleway,Arial,sans-serif;color:#111;letter-spacing:0.02em;}',
     '#kb-chat-widget *{box-sizing:border-box;}',
     '@keyframes kb-bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}',
@@ -120,7 +128,7 @@
   // =========================
   var btn = document.createElement('button');
   btn.id = 'kb-chat-btn';
-  btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/><circle cx="8" cy="11" r="1.2" fill="#5bcdc7"/><circle cx="12" cy="11" r="1.2" fill="#5bcdc7"/><circle cx="16" cy="11" r="1.2" fill="#5bcdc7"/></svg>';
+  btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#111"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span>Chat with Kay</span>';
   btn.title = 'Chat with Kay';
   var widget = document.createElement('div');
   widget.id = 'kb-chat-widget';
@@ -138,10 +146,44 @@
     '</div>';
   document.body.appendChild(btn);
   document.body.appendChild(widget);
+
+  // ----- Teaser bubble (once per browser session) -----
+  // Uses sessionStorage so it only shows once until the customer closes the browser/tab.
+  try {
+    if (!sessionStorage.getItem('kbTeaserShown')) {
+      var teaser = document.createElement('div');
+      teaser.id = 'kb-chat-teaser';
+      teaser.innerHTML = '<button id="kb-teaser-close" type="button" aria-label="Close">&times;</button>Need to schedule a cleaning? I can help!';
+      document.body.appendChild(teaser);
+      var dismissTeaser = function () {
+        if (!teaser) return;
+        teaser.style.animation = 'kb-teaser-out 0.3s ease-out forwards';
+        setTimeout(function () { if (teaser && teaser.parentNode) teaser.parentNode.removeChild(teaser); }, 350);
+      };
+      // Show after a tiny delay so it eases in after page load
+      setTimeout(function () { teaser.style.display = 'block'; }, 600);
+      // Auto-dismiss after 20 seconds (measured from when it appears)
+      setTimeout(dismissTeaser, 20600);
+      // Close button
+      document.getElementById('kb-teaser-close').onclick = function (e) { e.stopPropagation(); dismissTeaser(); };
+      // Clicking the teaser itself opens the chat
+      teaser.addEventListener('click', function (e) {
+        if (e.target.id === 'kb-teaser-close') return;
+        widget.style.display = 'flex';
+        dismissTeaser();
+      });
+      // Mark as shown for this session
+      sessionStorage.setItem('kbTeaserShown', '1');
+    }
+  } catch (e) { /* sessionStorage unavailable - skip teaser */ }
   var msgsEl = document.getElementById('kb-msgs');
   var inpEl = document.getElementById('kb-inp');
   var sbEl = document.getElementById('kb-sb');
-  btn.onclick = function () { widget.style.display = widget.style.display === 'flex' ? 'none' : 'flex'; };
+  btn.onclick = function () {
+    widget.style.display = widget.style.display === 'flex' ? 'none' : 'flex';
+    var t = document.getElementById('kb-chat-teaser');
+    if (t && widget.style.display === 'flex') { t.style.animation = 'kb-teaser-out 0.3s ease-out forwards'; setTimeout(function () { if (t && t.parentNode) t.parentNode.removeChild(t); }, 350); }
+  };
   document.getElementById('kb-close-btn').onclick = function () { widget.style.display = 'none'; };
   // =========================
   // HELPERS
