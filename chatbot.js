@@ -532,11 +532,14 @@
   function timeLine() { return '<div class="kb-flow-row"><div><span class="kb-flow-check">\u2713</span>' + (flow.timeChoice || '') + '</div></div>'; }
   function advStage2(pfx, mid) {
     var card = document.getElementById('kb-' + pfx + '-' + mid); if (!card) return;
-    var s1 = document.getElementById('kb-' + pfx + '-s1-' + mid) || card.querySelector('[id^="kb-scs1-"],[id^="kb-rugscope-s1-"]');
-    if (s1) s1.style.display = 'none';
-    var top = document.getElementById('kb-' + pfx + '-top-' + mid) || document.getElementById('kb-sctop-' + mid) || document.getElementById('kb-rugscope-top-' + mid);
+    // Stage 1 / top / Stage 2 IDs differ between the two flows. Resolve them here.
+    var s1Id = pfx === 'scope' ? ('kb-scs1-' + mid) : ('kb-rugscope-s1-' + mid);
+    var topId = pfx === 'scope' ? ('kb-sctop-' + mid) : ('kb-rugscope-top-' + mid);
+    var s2Id = pfx === 'scope' ? ('kb-scs2-' + mid) : ('kb-rugscope-s2-' + mid);
+    var s1 = document.getElementById(s1Id); if (s1) s1.style.display = 'none';
+    var top = document.getElementById(topId);
     if (top) { top.style.display = 'block'; top.innerHTML = infoLine(mid) + scopeLine(mid); }
-    var s2 = document.getElementById('kb-' + pfx + '-s2-' + mid); if (s2) s2.style.display = 'block';
+    var s2 = document.getElementById(s2Id); if (s2) s2.style.display = 'block';
     scrollNice(top || s2);
   }
   async function fetchSlots(pfx, mid, type) {
@@ -563,8 +566,9 @@
   window.kbPickTime = function (mid, label, pfx) {
     flow.timeChoice = label;
     var s2Id = pfx === 'scope' ? ('kb-scs2-' + mid) : ('kb-rugscope-s2-' + mid);
+    var topId = pfx === 'scope' ? ('kb-sctop-' + mid) : ('kb-rugscope-top-' + mid);
     var s2 = document.getElementById(s2Id); if (s2) s2.style.display = 'none';
-    var top = document.getElementById('kb-' + pfx + '-top-' + mid) || document.getElementById('kb-sctop-' + mid) || document.getElementById('kb-rugscope-top-' + mid);
+    var top = document.getElementById(topId);
     if (top) top.innerHTML = infoLine(mid) + scopeLine(mid) + timeLine();
     advStage3(pfx, mid);
   };
@@ -577,9 +581,10 @@
   window.kbSubmitCustomTime = function (mid, pfx) { var inp = document.getElementById('kb-ct-' + mid); if (!inp || !inp.value.trim()) { alert('Please enter a date and time.'); return; } kbPickTime(mid, inp.value.trim(), pfx); };
   function advStage3(pfx, mid) {
     var s3Id = pfx === 'scope' ? ('kb-scs3-' + mid) : ('kb-rugscope-s3-' + mid);
+    var topId = pfx === 'scope' ? ('kb-sctop-' + mid) : ('kb-rugscope-top-' + mid);
     var s3 = document.getElementById(s3Id); if (!s3) return;
     s3.style.display = 'block'; s3.innerHTML = ''; s3.appendChild(buildReviewForm(mid));
-    var top = document.getElementById('kb-' + pfx + '-top-' + mid) || document.getElementById('kb-sctop-' + mid) || document.getElementById('kb-rugscope-top-' + mid);
+    var top = document.getElementById(topId);
     scrollNice(top || s3);
   }
   function buildReviewForm(mid) {
