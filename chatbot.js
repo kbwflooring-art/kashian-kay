@@ -18,7 +18,7 @@
   // =========================
   var style = document.createElement('style');
   style.innerHTML = [
-    '#kb-chat-btn{position:fixed;bottom:24px;right:24px;height:54px;padding:0 22px 0 18px;border-radius:27px;border:none;background:#5bcdc7;color:#111;font-size:15px;font-weight:700;font-family:Raleway,Arial,sans-serif;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.22);transition:transform .2s ease,box-shadow .2s ease;display:flex;align-items:center;gap:10px;letter-spacing:0.01em;}',
+    '#kb-chat-btn{position:fixed;bottom:24px;right:24px;height:54px;padding:0 22px 0 18px;border-radius:27px;border:none;background:#88EAE4;color:#111;font-size:15px;font-weight:700;font-family:Raleway,Arial,sans-serif;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.22);transition:transform .2s ease,box-shadow .2s ease;display:flex;align-items:center;gap:10px;letter-spacing:0.01em;}',
     '#kb-chat-btn:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,0.28);}',
     '#kb-chat-btn svg{flex-shrink:0;}',
     '#kb-chat-teaser{position:fixed;bottom:96px;right:24px;background:#88EAE4;border:none;border-radius:14px;padding:16px 44px 16px 18px;font-family:Raleway,Arial,sans-serif;font-size:15px;color:#111;font-weight:600;box-shadow:0 12px 36px rgba(0,0,0,0.22);max-width:300px;z-index:999997;line-height:1.45;display:none;animation:kb-teaser-in 0.4s ease-out;cursor:pointer;}',
