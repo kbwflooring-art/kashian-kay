@@ -21,11 +21,10 @@
     '#kb-chat-btn{position:fixed;bottom:24px;right:24px;height:54px;padding:0 22px 0 18px;border-radius:27px;border:none;background:#5bcdc7;color:#111;font-size:15px;font-weight:700;font-family:Raleway,Arial,sans-serif;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.22);transition:transform .2s ease,box-shadow .2s ease;display:flex;align-items:center;gap:10px;letter-spacing:0.01em;}',
     '#kb-chat-btn:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,0.28);}',
     '#kb-chat-btn svg{flex-shrink:0;}',
-    '#kb-chat-teaser{position:fixed;bottom:96px;right:24px;background:#fff;border:1.5px solid #5bcdc7;border-radius:14px;padding:13px 38px 13px 16px;font-family:Raleway,Arial,sans-serif;font-size:13.5px;color:#111;font-weight:500;box-shadow:0 12px 36px rgba(0,0,0,0.18);max-width:280px;z-index:999997;line-height:1.45;display:none;animation:kb-teaser-in 0.4s ease-out;}',
-    '#kb-chat-teaser::after{content:"";position:absolute;bottom:-9px;right:34px;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:9px solid #fff;}',
-    '#kb-chat-teaser::before{content:"";position:absolute;bottom:-11px;right:33px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:10px solid #5bcdc7;}',
-    '#kb-teaser-close{position:absolute;top:6px;right:8px;background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;line-height:1;padding:2px 6px;font-family:inherit;}',
-    '#kb-teaser-close:hover{color:#475569;}',
+    '#kb-chat-teaser{position:fixed;bottom:96px;right:24px;background:#88EAE4;border:none;border-radius:14px;padding:16px 44px 16px 18px;font-family:Raleway,Arial,sans-serif;font-size:15px;color:#111;font-weight:600;box-shadow:0 12px 36px rgba(0,0,0,0.22);max-width:300px;z-index:999997;line-height:1.45;display:none;animation:kb-teaser-in 0.4s ease-out;cursor:pointer;}',
+    '#kb-chat-teaser::after{content:"";position:absolute;bottom:-9px;right:34px;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:9px solid #88EAE4;}',
+    '#kb-teaser-close{position:absolute;top:8px;right:10px;background:rgba(255,255,255,0.5);border:none;cursor:pointer;font-size:18px;color:#111;line-height:1;padding:2px 7px;font-family:inherit;border-radius:50%;font-weight:700;}',
+    '#kb-teaser-close:hover{background:rgba(255,255,255,0.9);}',
     '@keyframes kb-teaser-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}',
     '@keyframes kb-teaser-out{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(8px)}}',
     '#kb-chat-widget{position:fixed;bottom:96px;right:24px;width:450px;height:720px;background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;z-index:999998;box-shadow:0 20px 60px rgba(0,0,0,0.22);border:1px solid #b8eeeb;font-family:Raleway,Arial,sans-serif;color:#111;letter-spacing:0.02em;}',
@@ -153,7 +152,7 @@
     if (!sessionStorage.getItem('kbTeaserShown')) {
       var teaser = document.createElement('div');
       teaser.id = 'kb-chat-teaser';
-      teaser.innerHTML = '<button id="kb-teaser-close" type="button" aria-label="Close">&times;</button>Need to schedule a cleaning? I can help!';
+      teaser.innerHTML = '<button id="kb-teaser-close" type="button" aria-label="Close">&times;</button>Have a question? Need to schedule a cleaning? I can help!';
       document.body.appendChild(teaser);
       var dismissTeaser = function () {
         if (!teaser) return;
@@ -162,8 +161,7 @@
       };
       // Show after a tiny delay so it eases in after page load
       setTimeout(function () { teaser.style.display = 'block'; }, 600);
-      // Auto-dismiss after 20 seconds (measured from when it appears)
-      setTimeout(dismissTeaser, 20600);
+      // No auto-dismiss — stays until the customer clicks the X (or opens the chat)
       // Close button
       document.getElementById('kb-teaser-close').onclick = function (e) { e.stopPropagation(); dismissTeaser(); };
       // Clicking the teaser itself opens the chat
