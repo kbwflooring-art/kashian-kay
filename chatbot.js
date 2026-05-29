@@ -94,7 +94,7 @@
     '.kb-flow-row+.kb-flow-row{border-top:1px solid #e2e8f0;margin-top:5px;padding-top:7px;}',
     '.kb-flow-check{color:#16a34a;font-weight:700;margin-right:3px;}',
     '.kb-flow-edit{background:none;border:none;color:#0891b2;cursor:pointer;font-size:11px;font-family:inherit;text-decoration:underline;}',
-    '.kb-stage-2,.kb-stage-3{padding-top:12px;margin-top:12px;border-top:2px dashed #cbd5e1;}',
+    '.kb-stage-2,.kb-stage-3{padding-top:14px;margin-top:14px;border-top:1px solid #e2e8f0;}',
     '.kb-stage-hdr{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}',
     '.kb-times-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}',
     '.kb-time-btn{font-family:inherit;cursor:pointer;background:#fff;border:1.5px solid #5bcdc7;color:#0e7490;border-radius:8px;padding:9px 6px;font-size:11.5px;font-weight:500;text-align:center;line-height:1.3;word-break:keep-all;}',
@@ -432,9 +432,9 @@
         '<div id="kb-scuphol-' + mid + '" class="kb-section-body" style="display:none"><div class="kb-uphol-note">Prices shown are rough estimates. Final quote determined when our crew measures on-site.</div><div id="kb-sctblu-' + mid + '"></div>' +
         '<div class="kb-addons"><label class="kb-check"><input type="checkbox" id="u-protect-' + mid + '"/> Fiber Protectant <span class="kb-extra-tag">extra</span></label><label class="kb-check"><input type="checkbox" id="u-enzyme-' + mid + '"/> Deodorize/Enzyme <span class="kb-extra-tag">extra</span></label><label class="kb-check"><input type="checkbox" id="u-antibac-' + mid + '"/> Antibacterial <span class="kb-extra-tag">extra</span></label></div>' +
         '</div></div>' +
+        '<button class="kb-submit" id="kb-scfind-' + mid + '" disabled style="opacity:0.4;cursor:not-allowed" onclick="kbSubmitScope(\'' + mid + '\')">Find Available Times &rarr;</button>' +
         '<div class="kb-duration-box" id="kb-scdur-' + mid + '"><small style="color:#1e40af">Pick at least one room or item to see your job time</small></div>' +
         '<div class="kb-pricing-note"><strong>Pricing:</strong> Final quote given on-site. Want an estimate first? Call <strong>(847) 251-1200</strong> and ask for Adolfo.</div>' +
-        '<button class="kb-submit" id="kb-scfind-' + mid + '" disabled style="opacity:0.4;cursor:not-allowed" onclick="kbSubmitScope(\'' + mid + '\')">Find Available Times &rarr;</button>' +
         '<button class="kb-cancel" onclick="kbCancelScope(\'' + mid + '\')">Never mind, I will call instead</button>' +
       '</div>' +
       '<div class="kb-stage-2" id="kb-scs2-' + mid + '" style="display:none"></div>' +
@@ -498,9 +498,9 @@
           '<label class="kb-check"><input type="checkbox" id="' + PFX + 'protect-' + mid + '" data-mid="' + mid + '" data-prefix="' + PFX + '" onchange="kbCalcRug(this.dataset.mid,this.dataset.prefix)"/> Fiber Protectant <span class="kb-extra-tag">$2/sq ft</span></label>' +
           '<label class="kb-check"><input type="checkbox" id="' + PFX + 'enzyme-' + mid + '" data-mid="' + mid + '" data-prefix="' + PFX + '" onchange="kbCalcRug(this.dataset.mid,this.dataset.prefix)"/> Enzyme Treatment <span class="kb-extra-tag">$2/sq ft</span></label>' +
         '</div>' +
+        '<button class="kb-submit" id="kb-rugfind-' + mid + '" disabled style="opacity:0.4;cursor:not-allowed" onclick="kbSubmitRugScope(\'' + mid + '\')">Find Available Pickup Times &rarr;</button>' +
         '<div class="kb-price-box" id="kb-rugprice-' + mid + '" style="display:none"></div>' +
         '<div class="kb-duration-box" id="kb-rugdur-' + mid + '"><small style="color:#1e40af">Add at least one rug to see your estimate</small></div>' +
-        '<button class="kb-submit" id="kb-rugfind-' + mid + '" disabled style="opacity:0.4;cursor:not-allowed" onclick="kbSubmitRugScope(\'' + mid + '\')">Find Available Pickup Times &rarr;</button>' +
         '<button class="kb-cancel" onclick="kbCancelScope(\'' + mid + '\')">Never mind, I will call instead</button>' +
       '</div>' +
       '<div class="kb-stage-2" id="kb-rugscope-s2-' + mid + '" style="display:none"></div>' +
