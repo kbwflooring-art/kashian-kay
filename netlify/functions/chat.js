@@ -23,7 +23,18 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { messages } = JSON.parse(event.body);
+    // Accept BOTH messages (the conversation) and system (the rules/persona) as separate fields
+    const { messages, system } = JSON.parse(event.body);
+
+    // Build the API request body. Only include "system" if it was sent.
+    const apiBody = {
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1024,
+      messages: messages
+    };
+    if (system && typeof system === "string" && system.length > 0) {
+      apiBody.system = system;
+    }
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -32,11 +43,7 @@ exports.handler = async (event) => {
         "x-api-key": process.env.ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01"
       },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        messages: messages
-      })
+      body: JSON.stringify(apiBody)
     });
 
     const data = await response.json();
