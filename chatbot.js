@@ -18,7 +18,7 @@
   // =========================
   var style = document.createElement('style');
   style.innerHTML = [
-    '#kb-chat-btn{position:fixed;bottom:24px;right:24px;height:54px;padding:0 22px 0 18px;border-radius:27px;border:none;background:#88EAE4;color:#111;font-size:15px;font-weight:700;font-family:Raleway,Arial,sans-serif;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.22);transition:transform .2s ease,box-shadow .2s ease;display:flex;align-items:center;gap:10px;letter-spacing:0.01em;}',
+    '#kb-chat-btn{position:fixed;bottom:24px;right:24px;height:54px;padding:0 22px 0 18px;border-radius:27px;border:none;background:#88EAE4;color:#fff;font-size:15px;font-weight:700;font-family:Raleway,Arial,sans-serif;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.22);transition:transform .2s ease,box-shadow .2s ease;display:flex;align-items:center;gap:10px;letter-spacing:0.01em;text-shadow:0 1px 2px rgba(0,0,0,0.08);}',
     '#kb-chat-btn:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,0.28);}',
     '#kb-chat-btn svg{flex-shrink:0;}',
     '#kb-chat-teaser{position:fixed;bottom:96px;right:24px;background:#88EAE4;border:none;border-radius:16px;padding:20px 50px 20px 22px;font-family:Raleway,Arial,sans-serif;font-size:17px;color:#fff;font-weight:700;box-shadow:0 12px 36px rgba(0,0,0,0.25);max-width:340px;z-index:999997;line-height:1.45;display:none;animation:kb-teaser-in 0.4s ease-out;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,0.08);}',
@@ -127,7 +127,7 @@
   // =========================
   var btn = document.createElement('button');
   btn.id = 'kb-chat-btn';
-  btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#111"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span>Chat with Kay</span>';
+  btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span>Chat with Kay</span>';
   btn.title = 'Chat with Kay';
   var widget = document.createElement('div');
   widget.id = 'kb-chat-widget';
