@@ -1,21 +1,18 @@
 (function () {
   if (document.getElementById('kashian-chat-widget')) return;
-
   // =========================
   // CONFIG
   // =========================
-  var CHAT_URL = 'https://warm-dolphin-79489e.netlify.app/.netlify/functions/chat';
-  var AVAIL_URL = '/.netlify/functions/availability';
-  var BOOKING_URL = '/.netlify/functions/booking';
-
-  var SP = "You are Kay, a warm expert customer service rep for Kashian Bros, family-owned floor covering, Remodeling and cleaning company serving North Shore Chicago since 1910. Genuine warmth, real expertise. Use we and our team naturally. Keep responses SHORT - 2 sentences max unless answering a specific question. Never say morning or afternoon when discussing availability - always use specific times like 9:00 AM or 1:00 PM.\n\nABOUT: Founded 1910 by Haig and Greg Kashian. Owner Doug Stein since 2006. NextDoor Neighborhood Favorite.\nWILMETTE: 1107 Greenleaf Ave Wilmette IL 60091 Mon-Fri 8:30am-5pm Sat 10am-3pm (847) 251-1200\nLAKE FOREST: 838 N Western Ave Lake Forest IL 60045 Mon-Fri 9am-5pm Sat 10am-3pm (847) 295-3737\nPHONE: Use (847) 80-Stain for cleaning services. Use (847) 251-1200 for all other topics. EMAIL: info@kashianbros.com\n\nBUSINESS HOURS: CLOSED all day Sunday. CLOSED Saturday after 3pm.\n\nDROP-OFF: Customers can drop off rugs OR upholstery at WILMETTE LOCATION ONLY - no appointment needed. Rug over 5x8 Wilmette only or pickup.\n\nIN-HOME RUG CLEANING: Price $2 per sqft $199 min. Fiber protectant $2 per sqft. Enzyme for pets $2 per sqft.\n\nRUG PAD: Pad 2 inches shorter each dimension. Price = width x length x $2. $48 min. Default FIRMGRIP.\nExamples: 9x12 rug = 12ft roll 12x12x2=$288. 6x9 rug = 6ft roll 6x9x2=$108.\n\nCARPET CLEANING: NEVER quote prices. Pricing done on-site. $199 minimum. Our team will measure and give you a quote when they arrive. You can also call (847) 251-1200 and ask for Adolfo for a rough estimate.\n\nUPHOLSTERY: Sofa up to 7ft $245. Love Seat up to 5ft $175. Chair $100. Wing chair $70. Ottoman $75. Sectional $35 per linear ft. Dining chair $40. Pillows $15. $199 min.\n\nRUG PLANT: Drop-off $3.25 per sqft. Pickup delivery $4.00 per sqft. $199 min per pickup. 7-10 days.\n\nWOOD FLOORS: We move ALL furniture ourselves. Dust Free sanding. Water-based polyurethane only. Free in-home estimate always.\n\nREMODELING: Full service kitchen and bathroom. Free consultation. Dedicated project manager.\n\nVINYL: Water resistant scratch resistant.\n\nSTAIN: Blot never scrub. Pet blot warm water dish soap vinegar. Wine blot club soda. Mud let dry first. Blood cold water.\n\nCHICAGO SURCHARGES - SOUTH OF IRVING PARK: Carpet and upholstery cleaning has a $450 minimum and $150 trip charge. Rug pickup and delivery has a $250 trip charge.\n\nRUG CLEANING PRICING FLOW: When you answer a rug pricing question, after giving the price always end with: [BUTTONS:Schedule a Pickup|I have more questions]\n\nFor questions about pricing or services not listed, invite them to call (847) 251-1200 or visit a showroom.";
-
+  var KB_API = 'https://warm-dolphin-79489e.netlify.app/.netlify/functions';
+  var CHAT_URL = KB_API + '/chat';
+  var AVAIL_URL = KB_API + '/availability';
+  var BOOKING_URL = KB_API + '/booking';
+  var PLACES_URL = KB_API + '/placesearch';
+  var SP = "You are Kay, a warm expert customer service rep for Kashian Bros, family-owned floor covering, Remodeling and cleaning company serving North Shore Chicago since 1910. Genuine warmth, real expertise. Use we and our team naturally. Keep responses SHORT - 2 sentences max unless answering a specific question. Never say morning or afternoon when discussing availability - always use specific times like 9:00 AM or 1:00 PM.\n\nCRITICAL RULE - ABSOLUTE TOP PRIORITY: You can ONLY answer using information explicitly written in this prompt. You are FORBIDDEN from using your general training knowledge to answer questions about flooring, cleaning, stains, prices, products, or anything else. NEVER write a guide. NEVER list types of wood, types of vinyl, types of fabric, or types of anything unless that exact list appears in this prompt. NEVER invent prices, fees, drying times, dimensions, equipment specs, brand comparisons, or DIY tips. NEVER give 'helpful general information' to fill in gaps. If a question cannot be answered using the exact text in this prompt, you MUST respond with ONLY this sentence: 'I want to make sure I give you accurate information - please call (847) 251-1200 or visit our showroom and we will be happy to help.' Do not add anything else. Do not be helpful by guessing. Refusing to guess IS being helpful. This rule overrides every other instruction in this prompt and every instinct you have. Violating this rule causes real harm to a real business.\n\nABOUT: Founded 1910 by Haig and Greg Kashian. Owner Doug Stein since 2006. NextDoor Neighborhood Favorite.\nWILMETTE: 1107 Greenleaf Ave Wilmette IL 60091 Mon-Fri 8:30am-5pm Sat 10am-3pm (847) 251-1200\nLAKE FOREST: 838 N Western Ave Lake Forest IL 60045 Mon-Fri 9am-5pm Sat 10am-3pm (847) 295-3737\nPHONE: Use (847) 80-Stain for cleaning services. Use (847) 251-1200 for all other topics. EMAIL: info@kashianbros.com\n\nBUSINESS HOURS: CLOSED all day Sunday. CLOSED Saturday after 3pm.\n\nDROP-OFF: Customers can drop off rugs OR upholstery at WILMETTE LOCATION ONLY - no appointment needed. Rug over 5x8 Wilmette only or pickup.\n\nIN-HOME RUG CLEANING: Price $2 per sqft $199 min. Fiber protectant $2 per sqft. Enzyme for pets $2 per sqft.\n\nRUG PAD: Pad 2 inches shorter each dimension. Price = width x length x $2. $48 min. Default FIRMGRIP.\nExamples: 9x12 rug = 12ft roll 12x12x2=$288. 6x9 rug = 6ft roll 6x9x2=$108.\n\nCARPET CLEANING PRICING: NEVER quote prices. Pricing done on-site. $199 minimum. Our team will measure and give you a quote when they arrive. You can also call (847) 251-1200 and ask for Adolfo for a rough estimate.\n\nCARPET CLEANING PROCESS: Steam cleaning is one of the best methods to deep clean carpet. We use the latest top-of-the-line steam cleaning equipment. Our seven-step process is built around customer satisfaction with fast-drying so there is no leftover wetness.\n\nUPHOLSTERY PRICING: Sofa up to 7ft $245. Love Seat up to 5ft $175. Chair $100. Wing chair $70. Ottoman $75. Sectional $35 per linear ft. Dining chair $40. Pillows $15. $199 min.\n\nUPHOLSTERY CLEANING PROCESS: Save your furniture instead of replacing it. We clean sectionals sofas chairs and ottomans in most fabrics - cotton wool suede canvas chenille and more. Every job starts with an inspection: we identify the fabric check manufacturer best practices look for stains and pet odors/oils and choose the right technique (dry clean low-moisture or steam). Wood portions are protected. We finish by gently brushing fibers so they look uniform.\n\nAREA RUG CLEANING: Each rug is hand-cleaned at our state-of-the-art Evanston warehouse - deep cleaning that removes soil embedded in the fibers not just surface dirt like steam cleaning. Pickup and delivery $4.00 per sqft. Drop-off $3.25 per sqft. $199 min per pickup. 7-10 day turnaround.\n\nRUG REPAIR AND RESTORATION: Over 100 years of expertise restoring fine oriental and heirloom rugs. We fix holes moth damage worn fringes and uneven edges. Services include: re-serging and recasting edges custom-sizing rugs to remove damage or fit a space moth-proofing wrapping rugs for storage cutting pads to size and rug storage. Every job starts with a full inspection.\n\nCOMMERCIAL CARPET CLEANING: Yes we offer commercial carpet cleaning for businesses. Please call (847) 251-1200 for a custom quote.\n\nCUSTOM CARPET: Complimentary design consultation. Our designers help you find the right color pattern and style for your space. Professional installation - we handle pattern direction seamless cutting and proper stretching to avoid wrinkles. Visit Wilmette or Lake Forest showroom to see samples.\n\nIN-STOCK CARPETS: Yes we keep carpet in stock at our showrooms. In-stock carpets can be custom cut with custom binding to quickly fit any room in your home. Stop by Wilmette or Lake Forest to see what we have available.\n\nCUSTOM AREA RUGS: Complimentary design consultation. We are area rug sizing experts - your rug is cut to the exact size you want. Customize material binding color pattern style and placement. Samples available in contemporary transitional and traditional styles at our Wilmette and Lake Forest showrooms - you can take samples home to see how they look in your space.\n\nQUICK SHIP AREA RUGS: Pre-cut sizes ready to ship within 2-3 business days anywhere in the US. Curated best-selling designs in indoor/outdoor luxury performance 100% wool and wool blends and nylons. Every rug has a hand-serged finish. Browse our selection at the showrooms or online.\n\nCUSTOM STAIR RUNNERS: A well-designed staircase elevates your whole home. We help with pattern selection (direction matters!) material choice and landing design. Stair runner installation is one of the most complex parts of our work - every stair is slightly different and we have the expertise to do it right. See samples at our Wilmette or Lake Forest showrooms.\n\nWOOD FLOORING: Prefinished engineered hardwood or unfinished hardwood - we will help you choose the right one for your home. Our team hand-selects wood that meets exacting standards. Full-service from inspiration to installation. We move ALL furniture ourselves. Dust Free sanding. Water-based polyurethane only. Free in-home estimate always.\n\nHARDWOOD FLOOR REFINISHING: Dust-free and non-toxic process - safe for babies children and pets to be home during. We can refinish any color floor and make it lighter. First step is always an inspection of the wood width and depth. Free Custom Color Consultation - just show us the color you want or ask our designers for help.\n\nWOOD CABINETS: Solid wood cabinets for kitchen and bath remodels. We carry J&K Cabinetry (entry-level stock cabinets wide range of styles) and DeWils Cabinetry (custom and semi-custom high-end designs and finishes). We collaborate with you every step - from dreaming the design to installation.\n\nCABINET HARDWARE: Impressive selection of cabinet drawer and appliance hardware - kitchen pulls knobs and finishing touches. Sourced from European vendors HAFELE and Schaub. Our designers help guide your selection to match your style.\n\nCOUNTERTOPS: Premium countertops including quartz for kitchen and bathroom remodels. See touch and feel samples at our Wilmette and Lake Forest showrooms - you can borrow samples to try at home. Our designers help you choose the right color vein edge and design.\n\nVINYL FLOORING: High-quality vinyl plank 100% made in the USA. Standard and luxury options that look and feel like hardwood. Water-resistant scratch-resistant exceptionally durable - perfect for basements laundry rooms mud rooms and bathrooms.\n\nTILE AND BACKSPLASH: Wide selection of tile and backsplashes for kitchens and bathrooms - a great way to add personality to a space. Our designers help you navigate shapes sizes colors and materials. Works as a standalone project or as part of a larger kitchen/bath remodel.\n\nKITCHEN REMODELING: Full-service stress-free kitchen remodeling. Personalized designs to fit your daily life. We manage the entire process - from initial design through completion - with a streamlined transparent approach. Free consultation. Dedicated project manager.\n\nBATHROOM REMODELING: Stress-free full-service bathroom remodeling. Personalized designs that balance function and beauty. We manage every step - from initial design through final installation. Free consultation. Dedicated project manager.\n\nSTAIN REMOVAL - STRICT RULES: You must ONLY use the responses listed below. Do not add generic stain advice from your general knowledge. Do not mention hydrogen peroxide, baking soda, hot water, or any treatments not listed here. If a customer asks about a stain type not listed below, you must say: 'Please call (847) 251-1200 and we can help you with that.'\nListed responses: Blot never scrub. Pet stain: blot warm water dish soap vinegar. Wine: blot club soda. Mud: let dry first. Blood: cold water.\n\nCHICAGO SURCHARGES - SOUTH OF IRVING PARK: Carpet and upholstery cleaning has a $450 minimum and $150 trip charge. Rug pickup and delivery has a $250 trip charge.\n\nRUG CLEANING PRICING FLOW: When you answer a rug pricing question, after giving the price always end with: [BUTTONS:Schedule a Pickup|I have more questions]\n\nFor questions about pricing or services not listed, invite them to call (847) 251-1200 or visit a showroom.";
   var TODAY = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Chicago' });
   SP = 'TODAY IS: ' + TODAY + '. Use this to understand relative terms like tomorrow, next week etc.\n\n' + SP;
-
   var hist = [], cnt = 1, availCache = null;
   var flow = { active: false, type: null, step: null, service: null, duration: 0, awaitingText: false, scope: null, customerInfo: null, timeChoice: null };
-
   // =========================
   // STYLES
   // =========================
@@ -118,7 +115,6 @@
     '@media(max-width:480px){#kb-chat-widget{width:calc(100vw - 20px);height:calc(100vh - 140px);right:10px;bottom:80px;}.kb-times-grid{grid-template-columns:1fr;}.kb-inline-btn{font-size:11px!important;padding:4px 8px!important;font-weight:500!important;width:auto!important;display:inline-block!important;line-height:1.3!important;}}'
   ].join('');
   document.head.appendChild(style);
-
   // =========================
   // BUILD WIDGET
   // =========================
@@ -126,7 +122,6 @@
   btn.id = 'kb-chat-btn';
   btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/><circle cx="8" cy="11" r="1.2" fill="#5bcdc7"/><circle cx="12" cy="11" r="1.2" fill="#5bcdc7"/><circle cx="16" cy="11" r="1.2" fill="#5bcdc7"/></svg>';
   btn.title = 'Chat with Kay';
-
   var widget = document.createElement('div');
   widget.id = 'kb-chat-widget';
   widget.innerHTML =
@@ -141,22 +136,17 @@
       '<textarea id="kb-inp" class="kb-inp" rows="1" placeholder="Ask Kay anything..."></textarea>' +
       '<button class="kb-sb" id="kb-sb"><svg width="15" height="15" viewBox="0 0 24 24" fill="#111"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>' +
     '</div>';
-
   document.body.appendChild(btn);
   document.body.appendChild(widget);
-
   var msgsEl = document.getElementById('kb-msgs');
   var inpEl = document.getElementById('kb-inp');
   var sbEl = document.getElementById('kb-sb');
-
   btn.onclick = function () { widget.style.display = widget.style.display === 'flex' ? 'none' : 'flex'; };
   document.getElementById('kb-close-btn').onclick = function () { widget.style.display = 'none'; };
-
   // =========================
   // HELPERS
   // =========================
   function scrollBottom() { msgsEl.scrollTop = msgsEl.scrollHeight; }
-
   function scrollNice(el, offset) {
     if (!el) return;
     offset = offset || 40;
@@ -166,7 +156,6 @@
       msgsEl.scrollTo({ top: msgsEl.scrollTop + (elRect.top - rect.top) - offset, behavior: 'smooth' });
     }, 80);
   }
-
   function nl2html(t) {
     var extra = '';
     t = t.replace(/\[BUTTONS:([^\]]+)\]/g, function (m, labels) {
@@ -180,7 +169,6 @@
       .join('').replace(/(<li>.*?<\/li>)+/g, function (m) { return '<ul>' + m + '</ul>'; });
     return html + extra;
   }
-
   function getConfirmTiming() {
     var now = new Date(), d = now.getDay(), h = now.getHours(), tv = h + now.getMinutes() / 60;
     if (d === 0) return 'Our team is closed today. Adolfo will confirm your booking first thing Monday morning.';
@@ -189,18 +177,15 @@
     if (tv < 17) return 'Adolfo will confirm your booking within about an hour, and always before 5pm today.';
     return 'Our team has closed for the day. Adolfo will confirm your booking first thing tomorrow morning.';
   }
-
   function fmtDuration(m) { if (!m) return '0 min'; if (m < 60) return m + ' min'; var h = Math.floor(m / 60), r = m % 60; return r ? h + 'h ' + r + 'm' : h + (h === 1 ? ' hour' : ' hours'); }
   function fmtRange(lo, hi) { var mid = Math.round(((lo + hi) / 2) / 30) * 30; if (mid < 60) mid = 60; var l = Math.max(60, mid - 30), h2 = mid + 30; function asH(x) { var v = x / 60; return v === Math.floor(v) ? v + '' : v.toFixed(1); } return l === h2 ? fmtDuration(l) : asH(l) + '-' + asH(h2) + ' hours'; }
   function fmtRounded(m) { return fmtDuration(Math.ceil((m || 0) / 10) * 10); }
   function getQty(id) { var el = document.getElementById(id); return el ? parseInt(el.textContent || '0') : 0; }
-
   // =========================
   // PRICING DATA
   // =========================
   var CR = { 'c-liv': { n: 'Living / Family Room', d: 30 }, 'c-din': { n: 'Dining Room', d: 30 }, 'c-mbd': { n: 'Master Bedroom', d: 50 }, 'c-bed': { n: 'Bedroom', d: 30 }, 'c-off': { n: 'Office / Den', d: 30 }, 'c-bsm': { n: 'Small Basement', d: 45 }, 'c-bml': { n: 'Large Basement', d: 75 }, 'c-hal': { n: 'Hallway', d: 20 }, 'c-sta': { n: 'Stairs (per flight)', d: 20 } };
   var UI = { 'u-sof': { n: "Sofa (up to 7')", p: 245, d: 45 }, 'u-lov': { n: "Love Seat (up to 5')", p: 175, d: 35 }, 'u-cha': { n: 'Chair', p: 100, d: 20 }, 'u-win': { n: 'Wing Chair', p: 70, d: 20 }, 'u-ott': { n: 'Ottoman', p: 75, d: 15 }, 'u-sec': { n: 'Sectional (linear ft)', p: 35, d: 100 }, 'u-din': { n: 'Dining Chair', p: 40, d: 15 }, 'u-pil': { n: 'Pillow / Cushion', p: 15, d: 5 } };
-
   function calcJobDuration(mid) {
     var total = 0, has = false;
     Object.keys(CR).forEach(function (k) { var q = getQty(k + '-' + mid); if (q) { total += q * CR[k].d; has = true; } });
@@ -208,13 +193,11 @@
     if (has) total += 20;
     return total > 0 && total < 60 ? 60 : total;
   }
-
   function adjQty(id, delta, mid) {
     var el = document.getElementById(id); if (!el) return;
     el.textContent = Math.max(0, parseInt(el.textContent || '0') + delta);
     updateScopeDuration(mid);
   }
-
   function updateScopeDuration(mid) {
     var box = document.getElementById('kb-scdur-' + mid);
     var findBtn = document.getElementById('kb-scfind-' + mid);
@@ -235,7 +218,6 @@
       if (findBtn) { findBtn.disabled = false; findBtn.style.opacity = '1'; findBtn.style.cursor = 'pointer'; }
     }
   }
-
   window.kbToggleSection = function (bodyId, arrowId) {
     var b = document.getElementById(bodyId), a = arrowId ? document.getElementById(arrowId) : null;
     if (!b) return;
@@ -243,7 +225,6 @@
     b.style.display = open ? 'none' : 'block';
     if (a) a.textContent = open ? '+' : '\u2212';
   };
-
   // =========================
   // ADDRESS AUTOCOMPLETE
   // =========================
@@ -256,7 +237,7 @@
     input.addEventListener('input', function () {
       clearTimeout(t); var v = input.value.trim(); if (v.length < 3) { dd.style.display = 'none'; return; }
       t = setTimeout(function () {
-        fetch('/.netlify/functions/placesearch?input=' + encodeURIComponent(v)).then(function (r) { return r.json(); }).then(function (d) {
+        fetch(PLACES_URL + '?input=' + encodeURIComponent(v)).then(function (r) { return r.json(); }).then(function (d) {
           dd.innerHTML = ''; if (!d.suggestions || !d.suggestions.length) { dd.style.display = 'none'; return; }
           d.suggestions.forEach(function (s) {
             var item = document.createElement('div'); item.textContent = s;
@@ -273,7 +254,6 @@
   }
   function setupAllAC() { document.querySelectorAll('[data-addr="1"]').forEach(setupAC); }
   new MutationObserver(setupAllAC).observe(widget, { childList: true, subtree: true });
-
   // =========================
   // TABLES
   // =========================
@@ -308,7 +288,6 @@
     });
     return tbl;
   }
-
   // =========================
   // RUG SIZE ROWS
   // =========================
@@ -334,7 +313,6 @@
     row.appendChild(del); container.appendChild(row);
   }
   window.kbAddRugRow = function (mid, prefix) { addRugRow('kb-rugrows-' + mid, mid, prefix); };
-
   function calcRugPrice(mid, prefix) {
     var container = document.getElementById('kb-rugrows-' + mid); if (!container) return;
     var totalSqft = 0, rugCount = 0, oversizeCount = 0, rugDesc = [];
@@ -378,7 +356,6 @@
     if (fe) { fe.dataset.rc = rugCount; fe.dataset.rs = totalSqft; fe.dataset.rt = total.toFixed(2); fe.dataset.rb = base.toFixed(2); fe.dataset.rp = protect.toFixed(2); fe.dataset.re = enzyme.toFixed(2); fe.dataset.rd = pickMin; fe.dataset.rdesc = rugDesc.join(', '); }
   }
   window.kbCalcRug = function (mid, prefix) { calcRugPrice(mid, prefix); };
-
   // =========================
   // INFO FORM
   // =========================
@@ -409,10 +386,8 @@
       '<button class="kb-cancel" onclick="kbCancelInfo(\'' + mid + '\')">Never mind, I will call instead</button>';
     return f;
   }
-
   window.kbTogCtx = function (pfx, mid, checked) { var b = document.getElementById('kb-' + pfx + 'ctx-' + mid); if (b) b.style.display = checked ? 'none' : 'block'; };
   window.kbCancelInfo = function (mid) { var f = document.getElementById('kb-info-' + mid); if (f) f.innerHTML = '<p style="color:#333;font-size:12.5px">No problem! Call us at <strong>(847) 251-1200</strong> or email <strong>info@kashianbros.com</strong>!</p>'; flow.active = false; };
-
   window.kbSubmitInfo = function (mid, nextType) {
     var fn = v('kb-ifn-' + mid), ln = v('kb-iln-' + mid), ph = v('kb-iph-' + mid), em = v('kb-iem-' + mid), ad = v('kb-iad-' + mid);
     var sp = document.getElementById('kb-isp-' + mid).checked;
@@ -425,9 +400,7 @@
     flowMsg(nextType === 'RUG' ? 'Great! Now tell us about your rugs.\n[SHOW_RUG_SCOPE]' : 'Great! Now pick what needs cleaning.\n[SHOW_SCOPE]');
     setTimeout(function () { scrollNice(document.getElementById('kb-scope-' + (cnt - 1)) || document.getElementById('kb-rugscope-' + (cnt - 1))); }, 150);
   };
-
   function v(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
-
   window.kbEditInfo = function (mid) {
     var ic = flow.customerInfo ? document.getElementById('kb-info-' + flow.customerInfo.cardId) : null;
     if (ic) {
@@ -438,7 +411,6 @@
       ic.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
-
   // =========================
   // SCOPE FORM (carpet/uphol)
   // =========================
@@ -454,7 +426,7 @@
         '<div class="kb-addons"><label class="kb-check"><input type="checkbox" id="c-protect-' + mid + '"/> Fiber Protectant <span class="kb-extra-tag">extra</span></label><label class="kb-check"><input type="checkbox" id="c-enzyme-' + mid + '"/> Enzyme Treatment <span class="kb-extra-tag">extra</span></label></div>' +
         '</div></div>' +
         '<div class="kb-section"><div class="kb-section-hdr" onclick="kbToggleSection(\'kb-scuphol-' + mid + '\',\'kb-suarrow-' + mid + '\')">Upholstery Cleaning <span id="kb-suarrow-' + mid + '">+</span></div>' +
-        '<div id="kb-scuphol-' + mid + '" class="kb-section-body" style="display:none"><div class="kb-uphol-note">Prices are rough estimates. Final quote given on-site.</div><div id="kb-sctblu-' + mid + '"></div>' +
+        '<div id="kb-scuphol-' + mid + '" class="kb-section-body" style="display:none"><div class="kb-uphol-note">Prices shown are rough estimates. Final quote determined when our crew measures on-site.</div><div id="kb-sctblu-' + mid + '"></div>' +
         '<div class="kb-addons"><label class="kb-check"><input type="checkbox" id="u-protect-' + mid + '"/> Fiber Protectant <span class="kb-extra-tag">extra</span></label><label class="kb-check"><input type="checkbox" id="u-enzyme-' + mid + '"/> Deodorize/Enzyme <span class="kb-extra-tag">extra</span></label><label class="kb-check"><input type="checkbox" id="u-antibac-' + mid + '"/> Antibacterial <span class="kb-extra-tag">extra</span></label></div>' +
         '</div></div>' +
         '<div class="kb-duration-box" id="kb-scdur-' + mid + '"><small style="color:#1e40af">Pick at least one room or item to see your job time</small></div>' +
@@ -470,9 +442,7 @@
     }, 50);
     return f;
   }
-
   window.kbCancelScope = function (mid) { var f = document.getElementById('kb-scope-' + mid) || document.getElementById('kb-rugscope-' + mid); if (f) f.innerHTML = '<p style="color:#333;font-size:12.5px">No problem! Call us at <strong>(847) 251-1200</strong> or email <strong>info@kashianbros.com</strong>!</p>'; flow.active = false; };
-
   window.kbSubmitScope = function (mid) {
     var mins = calcJobDuration(mid); if (!mins) { alert('Please pick at least one room or upholstery item.'); return; }
     var cL = [], uL = [], uSub = 0;
@@ -485,9 +455,7 @@
     advStage2('scope', mid);
     fetchSlots('scope', mid, 'CARPET');
   };
-
   function chk(id) { var el = document.getElementById(id); return el && el.checked; }
-
   window.kbEditScope = function (mid) {
     var isRug = !!document.getElementById('kb-rugscope-' + mid);
     var pfx = isRug ? 'kb-rugscope-' : 'kb-scope-';
@@ -498,7 +466,6 @@
     flow.timeChoice = null; flow.scope = null;
     if (!isRug) updateScopeDuration(mid);
   };
-
   // =========================
   // RUG SCOPE FORM
   // =========================
@@ -537,7 +504,6 @@
       '<div class="kb-stage-3" id="kb-rugscope-s3-' + mid + '" style="display:none"></div>';
     return f;
   }
-
   window.kbSubmitRugScope = function (mid) {
     var fe = document.getElementById('kb-rugscope-' + mid);
     if (!fe || !parseInt(fe.dataset.rc)) { alert('Please add at least one rug.'); return; }
@@ -547,7 +513,6 @@
     advStage2('rugscope', mid);
     fetchSlots('rugscope', mid, 'RUG');
   };
-
   // =========================
   // STAGES 2 + 3
   // =========================
@@ -557,7 +522,6 @@
     if (disp.length > 62) disp = ci.fname + ' ' + ci.lname + ' \u2014 ' + ci.addr.substring(0, 45) + '...';
     return '<div class="kb-flow-row"><div><span class="kb-flow-check">\u2713</span>' + disp + '</div><button class="kb-flow-edit" onclick="kbEditInfo(\'' + mid + '\')">edit</button></div>';
   }
-
   function scopeLine(mid) {
     if (!flow.scope) return '';
     var sc = flow.scope, txt = '';
@@ -565,9 +529,7 @@
     else { var lines = sc.carpetLines.concat(sc.upholLines); var sum = lines.join(', '); if (sum.length > 55) sum = lines.length + ' items'; txt = '<strong>' + fmtRange(sc.durationLow, sc.durationHigh) + '</strong> \u2014 ' + sum; }
     return '<div class="kb-flow-row"><div><span class="kb-flow-check">\u2713</span>' + txt + '</div><button class="kb-flow-edit" onclick="kbEditScope(\'' + mid + '\')">edit</button></div>';
   }
-
   function timeLine() { return '<div class="kb-flow-row"><div><span class="kb-flow-check">\u2713</span>' + (flow.timeChoice || '') + '</div></div>'; }
-
   function advStage2(pfx, mid) {
     var card = document.getElementById('kb-' + pfx + '-' + mid); if (!card) return;
     var s1 = document.getElementById('kb-' + pfx + '-s1-' + mid) || card.querySelector('[id^="kb-scs1-"],[id^="kb-rugscope-s1-"]');
@@ -577,10 +539,9 @@
     var s2 = document.getElementById('kb-' + pfx + '-s2-' + mid); if (s2) s2.style.display = 'block';
     scrollNice(top || s2);
   }
-
   async function fetchSlots(pfx, mid, type) {
-    // resolve the actual s2 element (two possible naming schemes)
-    var s2 = document.getElementById('kb-' + pfx + '-s2-' + mid);
+    var s2Id = pfx === 'scope' ? ('kb-scs2-' + mid) : ('kb-rugscope-s2-' + mid);
+    var s2 = document.getElementById(s2Id);
     if (!s2) return;
     s2.innerHTML = '<div class="kb-stage-hdr">Pick a time</div><div style="font-size:12.5px;color:#64748b;font-style:italic;padding:6px 0">Checking our schedule...</div>';
     try {
@@ -599,29 +560,28 @@
       s2.innerHTML = '<div class="kb-stage-hdr">Pick a time</div><div style="font-size:12.5px;color:#475569;padding:6px 0">Connection error. Please call <strong>(847) 251-1200</strong>.</div>';
     }
   }
-
   window.kbPickTime = function (mid, label, pfx) {
     flow.timeChoice = label;
-    var s2 = document.getElementById('kb-' + pfx + '-s2-' + mid); if (s2) s2.style.display = 'none';
+    var s2Id = pfx === 'scope' ? ('kb-scs2-' + mid) : ('kb-rugscope-s2-' + mid);
+    var s2 = document.getElementById(s2Id); if (s2) s2.style.display = 'none';
     var top = document.getElementById('kb-' + pfx + '-top-' + mid) || document.getElementById('kb-sctop-' + mid) || document.getElementById('kb-rugscope-top-' + mid);
     if (top) top.innerHTML = infoLine(mid) + scopeLine(mid) + timeLine();
     advStage3(pfx, mid);
   };
-
   window.kbCustomTime = function (mid, pfx) {
-    var s2 = document.getElementById('kb-' + pfx + '-s2-' + mid); if (!s2) return;
+    var s2Id = pfx === 'scope' ? ('kb-scs2-' + mid) : ('kb-rugscope-s2-' + mid);
+    var s2 = document.getElementById(s2Id); if (!s2) return;
     s2.innerHTML = '<div class="kb-stage-hdr">Pick a time</div><div style="display:flex;flex-direction:column;gap:7px"><label class="kb-label">What date and time works for you?</label><input class="kb-input" id="kb-ct-' + mid + '" placeholder="e.g. Monday May 12 at 10:00 AM"/><button class="kb-submit" onclick="kbSubmitCustomTime(\'' + mid + '\',\'' + pfx + '\')">Use this time</button><button class="kb-cancel" onclick="fetchSlots(\'' + pfx + '\',\'' + mid + '\',\'CARPET\')">&larr; Back</button></div>';
     setTimeout(function () { var inp = document.getElementById('kb-ct-' + mid); if (inp) inp.focus(); }, 80);
   };
   window.kbSubmitCustomTime = function (mid, pfx) { var inp = document.getElementById('kb-ct-' + mid); if (!inp || !inp.value.trim()) { alert('Please enter a date and time.'); return; } kbPickTime(mid, inp.value.trim(), pfx); };
-
   function advStage3(pfx, mid) {
-    var s3 = document.getElementById('kb-' + pfx + '-s3-' + mid); if (!s3) return;
+    var s3Id = pfx === 'scope' ? ('kb-scs3-' + mid) : ('kb-rugscope-s3-' + mid);
+    var s3 = document.getElementById(s3Id); if (!s3) return;
     s3.style.display = 'block'; s3.innerHTML = ''; s3.appendChild(buildReviewForm(mid));
     var top = document.getElementById('kb-' + pfx + '-top-' + mid) || document.getElementById('kb-sctop-' + mid) || document.getElementById('kb-rugscope-top-' + mid);
     scrollNice(top || s3);
   }
-
   function buildReviewForm(mid) {
     var div = document.createElement('div');
     var ci = flow.customerInfo || {}, sc = flow.scope || {};
@@ -652,7 +612,6 @@
     html += '<button class="kb-submit" onclick="kbFinalBooking(\'' + mid + '\')">Send Booking Request &#x2713;</button>';
     div.innerHTML = html; return div;
   }
-
   window.kbFinalBooking = function (mid) {
     var ci = flow.customerInfo; if (!ci) { alert('Missing customer info. Please start over.'); return; }
     var sc = flow.scope || {}, name = (ci.fname + ' ' + ci.lname).trim();
@@ -682,7 +641,6 @@
     hist.push({ role: 'assistant', content: 'Booking sent! ' + timing });
     flow.scope = null; flow.customerInfo = null; flow.timeChoice = null; flow.active = false;
   };
-
   // =========================
   // ADD MESSAGE
   // =========================
@@ -692,7 +650,6 @@
     var showRug = content.indexOf('[SHOW_RUG_SCOPE]') !== -1;
     var infoMatch = content.match(/\[SHOW_INFO_FORM:(CARPET|RUG)\]/);
     var clean = content.replace(/\[SHOW_SCOPE\]/g, '').replace(/\[SHOW_RUG_SCOPE\]/g, '').replace(/\[SHOW_INFO_FORM:(CARPET|RUG)\]/g, '').trim();
-
     var row = document.createElement('div'); row.className = 'kb-row ' + (isBot ? 'b' : 'u'); row.id = 'kbr' + id;
     var ic = document.createElement('div'); ic.className = 'kb-ic ' + (isBot ? 'b' : 'u'); ic.innerHTML = isBot ? '&#x1F9F9;' : '&#x1F464;';
     var wrap = document.createElement('div'); wrap.style.maxWidth = '100%';
@@ -705,7 +662,6 @@
     row.appendChild(ic); row.appendChild(wrap);
     msgsEl.appendChild(row); scrollBottom(); cnt++;
   }
-
   function addTyping() {
     var row = document.createElement('div'); row.className = 'kb-row b'; row.id = 'kb-typing';
     var ic = document.createElement('div'); ic.className = 'kb-ic b'; ic.innerHTML = '&#x1F9F9;';
@@ -714,18 +670,15 @@
     row.appendChild(ic); row.appendChild(td); msgsEl.appendChild(row); scrollBottom();
   }
   function removeTyping() { var t = document.getElementById('kb-typing'); if (t) t.remove(); }
-
   // =========================
   // FLOW
   // =========================
   function flowMsg(text) { hist.push({ role: 'assistant', content: text }); addMsg('assistant', text, cnt); }
-
   window.kbHandleInput = function (text, btn) {
     if (btn) { var par = btn.parentNode; if (par) par.querySelectorAll('.kb-inline-btn').forEach(function (b) { b.disabled = true; b.style.opacity = '0.4'; }); }
     if (text === 'Schedule a Pickup') { addMsg('user', text, cnt); hist.push({ role: 'user', content: text }); startRugFlow(); return; }
     if (flow.active) { handleFlowBtn(text); } else { kbSend(text); }
   };
-
   function handleFlowBtn(text) {
     if (flow.step === 'time_choice') {
       addMsg('user', text, cnt); hist.push({ role: 'user', content: text });
@@ -733,21 +686,18 @@
       else { flow.active = false; }
     }
   }
-
   function startCarpetFlow() {
     flow = { active: true, type: 'carpet_upholstery', step: 'info', service: null, duration: 0, awaitingText: false, scope: null, customerInfo: null, timeChoice: null };
     addMsg('user', 'Schedule Carpet & Upholstery Cleaning', cnt);
     hist.push({ role: 'user', content: 'Schedule Carpet & Upholstery Cleaning' });
     flowMsg("Happy to help! Let's get you scheduled. First, tell us a bit about you.\n[SHOW_INFO_FORM:CARPET]");
   }
-
   function startRugFlow() {
     flow = { active: true, type: 'rug', step: 'info', service: 'rug', duration: 0, awaitingText: false, scope: null, customerInfo: null, timeChoice: null };
     addMsg('user', 'Schedule Rug Pickup', cnt);
     hist.push({ role: 'user', content: 'Schedule Rug Pickup' });
     flowMsg("Happy to help with your rug pickup! Let's get you scheduled. First, tell us a bit about you.\n[SHOW_INFO_FORM:RUG]");
   }
-
   // =========================
   // MAIN MENU
   // =========================
@@ -757,9 +707,9 @@
     var container = document.createElement('div'); container.style.cssText = 'margin-top:10px;display:flex;flex-direction:column;gap:11px';
     var sections = [
       { t: 'Schedule', b: [{ l: 'Schedule Carpet & Upholstery Cleaning', a: 'carpet' }, { l: 'Schedule Rug Pickup', a: 'rug' }] },
-      { t: 'Carpet & Rugs', b: [{ l: 'Custom Carpet', m: 'Tell me about custom carpet' }, { l: 'In-stock Carpets', m: 'Tell me about your in-stock carpets' }, { l: 'Custom Area Rugs', m: 'Tell me about custom area rugs' }, { l: 'Quick Ship Area Rugs', m: 'Tell me about quick ship area rugs' }, { l: 'Custom Stair Runners', m: 'Tell me about custom stair runners' }, { l: 'Rug Repair & Restoration', m: 'Tell me about rug repair and restoration' }] },
+      { t: 'Carpet & Rugs', b: [{ l: 'Custom Carpet', m: 'Tell me about custom carpet' }, { l: 'In-stock Carpets', m: 'Tell me about your in-stock carpets' }, { l: 'Custom Area Rugs', m: 'Tell me about custom area rugs' }, { l: 'Quick Ship Area Rugs', m: 'Tell me about quick ship area rugs' }, { l: 'Custom Stair Runners', m: 'Tell me about custom stair runners' }, { l: 'Rug Repair & Restoration', m: 'Tell me about rug repair and restoration' }, { l: 'Commercial Carpet Cleaning', m: 'Tell me about commercial carpet cleaning' }] },
       { t: 'Hard Surface Flooring', b: [{ l: 'Wood Flooring', m: 'Tell me about wood flooring' }, { l: 'Hardwood Floor Refinishing', m: 'Tell me about hardwood floor refinishing' }, { l: 'Vinyl Flooring', m: 'Tell me about vinyl flooring' }, { l: 'Tile & Backsplash', m: 'Tell me about tile and backsplash' }] },
-      { t: 'Kitchen & Bath', b: [{ l: 'Kitchen Remodeling', m: 'Tell me about kitchen remodeling' }, { l: 'Bathroom Remodeling', m: 'Tell me about bathroom remodeling' }, { l: 'Wood Cabinets', m: 'Tell me about wood cabinets' }, { l: 'Countertops', m: 'Tell me about countertops' }] },
+      { t: 'Kitchen & Bath', b: [{ l: 'Kitchen Remodeling', m: 'Tell me about kitchen remodeling' }, { l: 'Bathroom Remodeling', m: 'Tell me about bathroom remodeling' }, { l: 'Wood Cabinets', m: 'Tell me about wood cabinets' }, { l: 'Cabinet Hardware', m: 'Tell me about cabinet hardware' }, { l: 'Countertops', m: 'Tell me about countertops' }] },
       { t: 'Questions', b: [{ l: 'Rug Cleaning Prices', m: 'I would like to know about rug cleaning prices' }, { l: 'My Dog Had an Accident on My Rug', m: 'My dog had an accident on my rug' }, { l: "I Spilled Red Wine \u2014 What Do I Do?", m: 'I spilled red wine - what do I do?' }, { l: 'How Much Is a Rug Pad?', m: 'How much is a rug pad?' }, { l: 'Ask Another Question', m: 'I have a question' }] }
     ];
     sections.forEach(function (group) {
@@ -779,7 +729,6 @@
     });
     bub.appendChild(container);
   }
-
   // =========================
   // SEND
   // =========================
@@ -814,22 +763,18 @@
       }).finally(function () { sbEl.disabled = false; });
   }
   window.kbSend = kbSend;
-
   // =========================
   // EVENTS
   // =========================
   sbEl.onclick = function () { kbSend(inpEl.value); };
   inpEl.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); kbSend(inpEl.value); } });
-
   // =========================
   // PREFETCH AVAILABILITY
   // =========================
   (async function () { try { var r = await fetch(AVAIL_URL); var d = await r.json(); if (d.summary) availCache = d.summary; } catch (e) {} })();
-
   // =========================
   // WELCOME + MENU
   // =========================
   addMsg('assistant', "Hi! I'm Kay from Kashian Bros. How can I help you today?", 0);
   showMainButtons();
-
 })();
