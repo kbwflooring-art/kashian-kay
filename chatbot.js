@@ -53,7 +53,7 @@
     '.kb-inline-btn:hover{background:#0891b2;color:#fff;}',
     '.kb-inline-btn:disabled{opacity:0.4;cursor:not-allowed;}',
     '.kb-menu-title{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;padding-bottom:2px;border-bottom:1px solid #e2e8f0;}',
-    '.kb-form{background:#fff;border:2px solid #5bcdc7;border-radius:10px;padding:14px;margin-top:6px;font-size:13px;}',
+    '.kb-form{background:#fff;border:2px solid #5bcdc7;border-radius:10px;padding:12px;margin-top:6px;font-size:13px;}',
     '.kb-form h3{color:#111;font-size:13px;margin-bottom:10px;font-weight:700;}',
     '.kb-note{background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:8px 10px;margin-bottom:9px;font-size:11.5px;color:#92400e;line-height:1.5;}',
     '.kb-row-2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px;}',
@@ -97,7 +97,7 @@
     '.kb-stage-2,.kb-stage-3{padding-top:12px;margin-top:12px;border-top:2px dashed #cbd5e1;}',
     '.kb-stage-hdr{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}',
     '.kb-times-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}',
-    '.kb-time-btn{font-family:inherit;cursor:pointer;background:#fff;border:1.5px solid #5bcdc7;color:#0e7490;border-radius:8px;padding:9px 10px;font-size:12px;font-weight:500;text-align:center;line-height:1.3;}',
+    '.kb-time-btn{font-family:inherit;cursor:pointer;background:#fff;border:1.5px solid #5bcdc7;color:#0e7490;border-radius:8px;padding:9px 6px;font-size:11.5px;font-weight:500;text-align:center;line-height:1.3;word-break:keep-all;}',
     '.kb-time-btn:hover{background:#5bcdc7;color:#111;}',
     '.kb-time-other{font-family:inherit;cursor:pointer;background:none;border:none;color:#0891b2;font-size:12px;text-decoration:underline;padding:5px 0;margin-top:3px;display:block;width:100%;text-align:center;}',
     '.kb-review-block{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;margin:7px 0;}',
@@ -149,24 +149,14 @@
   function scrollBottom() { msgsEl.scrollTop = msgsEl.scrollHeight; }
   function scrollNice(el, offset) {
     if (!el) return;
-    offset = offset || 40;
-    // Scroll so the BOTTOM of the target element is visible in the chat area,
-    // so the action button (Continue, Find Times, Send Booking) is in view.
+    offset = offset || 12;
+    // Scroll so the TOP of the target element sits near the top of the chat area.
+    // This puts the new stage right at the top of view, with all its content (including action button) below it.
     setTimeout(function () {
       var rect = msgsEl.getBoundingClientRect();
       var elRect = el.getBoundingClientRect();
-      // How much below the visible area is the bottom of the element?
-      var bottomOverflow = elRect.bottom - rect.bottom;
-      if (bottomOverflow > 0) {
-        // Scroll down by that amount + a small padding
-        msgsEl.scrollTo({ top: msgsEl.scrollTop + bottomOverflow + 20, behavior: 'smooth' });
-      } else {
-        // Element fits — make sure its top isn't above the viewport either
-        var topGap = rect.top - elRect.top;
-        if (topGap > 0) {
-          msgsEl.scrollTo({ top: msgsEl.scrollTop - topGap - offset, behavior: 'smooth' });
-        }
-      }
+      var delta = elRect.top - rect.top - offset;
+      msgsEl.scrollTo({ top: msgsEl.scrollTop + delta, behavior: 'smooth' });
     }, 150);
   }
   function nl2html(t) {
@@ -553,7 +543,8 @@
     var top = document.getElementById(topId);
     if (top) { top.style.display = 'block'; top.innerHTML = infoLine(mid) + scopeLine(mid); }
     var s2 = document.getElementById(s2Id); if (s2) s2.style.display = 'block';
-    scrollNice(top || s2);
+    // Scroll so the Stage 2 section is at the top of the visible area (above it: just the summary lines)
+    scrollNice(s2);
   }
   async function fetchSlots(pfx, mid, type) {
     var s2Id = pfx === 'scope' ? ('kb-scs2-' + mid) : ('kb-rugscope-s2-' + mid);
@@ -594,11 +585,10 @@
   window.kbSubmitCustomTime = function (mid, pfx) { var inp = document.getElementById('kb-ct-' + mid); if (!inp || !inp.value.trim()) { alert('Please enter a date and time.'); return; } kbPickTime(mid, inp.value.trim(), pfx); };
   function advStage3(pfx, mid) {
     var s3Id = pfx === 'scope' ? ('kb-scs3-' + mid) : ('kb-rugscope-s3-' + mid);
-    var topId = pfx === 'scope' ? ('kb-sctop-' + mid) : ('kb-rugscope-top-' + mid);
     var s3 = document.getElementById(s3Id); if (!s3) return;
     s3.style.display = 'block'; s3.innerHTML = ''; s3.appendChild(buildReviewForm(mid));
-    var top = document.getElementById(topId);
-    scrollNice(top || s3);
+    // Scroll so the Stage 3 review section is at the top of the visible area
+    scrollNice(s3);
   }
   function buildReviewForm(mid) {
     var div = document.createElement('div');
