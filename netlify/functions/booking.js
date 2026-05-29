@@ -1,5 +1,12 @@
 exports.handler = async function(event) {
-  if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
+  // CORS headers — allow the chatbot embedded on kashianbros.com (or any domain) to call this function
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+  };
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: corsHeaders, body: '' };
+  if (event.httpMethod !== 'POST') return { statusCode: 405, headers: corsHeaders, body: 'Method not allowed' };
 
   try {
     const b = JSON.parse(event.body);
@@ -110,10 +117,10 @@ exports.handler = async function(event) {
     const resData = await res.json();
     if (!res.ok) throw new Error(JSON.stringify(resData));
 
-    return { statusCode: 200, body: JSON.stringify({ success: true }) };
+    return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ success: true }) };
 
   } catch(e) {
     console.error('Booking error:', e);
-    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
+    return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: e.message }) };
   }
 };
