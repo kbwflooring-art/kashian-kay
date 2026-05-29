@@ -19,10 +19,10 @@
   var style = document.createElement('style');
   style.innerHTML = [
     '#kb-chat-btn{position:fixed;bottom:24px;right:24px;height:60px;padding:0 22px 0 6px;border-radius:30px;border:none;background:#88EAE4;color:#fff;font-size:15px;font-weight:700;font-family:Raleway,Arial,sans-serif;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.22);transition:transform .2s ease,box-shadow .2s ease;display:flex;align-items:center;gap:12px;letter-spacing:0.01em;text-shadow:0 1px 2px rgba(0,0,0,0.08);}',
-    '#kb-chat-btn .kb-avatar{width:48px;height:48px;border-radius:50%;background:#fff;color:#0e7490;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;text-shadow:none;flex-shrink:0;}',
+    '#kb-chat-btn .kb-avatar{width:48px;height:48px;border-radius:50%;background:#fff;color:#88EAE4;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;text-shadow:none;flex-shrink:0;}',
     '#kb-chat-btn:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,0.28);}',
     '#kb-chat-btn svg{flex-shrink:0;}',
-    '#kb-chat-widget{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);width:450px;height:720px;background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;z-index:999998;box-shadow:0 20px 60px rgba(0,0,0,0.22);border:1px solid #b8eeeb;font-family:Raleway,Arial,sans-serif;color:#111;letter-spacing:0.02em;}',
+    '#kb-chat-widget{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);width:450px;height:720px;background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;z-index:999998;box-shadow:0 20px 60px rgba(0,0,0,0.22);border:1px solid #88EAE4;font-family:Raleway,Arial,sans-serif;color:#111;letter-spacing:0.02em;}',
     '#kb-chat-widget *{box-sizing:border-box;}',
     '@keyframes kb-bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}',
     '.kb-hdr{background:#5bcdc7;padding:13px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #9de8e4;flex-shrink:0;}',
