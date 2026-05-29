@@ -20,7 +20,7 @@
   style.innerHTML = [
     '#kb-chat-btn{position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;border:none;background:#88EAE4;color:#fff;font-size:24px;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.2);transition:transform .2s ease;display:flex;align-items:center;justify-content:center;}',
     '#kb-chat-btn:hover{transform:scale(1.07);}',
-    '#kb-chat-widget{position:fixed;bottom:96px;right:24px;width:400px;height:680px;background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;z-index:999998;box-shadow:0 20px 60px rgba(0,0,0,0.22);border:1px solid #b8eeeb;font-family:Raleway,Arial,sans-serif;color:#111;letter-spacing:0.02em;}',
+    '#kb-chat-widget{position:fixed;bottom:96px;right:24px;width:450px;height:720px;background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;z-index:999998;box-shadow:0 20px 60px rgba(0,0,0,0.22);border:1px solid #b8eeeb;font-family:Raleway,Arial,sans-serif;color:#111;letter-spacing:0.02em;}',
     '#kb-chat-widget *{box-sizing:border-box;}',
     '@keyframes kb-bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}',
     '.kb-hdr{background:#5bcdc7;padding:13px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #9de8e4;flex-shrink:0;}',
@@ -150,11 +150,24 @@
   function scrollNice(el, offset) {
     if (!el) return;
     offset = offset || 40;
+    // Scroll so the BOTTOM of the target element is visible in the chat area,
+    // so the action button (Continue, Find Times, Send Booking) is in view.
     setTimeout(function () {
       var rect = msgsEl.getBoundingClientRect();
       var elRect = el.getBoundingClientRect();
-      msgsEl.scrollTo({ top: msgsEl.scrollTop + (elRect.top - rect.top) - offset, behavior: 'smooth' });
-    }, 80);
+      // How much below the visible area is the bottom of the element?
+      var bottomOverflow = elRect.bottom - rect.bottom;
+      if (bottomOverflow > 0) {
+        // Scroll down by that amount + a small padding
+        msgsEl.scrollTo({ top: msgsEl.scrollTop + bottomOverflow + 20, behavior: 'smooth' });
+      } else {
+        // Element fits — make sure its top isn't above the viewport either
+        var topGap = rect.top - elRect.top;
+        if (topGap > 0) {
+          msgsEl.scrollTo({ top: msgsEl.scrollTop - topGap - offset, behavior: 'smooth' });
+        }
+      }
+    }, 150);
   }
   function nl2html(t) {
     var extra = '';
