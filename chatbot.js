@@ -687,7 +687,6 @@
   // =========================
   function flowMsg(text) { hist.push({ role: 'assistant', content: text }); addMsg('assistant', text, cnt); }
   window.kbHandleInput = function (text, btn) {
-    if (btn) { var par = btn.parentNode; if (par) par.querySelectorAll('.kb-inline-btn').forEach(function (b) { b.disabled = true; b.style.opacity = '0.4'; }); }
     if (text === 'Schedule a Pickup') { addMsg('user', text, cnt); hist.push({ role: 'user', content: text }); startRugFlow(); return; }
     if (flow.active) { handleFlowBtn(text); } else { kbSend(text); }
   };
@@ -730,7 +729,6 @@
       group.b.forEach(function (b) {
         var btn = document.createElement('button'); btn.className = 'kb-inline-btn'; btn.textContent = b.l;
         btn.onclick = function () {
-          container.querySelectorAll('.kb-inline-btn').forEach(function (x) { x.disabled = true; x.style.opacity = '0.4'; });
           if (b.a === 'carpet') startCarpetFlow();
           else if (b.a === 'rug') startRugFlow();
           else kbSend(b.m);
