@@ -839,7 +839,20 @@
     // ----- INTERCEPT: rug pad price questions with dimensions -----
     // If the customer is asking about a rug pad price AND has provided dimensions,
     // compute the answer in code instead of asking Kay. This guarantees correct math.
-    if (isPadPriceQuestion(text)) {
+    // Also fires if customer JUST sends dimensions in a conversation that was just about pads.
+    var inPadContext = false;
+    // Look at the last assistant message - if it was about pads, dimensions alone trigger the calc
+    for (var i = hist.length - 1; i >= 0 && i >= hist.length - 4; i--) {
+      if (hist[i].role === 'assistant' && /\bpad\b/i.test(hist[i].content) && !/carpet\s+pad/i.test(hist[i].content)) {
+        inPadContext = true;
+        break;
+      }
+      if (hist[i].role === 'user' && /\bpad\b/i.test(hist[i].content) && !/carpet\s+pad/i.test(hist[i].content)) {
+        inPadContext = true;
+        break;
+      }
+    }
+    if (isPadPriceQuestion(text) || (inPadContext && /\d+\s*['\u2032]?\s*(?:\d+\s*(?:["\u2033]|in|inches?)?\s*)?(?:x|\u00d7|by)\s*\d/i.test(text))) {
       var dims = parsePadDimensions(text);
       if (dims) {
         var answer = buildPadPriceAnswer(dims);
