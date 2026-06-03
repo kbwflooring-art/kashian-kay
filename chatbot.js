@@ -740,8 +740,84 @@
     bub.appendChild(container);
   }
   // =========================
-  // SEND
+  // RUG PAD PRICE CALCULATOR (hard-coded for accuracy)
   // =========================
+  // Round each dimension using 6"+ up, 5"- down rule
+  function padRound(ft, inches) {
+    ft = parseInt(ft) || 0;
+    inches = parseInt(inches) || 0;
+    return ft + (inches >= 6 ? 1 : 0);
+  }
+  // Compute the FIRMGRIP pad price for a rug of given rounded dimensions (in feet)
+  function calcPadPrice(roundedA, roundedB) {
+    var shorter = Math.min(roundedA, roundedB);
+    var longer = Math.max(roundedA, roundedB);
+    var price;
+    if (shorter <= 6) {
+      // 6 ft roll x longer side x $2
+      price = 6 * longer * 2;
+    } else if (shorter <= 12) {
+      // 12 ft roll x shorter side x $2
+      price = 12 * shorter * 2;
+    } else {
+      // Oversized rug - no roll fits. Use actual dimensions.
+      price = shorter * longer * 2;
+    }
+    // $48 minimum
+    if (price < 48) price = 48;
+    return price;
+  }
+  // Try to extract two rug dimensions from a customer message. Returns {a:{ft,in}, b:{ft,in}} or null.
+  // Accepts formats like: 8x10, 8' x 10', 8'7" x 10'2", 6'4" by 9'6", 5 ft 10 in x 9 ft, etc.
+  function parsePadDimensions(text) {
+    // Normalize quotes and the word "by"
+    var s = text.toLowerCase().replace(/[\u2018\u2019\u201C\u201D]/g, "'").replace(/\bby\b/g, 'x').replace(/\u00d7/g, 'x');
+    // Patterns to try (in order from most specific to least)
+    // Format: 8'7" x 10'2" or 8'7 x 10'2
+    var m = s.match(/(\d{1,2})\s*['\u2032]\s*(\d{1,2})\s*(?:["\u2033]|in|inches?)?\s*x\s*(\d{1,2})\s*['\u2032]\s*(\d{1,2})\s*(?:["\u2033]|in|inches?)?/);
+    if (m) return { a: { ft: m[1], in: m[2] }, b: { ft: m[3], in: m[4] } };
+    // Format: 8' x 10'7"
+    m = s.match(/(\d{1,2})\s*['\u2032]\s*x\s*(\d{1,2})\s*['\u2032]\s*(\d{1,2})\s*(?:["\u2033]|in|inches?)?/);
+    if (m) return { a: { ft: m[1], in: 0 }, b: { ft: m[2], in: m[3] } };
+    // Format: 8'7" x 10' (or 8'7 x 10')
+    m = s.match(/(\d{1,2})\s*['\u2032]\s*(\d{1,2})\s*(?:["\u2033]|in|inches?)?\s*x\s*(\d{1,2})\s*['\u2032]?/);
+    if (m) return { a: { ft: m[1], in: m[2] }, b: { ft: m[3], in: 0 } };
+    // Format: 8 ft 7 in x 10 ft 2 in
+    m = s.match(/(\d{1,2})\s*(?:ft|feet|foot|')\s*(\d{1,2})\s*(?:in|inch|inches|")\s*x\s*(\d{1,2})\s*(?:ft|feet|foot|')\s*(\d{1,2})\s*(?:in|inch|inches|")/);
+    if (m) return { a: { ft: m[1], in: m[2] }, b: { ft: m[3], in: m[4] } };
+    // Format: 8 ft x 10 ft (or just 8x10)
+    m = s.match(/(\d{1,2})\s*(?:ft|feet|foot|')?\s*x\s*(\d{1,2})\s*(?:ft|feet|foot|')?/);
+    if (m) return { a: { ft: m[1], in: 0 }, b: { ft: m[2], in: 0 } };
+    return null;
+  }
+  // Detect if a message is a rug pad pricing question. Must mention "pad" + cost context.
+  function isPadPriceQuestion(text) {
+    var s = text.toLowerCase();
+    if (!/\bpad\b/.test(s)) return false;
+    // Exclude carpet pad questions
+    if (/carpet\s+pad/.test(s)) return false;
+    // Match price / cost language OR just dimensions (e.g. "8x10 pad" or "pad 8x10")
+    return /(price|cost|how\s+much|quote|estimate|charge)/.test(s) || /\d/.test(s);
+  }
+  // Format dimension for friendly display: 8 ft (rounded)
+  function fmtRoundedDim(ft, inches) {
+    var r = padRound(ft, inches);
+    return r;
+  }
+  // Build the Kay-style answer for a pad price question with given dimensions
+  function buildPadPriceAnswer(dims) {
+    var roundedA = padRound(dims.a.ft, dims.a.in);
+    var roundedB = padRound(dims.b.ft, dims.b.in);
+    if (roundedA === 0 || roundedB === 0) return null;
+    var price = calcPadPrice(roundedA, roundedB);
+    var shorter = Math.min(roundedA, roundedB);
+    var longer = Math.max(roundedA, roundedB);
+    // Friendly dimension display - if customer gave inches, echo them, otherwise just the feet
+    var aStr = (parseInt(dims.a.in) || 0) > 0 ? dims.a.ft + "'" + dims.a.in + '"' : dims.a.ft + "'";
+    var bStr = (parseInt(dims.b.in) || 0) > 0 ? dims.b.ft + "'" + dims.b.in + '"' : dims.b.ft + "'";
+    return "For a " + aStr + " x " + bStr + " rug, the pad would be $" + price + ".";
+  }
+
   function kbSend(text) {
     if (!text || !text.trim()) return;
     if (flow.active && flow.awaitingText) {
@@ -758,6 +834,21 @@
           } catch (e) { flowMsg('I had trouble checking the schedule. Please call (847) 251-1200!'); flow.active = false; }
         })();
         inpEl.value = ''; return;
+      }
+    }
+    // ----- INTERCEPT: rug pad price questions with dimensions -----
+    // If the customer is asking about a rug pad price AND has provided dimensions,
+    // compute the answer in code instead of asking Kay. This guarantees correct math.
+    if (isPadPriceQuestion(text)) {
+      var dims = parsePadDimensions(text);
+      if (dims) {
+        var answer = buildPadPriceAnswer(dims);
+        if (answer) {
+          inpEl.value = ''; sbEl.disabled = false;
+          addMsg('user', text, cnt); hist.push({ role: 'user', content: text });
+          addMsg('assistant', answer, cnt); hist.push({ role: 'assistant', content: answer });
+          return;
+        }
       }
     }
     inpEl.value = ''; sbEl.disabled = true;
