@@ -187,7 +187,13 @@
   function fmtDuration(m) { if (!m) return '0 min'; if (m < 60) return m + ' min'; var h = Math.floor(m / 60), r = m % 60; return r ? h + 'h ' + r + 'm' : h + (h === 1 ? ' hour' : ' hours'); }
   function fmtRange(lo, hi) { var mid = Math.round(((lo + hi) / 2) / 30) * 30; if (mid < 60) mid = 60; var l = Math.max(60, mid - 30), h2 = mid + 30; function asH(x) { var v = x / 60; return v === Math.floor(v) ? v + '' : v.toFixed(1); } return l === h2 ? fmtDuration(l) : asH(l) + '-' + asH(h2) + ' hours'; }
   function fmtRounded(m) { return fmtDuration(Math.ceil((m || 0) / 10) * 10); }
-  function getQty(id) { var el = document.getElementById(id); return el ? parseInt(el.textContent || '0') : 0; }
+  function getQty(id) {
+    var el = document.getElementById(id);
+    if (!el) return 0;
+    // For number inputs (linear ft), read .value; for spans, read textContent
+    var raw = (el.tagName === 'INPUT') ? el.value : el.textContent;
+    return parseInt(raw) || 0;
+  }
   // =========================
   // PRICING DATA
   // =========================
@@ -284,14 +290,27 @@
   function buildUpholTable(mid) {
     var tbl = document.createElement('table'); tbl.className = 'kb-qty-table';
     tbl.innerHTML = '<tr><th>Item</th><th>Price</th><th>Qty / Ft</th></tr>';
-    [['u-sof','Sofa / Love Seat / Sectional (linear ft) - measure the back','$35/ft'],['u-cha','Chair','$100'],['u-win','Wing Chair','$70'],['u-ott','Ottoman','$75'],['u-din','Dining Chair','$40'],['u-pil','Pillow / Cushion','$15']].forEach(function (r) {
+    var rows = [['u-sof','Sofa / Love Seat / Sectional (linear ft) - measure the back','$35/ft', true],['u-cha','Chair','$100', false],['u-win','Wing Chair','$70', false],['u-ott','Ottoman','$75', false],['u-din','Dining Chair','$40', false],['u-pil','Pillow / Cushion','$15', false]];
+    rows.forEach(function (r) {
       var tr = document.createElement('tr');
       var td1 = document.createElement('td'); td1.textContent = r[1];
       var td2 = document.createElement('td'); td2.textContent = r[2];
-      var td3 = document.createElement('td'); var div = document.createElement('div'); div.className = 'kb-qty';
-      var sp = document.createElement('span'); sp.id = r[0] + '-' + mid; sp.textContent = '0';
-      div.appendChild(mkQtyBtn('+', r[0], mid, 1)); div.appendChild(sp); div.appendChild(mkQtyBtn('-', r[0], mid, -1));
-      td3.appendChild(div); tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tbl.appendChild(tr);
+      var td3 = document.createElement('td');
+      if (r[3]) {
+        // Number input for linear feet
+        var input = document.createElement('input');
+        input.type = 'number'; input.min = '0'; input.value = '0';
+        input.id = r[0] + '-' + mid;
+        input.style.cssText = 'width:55px;text-align:center;padding:5px;border:1.5px solid #9de8e4;border-radius:6px;font-family:inherit;font-size:13px;color:#111;background:#fff;';
+        input.addEventListener('input', function () { updateScopeDuration(mid); });
+        td3.appendChild(input);
+      } else {
+        var div = document.createElement('div'); div.className = 'kb-qty';
+        var sp = document.createElement('span'); sp.id = r[0] + '-' + mid; sp.textContent = '0';
+        div.appendChild(mkQtyBtn('+', r[0], mid, 1)); div.appendChild(sp); div.appendChild(mkQtyBtn('-', r[0], mid, -1));
+        td3.appendChild(div);
+      }
+      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tbl.appendChild(tr);
     });
     return tbl;
   }
