@@ -289,21 +289,34 @@
   }
   function buildUpholTable(mid) {
     var tbl = document.createElement('table'); tbl.className = 'kb-qty-table';
-    tbl.innerHTML = '<tr><th>Item</th><th>Price</th><th>Qty / Ft</th></tr>';
-    var rows = [['u-sof','Sofa / Love Seat / Sectional (linear ft) - measure the back','$35/ft', true],['u-cha','Chair','$100', false],['u-win','Wing Chair','$70', false],['u-ott','Ottoman','$75', false],['u-din','Dining Chair','$40', false],['u-pil','Pillow / Cushion','$15', false]];
+    tbl.innerHTML = '<tr><th>Item</th><th>Price</th><th style="text-align:center">Qty</th></tr>';
+    var rows = [['u-sof','Sofa / Love Seat / Sectional','$35/ft', true, 'Measure the back of the piece(s) in feet'],['u-cha','Chair','$100', false],['u-win','Wing Chair','$70', false],['u-ott','Ottoman','$75', false],['u-din','Dining Chair','$40', false],['u-pil','Pillow / Cushion','$15', false]];
     rows.forEach(function (r) {
       var tr = document.createElement('tr');
-      var td1 = document.createElement('td'); td1.textContent = r[1];
+      var td1 = document.createElement('td');
+      if (r[4]) {
+        td1.innerHTML = '<div style="font-weight:500">' + r[1] + '</div><div style="font-size:10.5px;color:#666;margin-top:2px;font-style:italic">' + r[4] + '</div>';
+      } else {
+        td1.textContent = r[1];
+      }
       var td2 = document.createElement('td'); td2.textContent = r[2];
-      var td3 = document.createElement('td');
+      var td3 = document.createElement('td'); td3.style.textAlign = 'center';
       if (r[3]) {
-        // Number input for linear feet
+        // Number input styled to fit the row height like the +/- cluster
+        var wrap = document.createElement('div');
+        wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:4px;';
         var input = document.createElement('input');
         input.type = 'number'; input.min = '0'; input.value = '0';
         input.id = r[0] + '-' + mid;
-        input.style.cssText = 'width:55px;text-align:center;padding:5px;border:1.5px solid #9de8e4;border-radius:6px;font-family:inherit;font-size:13px;color:#111;background:#fff;';
+        input.style.cssText = 'width:46px;height:22px;text-align:center;padding:0 4px;border:1.5px solid #9de8e4;border-radius:5px;font-family:inherit;font-size:13px;font-weight:700;color:#111;background:#fff;-moz-appearance:textfield;';
         input.addEventListener('input', function () { updateScopeDuration(mid); });
-        td3.appendChild(input);
+        input.addEventListener('focus', function () { if (input.value === '0') input.value = ''; });
+        input.addEventListener('blur', function () { if (input.value === '' || isNaN(parseInt(input.value))) input.value = '0'; updateScopeDuration(mid); });
+        var ftLabel = document.createElement('span');
+        ftLabel.textContent = 'ft';
+        ftLabel.style.cssText = 'font-size:11px;color:#666;font-weight:600;';
+        wrap.appendChild(input); wrap.appendChild(ftLabel);
+        td3.appendChild(wrap);
       } else {
         var div = document.createElement('div'); div.className = 'kb-qty';
         var sp = document.createElement('span'); sp.id = r[0] + '-' + mid; sp.textContent = '0';
