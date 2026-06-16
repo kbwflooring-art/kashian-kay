@@ -1,5 +1,4 @@
 const fetch = require("node-fetch");
-
 exports.handler = async (event) => {
   // Handle CORS preflight
   if (event.httpMethod === "OPTIONS") {
@@ -13,7 +12,6 @@ exports.handler = async (event) => {
       body: ""
     };
   }
-
   if (!event.body) {
     return {
       statusCode: 400,
@@ -21,21 +19,18 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: "Missing request body" })
     };
   }
-
   try {
     // Accept BOTH messages (the conversation) and system (the rules/persona) as separate fields
     const { messages, system } = JSON.parse(event.body);
-
     // Build the API request body. Only include "system" if it was sent.
     const apiBody = {
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5",
       max_tokens: 1024,
       messages: messages
     };
     if (system && typeof system === "string" && system.length > 0) {
       apiBody.system = system;
     }
-
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -45,9 +40,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify(apiBody)
     });
-
     const data = await response.json();
-
     return {
       statusCode: 200,
       headers: {
