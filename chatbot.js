@@ -729,6 +729,20 @@
       else { flow.active = false; }
     }
   }
+  function startCallFlow() {
+    addMsg('user', 'Click to Call & Schedule', cnt);
+    hist.push({ role: 'user', content: 'Click to Call & Schedule' });
+    flowMsg("Calling (847) 251-1200... If your device does not start the call automatically, please dial (847) 251-1200 to reach our team.");
+    // Trigger the tel: link to open the phone dialer
+    try {
+      var callLink = document.createElement('a');
+      callLink.href = 'tel:+18472511200';
+      callLink.style.display = 'none';
+      document.body.appendChild(callLink);
+      callLink.click();
+      setTimeout(function () { if (callLink && callLink.parentNode) callLink.parentNode.removeChild(callLink); }, 500);
+    } catch (e) { /* device may not support tel: links */ }
+  }
   function startCarpetFlow() {
     flow = { active: true, type: 'carpet_upholstery', step: 'info', service: null, duration: 0, awaitingText: false, scope: null, customerInfo: null, timeChoice: null };
     addMsg('user', 'Schedule Carpet & Upholstery Cleaning', cnt);
@@ -749,7 +763,7 @@
     var bub = lastRow.querySelector('.kb-bub'); if (!bub) return;
     var container = document.createElement('div'); container.style.cssText = 'margin-top:10px;display:flex;flex-direction:column;gap:11px';
     var sections = [
-      { t: 'Schedule', b: [{ l: 'Schedule Carpet & Upholstery Cleaning', a: 'carpet' }, { l: 'Schedule Rug Pickup', a: 'rug' }] },
+      { t: 'Schedule', b: [{ l: 'Schedule Carpet & Upholstery Cleaning', a: 'carpet' }, { l: 'Schedule Rug Pickup', a: 'rug' }, { l: 'Click to Call & Schedule', a: 'call' }] },
       { t: 'Carpet & Rugs', b: [{ l: 'Custom Carpet', m: 'Tell me about custom carpet' }, { l: 'In-stock Carpets', m: 'Tell me about your in-stock carpets' }, { l: 'Custom Area Rugs', m: 'Tell me about custom area rugs' }, { l: 'Quick Ship Area Rugs', m: 'Tell me about quick ship area rugs' }, { l: 'Custom Stair Runners', m: 'Tell me about custom stair runners' }, { l: 'Rug Repair & Restoration', m: 'Tell me about rug repair and restoration' }, { l: 'Commercial Carpet Cleaning', m: 'Tell me about commercial carpet cleaning' }] },
       { t: 'Hard Surface Flooring', b: [{ l: 'Wood Flooring', m: 'Tell me about wood flooring' }, { l: 'Hardwood Floor Refinishing', m: 'Tell me about hardwood floor refinishing' }, { l: 'Vinyl Flooring', m: 'Tell me about vinyl flooring' }, { l: 'Tile & Backsplash', m: 'Tell me about tile and backsplash' }] },
       { t: 'Kitchen & Bath', b: [{ l: 'Kitchen Remodeling', m: 'Tell me about kitchen remodeling' }, { l: 'Bathroom Remodeling', m: 'Tell me about bathroom remodeling' }, { l: 'Wood Cabinets', m: 'Tell me about wood cabinets' }, { l: 'Cabinet Hardware', m: 'Tell me about cabinet hardware' }, { l: 'Countertops', m: 'Tell me about countertops' }] },
@@ -763,6 +777,7 @@
         btn.onclick = function () {
           if (b.a === 'carpet') startCarpetFlow();
           else if (b.a === 'rug') startRugFlow();
+          else if (b.a === 'call') startCallFlow();
           else kbSend(b.m);
         };
         wrap.appendChild(btn);
