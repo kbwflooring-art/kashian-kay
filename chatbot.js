@@ -123,7 +123,7 @@
   // =========================
   var btn = document.createElement('button');
   btn.id = 'kb-chat-btn';
-  btn.innerHTML = '<span class="kb-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M7 9c0-2.21 1.79-4 4-4h6c2.21 0 4 1.79 4 4v4c0 2.21-1.79 4-4 4h-1l-2.5 2.5L13 17H11c-2.21 0-4-1.79-4-4V9z" fill="#88EAE4"/><path d="M3 6c0-1.66 1.34-3 3-3h6c1.66 0 3 1.34 3 3v4c0 1.66-1.34 3-3 3h-1.5L8 15l-.5-2H6c-1.66 0-3-1.34-3-3V6z" fill="#5bcdc7"/></svg></span><span>Questions? Scheduling? Let\'s chat</span>';
+  btn.innerHTML = '<span class="kb-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M7 9c0-2.21 1.79-4 4-4h6c2.21 0 4 1.79 4 4v4c0 2.21-1.79 4-4 4h-1l-2.5 2.5L13 17H11c-2.21 0-4-1.79-4-4V9z" fill="#88EAE4"/><path d="M3 6c0-1.66 1.34-3 3-3h6c1.66 0 3 1.34 3 3v4c0 1.66-1.34 3-3 3h-1.5L8 15l-.5-2H6c-1.66 0-3-1.34-3-3V6z" fill="#5bcdc7"/></svg></span><span>Questions? Scheduling? Let\'s chat</span>';
   btn.title = 'Chat with Kay';
   var widget = document.createElement('div');
   widget.id = 'kb-chat-widget';
