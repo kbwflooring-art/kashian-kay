@@ -19,7 +19,7 @@
   var style = document.createElement('style');
   style.innerHTML = [
     '#kb-chat-btn{position:fixed;bottom:24px;right:24px;height:60px;padding:0 22px 0 6px;border-radius:30px;border:none;background:#88EAE4;color:#fff;font-size:15px;font-weight:700;font-family:Raleway,Arial,sans-serif;cursor:pointer;z-index:999998;box-shadow:0 8px 30px rgba(0,0,0,0.22);transition:transform .2s ease,box-shadow .2s ease;display:flex;align-items:center;gap:12px;letter-spacing:0.01em;text-shadow:0 1px 2px rgba(0,0,0,0.08);}',
-    '#kb-chat-btn .kb-avatar{width:48px;height:48px;border-radius:50%;background:#fff;color:#88EAE4;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;text-shadow:none;flex-shrink:0;overflow:hidden;}',
+    '#kb-chat-btn .kb-avatar{width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}',
     '#kb-chat-btn .kb-avatar svg{display:block;}',
     '#kb-chat-btn:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,0.28);}',
     '#kb-chat-btn svg{flex-shrink:0;}',
@@ -123,7 +123,7 @@
   // =========================
   var btn = document.createElement('button');
   btn.id = 'kb-chat-btn';
-  btn.innerHTML = '<span class="kb-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M7 9c0-2.21 1.79-4 4-4h6c2.21 0 4 1.79 4 4v4c0 2.21-1.79 4-4 4h-1l-2.5 2.5L13 17H11c-2.21 0-4-1.79-4-4V9z" fill="#88EAE4"/><path d="M3 6c0-1.66 1.34-3 3-3h6c1.66 0 3 1.34 3 3v4c0 1.66-1.34 3-3 3h-1.5L8 15l-.5-2H6c-1.66 0-3-1.34-3-3V6z" fill="#5bcdc7"/></svg></span><span>Questions? Scheduling? Let\'s chat</span>';
+  btn.innerHTML = '<span class="kb-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M7 9c0-2.21 1.79-4 4-4h6c2.21 0 4 1.79 4 4v4c0 2.21-1.79 4-4 4h-1l-2.5 2.5L13 17H11c-2.21 0-4-1.79-4-4V9z" fill="#fff" opacity="0.85"/><path d="M3 6c0-1.66 1.34-3 3-3h6c1.66 0 3 1.34 3 3v4c0 1.66-1.34 3-3 3h-1.5L8 15l-.5-2H6c-1.66 0-3-1.34-3-3V6z" fill="#fff"/></svg></span><span>Questions? Scheduling? Let\'s chat</span>';
   btn.title = 'Chat with Kay';
   var widget = document.createElement('div');
   widget.id = 'kb-chat-widget';
