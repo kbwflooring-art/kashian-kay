@@ -3,6 +3,10 @@
 const fetch = require("node-fetch");
 
 exports.handler = async (event) => {
+  console.log("=== logchat function invoked ===");
+  console.log("Method:", event.httpMethod);
+  console.log("Body length:", event.body ? event.body.length : 0);
+
   // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return {
@@ -17,6 +21,7 @@ exports.handler = async (event) => {
   }
 
   if (!event.body) {
+    console.log("EARLY EXIT: no body");
     return {
       statusCode: 400,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
@@ -24,11 +29,24 @@ exports.handler = async (event) => {
     };
   }
 
+  // Check API key
+  const hasApiKey = !!process.env.RESEND_API_KEY;
+  console.log("RESEND_API_KEY present:", hasApiKey);
+  if (hasApiKey) {
+    console.log("API key length:", process.env.RESEND_API_KEY.length);
+  }
+
   try {
-    const { transcript, startedAt, endedAt, pageUrl, userAgent, booking } = JSON.parse(event.body);
+    const parsed = JSON.parse(event.body);
+    const { transcript, startedAt, endedAt, pageUrl, userAgent, booking } = parsed;
+    console.log("Transcript length:", transcript ? transcript.length : 0);
+    if (transcript && transcript.length > 0) {
+      console.log("First message:", JSON.stringify(transcript[0]).substring(0, 200));
+    }
 
     // Skip empty conversations (customer opened chat but never typed anything)
     if (!Array.isArray(transcript) || transcript.length === 0) {
+      console.log("EARLY EXIT: empty transcript");
       return {
         statusCode: 200,
         headers: { "Access-Control-Allow-Origin": "*" },
@@ -37,7 +55,9 @@ exports.handler = async (event) => {
     }
     // Also skip if there are no USER messages (only Kay's welcome message)
     const hasUserMessages = transcript.some(m => m.role === "user");
+    console.log("Has user messages:", hasUserMessages);
     if (!hasUserMessages) {
+      console.log("EARLY EXIT: no user messages");
       return {
         statusCode: 200,
         headers: { "Access-Control-Allow-Origin": "*" },
@@ -51,7 +71,6 @@ exports.handler = async (event) => {
       const label = isUser ? "Customer" : "Kay";
       const bg = isUser ? "#e0f7f5" : "#f8fafc";
       const border = isUser ? "#5bcdc7" : "#cbd5e1";
-      // Escape HTML and preserve line breaks
       const safe = String(msg.content || "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -72,7 +91,6 @@ exports.handler = async (event) => {
 
     const durationMs = endedAt && startedAt ? (new Date(endedAt) - new Date(startedAt)) : 0;
     const durationStr = durationMs > 0 ? `${Math.round(durationMs / 1000 / 60 * 10) / 10} minutes` : "unknown";
-
     const userMessageCount = transcript.filter(m => m.role === "user").length;
 
     const emailHtml = `<!DOCTYPE html>
@@ -100,7 +118,9 @@ exports.handler = async (event) => {
   </div>
 </body></html>`;
 
-    // Send via Resend (same setup as other Kay emails)
+    console.log("About to call Resend API...");
+
+    // Send via Resend
     const resendResp = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -115,7 +135,10 @@ exports.handler = async (event) => {
       })
     });
 
+    const resendStatus = resendResp.status;
     const resendData = await resendResp.json();
+    console.log("Resend response status:", resendStatus);
+    console.log("Resend response body:", JSON.stringify(resendData));
 
     return {
       statusCode: 200,
@@ -123,9 +146,11 @@ exports.handler = async (event) => {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*"
       },
-      body: JSON.stringify({ ok: true, resend: resendData })
+      body: JSON.stringify({ ok: true, resendStatus: resendStatus, resend: resendData })
     };
   } catch (err) {
+    console.log("ERROR:", err.message);
+    console.log("Stack:", err.stack);
     return {
       statusCode: 500,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
