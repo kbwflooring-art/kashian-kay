@@ -172,17 +172,19 @@
       booking: lastBookingSummary
     };
     var body = JSON.stringify(payload);
-    // Use sendBeacon for reliable delivery even during page unload
+    // Use sendBeacon for reliable delivery even during page unload.
+    // IMPORTANT: use text/plain content type to avoid CORS preflight (which sendBeacon handles badly).
+    // The function on the server side just JSON.parse()s the body regardless of the header.
     try {
       if (navigator.sendBeacon) {
-        var blob = new Blob([body], { type: 'application/json' });
+        var blob = new Blob([body], { type: 'text/plain' });
         navigator.sendBeacon(LOGCHAT_URL, blob);
         return;
       }
     } catch (e) { /* fall through to fetch */ }
     // Fallback: regular fetch (may not complete on unload but works for close button)
     try {
-      fetch(LOGCHAT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: true }).catch(function () {});
+      fetch(LOGCHAT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: body, keepalive: true }).catch(function () {});
     } catch (e) {}
   }
   // Fire on page unload / hide
