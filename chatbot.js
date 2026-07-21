@@ -919,6 +919,33 @@
 
   function kbSend(text) {
     if (!text || !text.trim()) return;
+    // ----- BOT INTERCEPTS -----
+    // These intercept known bot patterns and respond with a canned message.
+    // No API call is made -> no cost. Real customers get a helpful redirect.
+    var lowerText = text.toLowerCase().trim();
+    var lowerNorm = lowerText.replace(/[?.!,]/g, '').replace(/\s+/g, ' ').trim();
+    // Intercept 1: photo/image/picture upload requests
+    var isUploadRequest = /\b(upload|send|attach|share)\b.*\b(image|photo|picture|pic)\b/.test(lowerText) ||
+                          /\b(image|photo|picture|pic)\b.*\b(upload|send|attach|share)\b/.test(lowerText) ||
+                          /can i (send|share|attach|upload) (a |an )?(image|photo|picture|pic)/.test(lowerText) ||
+                          /is it ok (if )?i? ?(can )?upload (a |an )?(image|photo|picture|pic)/.test(lowerText);
+    // Intercept 2: bot-style permission-asking opener ("can I ask you a question please")
+    var isPermissionOpener = /^(can|may) i ask (you )?(a )?question(s)? please$/.test(lowerNorm) ||
+                             /^(can|may) i ask (you )?(a )?question$/.test(lowerNorm);
+    if (isUploadRequest) {
+      inpEl.value = '';
+      addMsg('user', text, cnt); hist.push({ role: 'user', content: text });
+      var uploadMsg = "We don't support photo uploads through the chat. For anything picture-related, please email us at info@kashianbros.com or call (847) 251-1200.";
+      addMsg('assistant', uploadMsg, cnt); hist.push({ role: 'assistant', content: uploadMsg });
+      return;
+    }
+    if (isPermissionOpener) {
+      inpEl.value = '';
+      addMsg('user', text, cnt); hist.push({ role: 'user', content: text });
+      var openerMsg = "Of course, go ahead and ask your question.";
+      addMsg('assistant', openerMsg, cnt); hist.push({ role: 'assistant', content: openerMsg });
+      return;
+    }
     // ----- RATE LIMIT + REPEAT DETECTION -----
     // Blocks abusive/bot behavior before hitting the Claude API.
     if (rateBlocked) {
