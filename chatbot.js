@@ -16,6 +16,10 @@
   var convoStart = new Date().toISOString();
   var convoLogged = false;
   var lastBookingSummary = null;
+  // Rate limiting + spam detection
+  var msgTimestamps = []; // rolling list of user message send times
+  var recentUserMsgs = []; // last few user messages for repeat detection
+  var rateBlocked = false; // once tripped, stays blocked for this session
   var flow = { active: false, type: null, step: null, service: null, duration: 0, awaitingText: false, scope: null, customerInfo: null, timeChoice: null };
   // =========================
   // STYLES
@@ -915,6 +919,40 @@
 
   function kbSend(text) {
     if (!text || !text.trim()) return;
+    // ----- RATE LIMIT + REPEAT DETECTION -----
+    // Blocks abusive/bot behavior before hitting the Claude API.
+    if (rateBlocked) {
+      // Already blocked - show the reminder but don't call the API
+      inpEl.value = '';
+      addMsg('user', text, cnt);
+      addMsg('assistant', "I'm unable to respond right now. For faster help, please call us at (847) 251-1200.", cnt);
+      return;
+    }
+    var now = Date.now();
+    // Trim timestamps older than 5 minutes
+    msgTimestamps = msgTimestamps.filter(function (t) { return now - t < 300000; });
+    // Cap: 20 messages per 5 minutes
+    if (msgTimestamps.length >= 20) {
+      rateBlocked = true;
+      inpEl.value = '';
+      addMsg('user', text, cnt);
+      addMsg('assistant', "You've reached our chat message limit for this session. For more help, please call us at (847) 251-1200 or email info@kashianbros.com.", cnt);
+      return;
+    }
+    // Repeat detection: if the same message (case-insensitive, whitespace-normalized) shows up 3+ times, block
+    var normalized = text.toLowerCase().replace(/\s+/g, ' ').trim();
+    recentUserMsgs.push(normalized);
+    if (recentUserMsgs.length > 10) recentUserMsgs.shift();
+    var sameCount = 0;
+    for (var i = 0; i < recentUserMsgs.length; i++) { if (recentUserMsgs[i] === normalized) sameCount++; }
+    if (sameCount >= 3) {
+      rateBlocked = true;
+      inpEl.value = '';
+      addMsg('user', text, cnt);
+      addMsg('assistant', "I've already answered that. For more help, please call us at (847) 251-1200.", cnt);
+      return;
+    }
+    msgTimestamps.push(now);
     if (flow.active && flow.awaitingText) {
       flow.awaitingText = false;
       if (flow.step === 'custom_time') {
