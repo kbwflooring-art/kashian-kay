@@ -931,8 +931,8 @@
     var now = Date.now();
     // Trim timestamps older than 5 minutes
     msgTimestamps = msgTimestamps.filter(function (t) { return now - t < 300000; });
-    // Cap: 20 messages per 5 minutes
-    if (msgTimestamps.length >= 20) {
+    // Cap: 10 messages per 5 minutes
+    if (msgTimestamps.length >= 10) {
       rateBlocked = true;
       inpEl.value = '';
       addMsg('user', text, cnt);
