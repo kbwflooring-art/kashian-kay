@@ -32,7 +32,7 @@
     '#kb-chat-btn:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,0.28);}',
     '#kb-chat-btn svg{flex-shrink:0;}',
     '#kb-chat-widget{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);width:450px;height:720px;background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;z-index:999998;box-shadow:0 20px 60px rgba(0,0,0,0.22);border:1px solid #88EAE4;font-family:Raleway,Arial,sans-serif;color:#111;letter-spacing:0.02em;}',
-    '#kb-chat-widget *{box-sizing:border-box;}',
+    '#kb-chat-widget *{box-sizing:border-box;font-family:Raleway,Arial,sans-serif!important;}',
     '@keyframes kb-bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}',
     '.kb-hdr{background:#5bcdc7;padding:13px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #9de8e4;flex-shrink:0;}',
     '.kb-av{width:38px;height:38px;background:#7ddbd6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}',
@@ -518,7 +518,7 @@
   function buildEstimateForm(mid) {
     var f = document.createElement('div'); f.className = 'kb-form'; f.id = 'kb-est-' + mid;
     f.innerHTML =
-      '<h3>Request a Free Estimate</h3>' +
+      '<h3>Contact Us</h3>' +
       '<div class="kb-note">We will send this to our team so they can contact you about your project.</div>' +
       '<div class="kb-row-2">' +
         '<div class="kb-frow"><label class="kb-label">First Name *</label><input class="kb-input" id="kb-efn-' + mid + '" placeholder="Jane"/></div>' +
@@ -865,8 +865,8 @@
   }
   function startEstimateFlow() {
     flow = { active: false, type: null, step: null, service: null, duration: 0, awaitingText: false, scope: null, customerInfo: null, timeChoice: null };
-    addMsg('user', 'Request a Free Estimate', cnt);
-    hist.push({ role: 'user', content: 'Request a Free Estimate' });
+    addMsg('user', 'Contact Us', cnt);
+    hist.push({ role: 'user', content: 'Contact Us' });
     flowMsg("Happy to help! Share a bit about you and your project, and we will send it to our team so they can contact you.\n[SHOW_ESTIMATE_FORM]");
   }
   // =========================
@@ -877,7 +877,7 @@
     var bub = lastRow.querySelector('.kb-bub'); if (!bub) return;
     var container = document.createElement('div'); container.style.cssText = 'margin-top:10px;display:flex;flex-direction:column;gap:11px';
     var sections = [
-      { t: 'Schedule', b: [{ l: 'Schedule Carpet & Upholstery Cleaning', a: 'carpet' }, { l: 'Schedule Rug Pickup', a: 'rug' }, { l: 'Request a Free Estimate', a: 'estimate' }, { l: 'Click to Call & Schedule', a: 'call' }] },
+      { t: 'Schedule', b: [{ l: 'Schedule Carpet & Upholstery Cleaning', a: 'carpet' }, { l: 'Schedule Rug Pickup', a: 'rug' }, { l: 'Contact Us', a: 'estimate' }, { l: 'Click to Call & Schedule', a: 'call' }] },
       { t: 'Carpet & Rugs', b: [{ l: 'Custom Carpet', m: 'Tell me about custom carpet' }, { l: 'In-stock Carpets', m: 'Tell me about your in-stock carpets' }, { l: 'Custom Area Rugs', m: 'Tell me about custom area rugs' }, { l: 'Quick Ship Area Rugs', m: 'Tell me about quick ship area rugs' }, { l: 'Custom Stair Runners', m: 'Tell me about custom stair runners' }, { l: 'Rug Repair & Restoration', m: 'Tell me about rug repair and restoration' }, { l: 'Commercial Carpet Cleaning', m: 'Tell me about commercial carpet cleaning' }] },
       { t: 'Hard Surface Flooring', b: [{ l: 'Wood Flooring', m: 'Tell me about wood flooring' }, { l: 'Hardwood Floor Refinishing', m: 'Tell me about hardwood floor refinishing' }, { l: 'Vinyl Flooring', m: 'Tell me about vinyl flooring' }, { l: 'Tile & Backsplash', m: 'Tell me about tile and backsplash' }] },
       { t: 'Kitchen & Bath', b: [{ l: 'Kitchen Remodeling', m: 'Tell me about kitchen remodeling' }, { l: 'Bathroom Remodeling', m: 'Tell me about bathroom remodeling' }, { l: 'Wood Cabinets', m: 'Tell me about wood cabinets' }, { l: 'Cabinet Hardware', m: 'Tell me about cabinet hardware' }, { l: 'Countertops', m: 'Tell me about countertops' }] },
