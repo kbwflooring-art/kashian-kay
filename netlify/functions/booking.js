@@ -15,6 +15,79 @@ exports.handler = async function(event) {
       date, time, selfP, cname, cphone, pets, notes, isChicago
     } = b;
 
+    // Kashian Bros brand colors
+    const TEAL = '#5bcdc7';
+    const TEAL_LIGHT = '#7ddbd6';
+    const TEAL_BG = '#f0fafa';
+    const TEAL_BORDER = '#b8eeeb';
+
+    // =========================================================================
+    // ESTIMATE / CALLBACK LEAD  (services we do NOT book online, or "contact me")
+    // These have no appointment date, so there is no calendar link — just a clean
+    // lead email with the customer's info and what they want.
+    //
+    // >>> CHANGE THIS to whoever should receive estimate leads <<<
+    // Currently set to Doug (who already receives the chat-log emails). If in-home
+    // estimates are handled by a different person or a shared inbox, update it here.
+    // =========================================================================
+    if (svc === 'ESTIMATE') {
+      const ESTIMATE_RECIPIENTS = ['dstein@kashianbros.com'];
+
+      const leadHtml = `<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;background:#f1f5f9;padding:24px;margin:0">
+<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid ${TEAL_BORDER}">
+  <div style="background:${TEAL};padding:16px 24px">
+    <h2 style="color:#fff;margin:0;font-size:18px">📝 New Estimate Request — Kay</h2>
+    <p style="color:#c8efed;margin:4px 0 0;font-size:13px">A customer is asking us to reach out</p>
+  </div>
+  <div style="padding:20px 24px">
+    ${isChicago ? `<div style="background:#fef9c3;border:1px solid #f59e0b;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#92400e;"><strong>⚠️ Chicago Address</strong></div>` : ''}
+    <div style="background:${TEAL_BG};border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px;color:#1e293b;line-height:1.8;border:1px solid ${TEAL_BORDER}">
+      <strong>👤 Name:</strong> ${name}<br>
+      <strong>📞 Phone:</strong> ${phone}<br>
+      <strong>📧 Email:</strong> ${email}${addr ? `<br><strong>📍 Address:</strong> ${addr}` : ''}<br>
+      <strong>📝 Project:</strong> ${detail || notes || '(none provided)'}
+    </div>
+    <a href="tel:${(phone || '').replace(/[^0-9+]/g, '')}" style="display:block;background:${TEAL};color:#fff;text-align:center;padding:13px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:10px">
+      📞 Call ${name}
+    </a>
+    <a href="mailto:${email}" style="display:block;background:#16a34a;color:#fff;text-align:center;padding:13px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600">
+      ✉️ Email ${name}
+    </a>
+  </div>
+  <div style="background:${TEAL};padding:10px 24px;font-size:11px;color:#c8efed;text-align:center">
+    Kashian Bros Kay — kashianbros.com — (847) 251-1200
+  </div>
+</div>
+</body>
+</html>`;
+
+      const leadRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+        },
+        body: JSON.stringify({
+          from: 'Kay at Kashian Bros <bot@kashianbrosautomation.com>',
+          to: ESTIMATE_RECIPIENTS,
+          reply_to: email || undefined,
+          subject: `New Estimate Request — ${name}`,
+          html: leadHtml
+        })
+      });
+
+      const leadData = await leadRes.json();
+      if (!leadRes.ok) throw new Error(JSON.stringify(leadData));
+
+      return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ success: true }) };
+    }
+
+    // =========================================================================
+    // BOOKING  (in-home cleaning + rug pickup — unchanged)
+    // =========================================================================
+
     // --- Build Google Calendar one-click link ---
     const parsedDate = new Date(date + " 09:00:00");
     const isValid = !isNaN(parsedDate);
@@ -50,12 +123,6 @@ exports.handler = async function(event) {
       ? `<div style="background:#fef9c3;border:1px solid #f59e0b;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#92400e;">
            <strong>⚠️ Chicago Address</strong> — Please book this manually on the appropriate calendar.
          </div>` : '';
-
-    // Kashian Bros brand colors
-    const TEAL = '#5bcdc7';
-    const TEAL_LIGHT = '#7ddbd6';
-    const TEAL_BG = '#f0fafa';
-    const TEAL_BORDER = '#b8eeeb';
 
     // --- Build HTML email to Adolfo ---
     const htmlEmail = `<!DOCTYPE html>
