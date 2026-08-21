@@ -162,6 +162,21 @@
   function sendChatLog() {
     if (convoLogged) return; // Don't send twice
     if (!hist || hist.length === 0) return; // Nothing to send
+    // Capture a contact form the customer filled in but did NOT submit, so an
+    // abandoned lead still reaches us in the log (mirrors the cleaning info form).
+    // Once a contact form is submitted or cancelled its inputs no longer exist,
+    // so this only ever fires for a genuinely abandoned, partially-filled form.
+    try {
+      var partialForms = document.querySelectorAll('[id^="kb-efn-"]');
+      for (var pf = 0; pf < partialForms.length; pf++) {
+        var pmid = partialForms[pf].id.replace('kb-efn-', '');
+        var gp = function (px) { var el = document.getElementById(px + pmid); return el ? (el.value || '').trim() : ''; };
+        var pfn = gp('kb-efn-'), pln = gp('kb-eln-'), pph = gp('kb-eph-'), pem = gp('kb-eem-'), padr = gp('kb-ead-'), pdt = gp('kb-edt-');
+        if (pfn || pln || pph || pem || padr || pdt) {
+          hist.push({ role: 'user', content: 'CONTACT FORM STARTED (not submitted):\nName: ' + (pfn + ' ' + pln).trim() + '\nPhone: ' + pph + '\nEmail: ' + pem + (padr ? '\nAddress: ' + padr : '') + (pdt ? '\nProject: ' + pdt : '') });
+        }
+      }
+    } catch (e) {}
     // Only send if there's at least one user message
     var hasUserMsg = false;
     for (var i = 0; i < hist.length; i++) { if (hist[i].role === 'user') { hasUserMsg = true; break; } }
