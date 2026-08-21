@@ -167,8 +167,13 @@
     for (var i = 0; i < hist.length; i++) { if (hist[i].role === 'user') { hasUserMsg = true; break; } }
     if (!hasUserMsg) return;
     convoLogged = true;
+    // Strip internal placeholder tags (form/scope triggers, button menus) so the
+    // emailed transcript reads cleanly instead of showing [SHOW_INFO_FORM:RUG] etc.
+    var cleanTranscript = hist.map(function (m) {
+      return { role: m.role, content: (m.content || '').replace(/\[SHOW_[^\]]*\]/g, '').replace(/\[BUTTONS:[^\]]*\]/g, '').trim() };
+    });
     var payload = {
-      transcript: hist,
+      transcript: cleanTranscript,
       startedAt: convoStart,
       endedAt: new Date().toISOString(),
       pageUrl: (typeof window !== 'undefined' && window.location) ? window.location.href : '',
@@ -485,6 +490,10 @@
     if (!fn || !ln || !ph || !em || !ad) { alert('Please fill in all required fields.'); return; }
     if (!sp && (!cn || !cp)) { alert('Please provide the on-site contact, or check that you will be there yourself.'); return; }
     flow.customerInfo = { fname: fn, lname: ln, phone: ph, email: em, addr: ad, selfP: sp, cname: cn, cphone: cp, notes: no, cardId: mid };
+    // Capture the entered info into the transcript right away, so if the customer
+    // abandons the flow before booking, Doug still sees their contact details as a
+    // partial lead in the conversation-log email.
+    hist.push({ role: 'user', content: 'CUSTOMER INFO SUBMITTED (via form):\nName: ' + fn + ' ' + ln + '\nPhone: ' + ph + '\nEmail: ' + em + '\nAddress: ' + ad + '\nOn-site: ' + (sp ? 'Customer will be present' : 'Contact \u2014 ' + cn + ' ' + cp) + (no ? '\nNotes: ' + no : '') });
     document.getElementById('kb-info-' + mid).style.display = 'none';
     flowMsg(nextType === 'RUG' ? 'Great! Now tell us about your rugs.\n[SHOW_RUG_SCOPE]' : 'Great! Now pick what needs cleaning.\n[SHOW_SCOPE]');
     setTimeout(function () { scrollNice(document.getElementById('kb-scope-' + (cnt - 1)) || document.getElementById('kb-rugscope-' + (cnt - 1))); }, 150);
