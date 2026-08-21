@@ -130,6 +130,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         from: "Kay Chatbot <bot@kashianbrosautomation.com>",
         to: ["dstein@kashianbros.com"],
+        cc: ["dseyfert@kashianbros.com"],
         subject: `Kay chat log - ${userMessageCount} message${userMessageCount === 1 ? "" : "s"}${booking ? " - BOOKING SUBMITTED" : ""}`,
         html: emailHtml
       })
