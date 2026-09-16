@@ -85,43 +85,38 @@ exports.handler = async function(event) {
     }
 
     // =========================================================================
-    // BOOKING  (in-home cleaning + rug pickup — unchanged)
+    // BOOKING  (in-home cleaning + rug pickup)
+    // Adolfo books the calendar event himself, so this email does NOT build an
+    // "Add to Google Calendar" link (that link always landed on the clicker's
+    // personal calendar, and it choked on the pickup-window text). Instead the
+    // email shows the appointment exactly as the customer chose it and makes the
+    // correct target calendar prominent so Adolfo puts it in the right place.
     // =========================================================================
 
-    // --- Build Google Calendar one-click link ---
-    const parsedDate = new Date(date + " 09:00:00");
-    const isValid = !isNaN(parsedDate);
-    const pad = n => String(n).padStart(2, '0');
-    const fmt = d => `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-    const startTime = isValid ? fmt(parsedDate) : '';
-    const endDate = isValid ? new Date(parsedDate.getTime() + 2 * 60 * 60 * 1000) : null;
-    const endTime = endDate ? fmt(endDate) : '';
-
-    const calTitle = encodeURIComponent(`${lbl} - ${name}`);
-    const calDetails = encodeURIComponent(
-      `Service: ${lbl}\nCustomer: ${name}\nPhone: ${phone}\nEmail: ${email}\nAddress: ${addr}\n` +
-      (svc === 'CARPET' ? `Rooms: ${detail}${stairs ? '\nStairs: ' + stairs : ''}` :
-       svc === 'UPHOLSTERY' ? `Items: ${detail}` : `Rugs: ${detail}`) +
-      `\nPets: ${pets}${notes ? '\nNotes: ' + notes : ''}\nTime Pref: ${time}\nOn-site: ${selfP ? 'Customer present' : 'Contact: ' + cname + ' ' + cphone}`
-    );
-    const calLocation = encodeURIComponent(addr);
-    const calDates = isValid ? `${startTime}/${endTime}` : '';
-    const calLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${calTitle}&dates=${calDates}&details=${calDetails}&location=${calLocation}`;
-
+    // Which calendar Adolfo should book this on.
     const calendarName = svc === 'RUG_PICKUP'
       ? 'Rug Pickup & Delivery Calendar (Tues/Thurs)'
       : 'In-Home Cleaning Calendar (Mon-Fri)';
 
-    // --- Build confirm link (now includes detail for customer-facing job summary) ---
+    // A rug whose city wasn't on the standard route comes through flagged for a
+    // manual call to set the window. Detect it so we can banner it clearly.
+    const isManual = /manual pickup window/i.test(notes || '') || /confirmed by phone/i.test(date || '');
+
+    // --- Build confirm link (sends the customer their confirmation email) ---
     const confirmData = encodeURIComponent(JSON.stringify({
       name, email, lbl, addr, date, time, svc, detail
     }));
     const confirmLink = `https://warm-dolphin-79489e.netlify.app/.netlify/functions/confirm?data=${confirmData}`;
 
-    // --- Chicago banner ---
+    // --- Banners ---
     const chicagoBanner = isChicago
       ? `<div style="background:#fef9c3;border:1px solid #f59e0b;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#92400e;">
-           <strong>⚠️ Chicago Address</strong> — Please book this manually on the appropriate calendar.
+           <strong>⚠️ Chicago Address</strong> — confirm any trip charge and book manually on the correct calendar.
+         </div>` : '';
+
+    const manualBanner = isManual
+      ? `<div style="background:#fef9c3;border:1px solid #f59e0b;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#92400e;">
+           <strong>⚠️ Manual pickup window</strong> — this address wasn't on the standard route. Call the customer to confirm a pickup window before booking.
          </div>` : '';
 
     // --- Build HTML email to Adolfo ---
@@ -135,28 +130,28 @@ exports.handler = async function(event) {
   </div>
   <div style="padding:20px 24px">
     ${chicagoBanner}
+    ${manualBanner}
+    <div style="background:#eff6ff;border:2px solid #60a5fa;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:14px;color:#1e40af;line-height:1.6;">
+      <strong>📅 BOOK ON THIS CALENDAR:</strong><br>${calendarName}<br>
+      <strong>🕒 Appointment:</strong> ${date || '(none given)'}
+    </div>
     <div style="background:${TEAL_BG};border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px;color:#1e293b;line-height:1.8;border:1px solid ${TEAL_BORDER}">
-      <strong>📅 Calendar:</strong> ${calendarName}<br>
       <strong>👤 Name:</strong> ${name}<br>
       <strong>📞 Phone:</strong> ${phone}<br>
       <strong>📧 Email:</strong> ${email}<br>
       <strong>📍 Address:</strong> ${addr}<br>
       <strong>${svc === 'CARPET' ? '🛋️ Rooms' : svc === 'UPHOLSTERY' ? '🪑 Items' : '🏠 Rugs'}:</strong> ${detail}
       ${stairs ? `<br><strong>🪜 Stairs:</strong> ${stairs}` : ''}
-      <br><strong>🐾 Pets:</strong> ${pets}<br>
-      <strong>📆 Requested Date:</strong> ${date}<br>
-      <strong>⏰ Time Preference:</strong> ${time}<br>
-      <strong>🔑 On-site:</strong> ${selfP ? 'Customer will be present' : `Contact: ${cname} — ${cphone}`}
+      ${pets ? `<br><strong>🐾 Pets:</strong> ${pets}` : ''}
+      ${time ? `<br><strong>⏰ Time Preference:</strong> ${time}` : ''}
+      <br><strong>🔑 On-site:</strong> ${selfP ? 'Customer will be present' : `Contact: ${cname} — ${cphone}`}
       ${notes ? `<br><strong>📝 Notes:</strong> ${notes}` : ''}
     </div>
-    <a href="${calLink}" style="display:block;background:${TEAL};color:#fff;text-align:center;padding:13px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:12px">
-      ⭐ Add to Google Calendar
-    </a>
     <a href="${confirmLink}" style="display:block;background:#16a34a;color:#fff;text-align:center;padding:13px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:12px">
       ✅ Confirm This Booking — Send Customer Confirmation
     </a>
     <p style="font-size:11.5px;color:#94a3b8;text-align:center;margin:0">
-      Clicking Confirm will automatically send ${name} a confirmation email.
+      Clicking Confirm will automatically send ${name} a confirmation email. Add the appointment to the calendar shown above.
     </p>
   </div>
   <div style="background:${TEAL};padding:10px 24px;font-size:11px;color:#c8efed;text-align:center">
