@@ -176,7 +176,7 @@
       add(LEADS_FIELDS.name, f.name);
       add(LEADS_FIELDS.email, f.email);
       add(LEADS_FIELDS.phone, f.phone);
-      add(LEADS_FIELDS.source, 'Abandoned - Contact Form');
+      add(LEADS_FIELDS.source, f.source || 'Abandoned - Contact Form');
       add(LEADS_FIELDS.address, f.address);
       add(LEADS_FIELDS.details, f.details);
       var body = params.join('&');
@@ -205,6 +205,22 @@
         if (pfn || pln || pph || pem || padr || pdt) {
           hist.push({ role: 'user', content: 'CONTACT FORM STARTED (not submitted):\nName: ' + (pfn + ' ' + pln).trim() + '\nPhone: ' + pph + '\nEmail: ' + pem + (padr ? '\nAddress: ' + padr : '') + (pdt ? '\nProject: ' + pdt : '') });
           postAbandonedLead({ name: (pfn + ' ' + pln).trim(), email: pem, phone: pph, address: padr, details: pdt });
+        }
+      }
+    } catch (e) {}
+    // Abandoned BOOKING info form: filled name/email/phone/address but the booking
+    // was never completed. A completed booking REMOVES its info form (see
+    // kbFinalBooking), so anything still found here is genuinely unfinished — this
+    // can't duplicate a real, completed booking.
+    try {
+      var partialBk = document.querySelectorAll('[id^="kb-ifn-"]');
+      for (var pb = 0; pb < partialBk.length; pb++) {
+        var bmid = partialBk[pb].id.replace('kb-ifn-', '');
+        var gb = function (px) { var el = document.getElementById(px + bmid); return el ? (el.value || '').trim() : ''; };
+        var bfn = gb('kb-ifn-'), bln = gb('kb-iln-'), bph = gb('kb-iph-'), bem = gb('kb-iem-'), bad = gb('kb-iad-'), bno = gb('kb-ino-');
+        if (bfn || bln || bph || bem || bad) {
+          hist.push({ role: 'user', content: 'BOOKING FORM STARTED (not completed):\nName: ' + (bfn + ' ' + bln).trim() + '\nPhone: ' + bph + '\nEmail: ' + bem + (bad ? '\nAddress: ' + bad : '') + (bno ? '\nNotes: ' + bno : '') });
+          postAbandonedLead({ name: (bfn + ' ' + bln).trim(), email: bem, phone: bph, address: bad, details: bno, source: 'Abandoned - Booking' });
         }
       }
     } catch (e) {}
@@ -910,7 +926,7 @@
       card.innerHTML = '<h3>Booking Request Sent! \u2713</h3><p><strong>Thank you, ' + ci.fname + '!</strong></p><p>Your booking request for <strong>' + lbl + '</strong> has been sent.</p><p style="margin-top:8px;background:#dcfce7;border-radius:6px;padding:8px"><strong>' + timing + '</strong></p><p>Confirmation will go to <strong>' + ci.email + '</strong>. Questions? Call <strong>(847) 251-1200</strong>.</p>' + (isChicago ? '<p style="margin-top:7px;background:#fef9c3;border-radius:6px;padding:8px">Chicago bookings are handled personally by our cleaning manager.</p>' : '') + ((sc.isRug && flow.rugManual) ? '<p style="margin-top:7px;background:#fef9c3;border-radius:6px;padding:8px">Since your area is off our standard route, Adolfo will call you to confirm your pickup window.</p>' : '');
       scrollNice(card);
     }
-    if (ci.cardId) { var ic = document.getElementById('kb-info-' + ci.cardId); if (ic) ic.style.display = 'none'; }
+    if (ci.cardId) { var ic = document.getElementById('kb-info-' + ci.cardId); if (ic) ic.remove(); }
     hist.push({ role: 'user', content: 'BOOKING SUBMITTED: ' + name + ' for ' + lbl + ' on ' + (flow.timeChoice || '') });
     hist.push({ role: 'assistant', content: 'Booking sent! ' + timing });
     flow.scope = null; flow.customerInfo = null; flow.timeChoice = null; flow.active = false;
