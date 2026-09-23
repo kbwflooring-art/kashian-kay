@@ -1,3 +1,44 @@
+// =========================================================================
+// GOOGLE FORM LEAD LOG
+// Every submitted booking and contact-form lead is posted to a Google Form,
+// which drops it into the linked "Kay Leads" spreadsheet automatically.
+// No API key or service account needed — this posts server-side to the Form's
+// public response endpoint. Leave LEADS_FORM_ID as '' to turn logging OFF.
+// =========================================================================
+const LEADS_FORM_ID = '1FAIpQLScqi3pUQzleR9Cjqp47xM-v0_qZcRLPYQl9-AimptqL242AqQ';
+const LEADS_FIELDS = {
+  date:    'entry.504540383',
+  name:    'entry.1979560556',
+  email:   'entry.840073386',
+  phone:   'entry.1445152854',
+  source:  'entry.513223801',
+  address: 'entry.1455579471',
+  details: 'entry.307016731'
+};
+
+// Post one lead to the Google Form. NEVER throws — logging a lead must never
+// break the booking/estimate email that has already gone out.
+async function logLead(fields) {
+  try {
+    if (!LEADS_FORM_ID) return; // logging turned off
+    const params = new URLSearchParams();
+    Object.keys(LEADS_FIELDS).forEach(function (k) {
+      if (fields[k]) params.append(LEADS_FIELDS[k], fields[k]);
+    });
+    await fetch('https://docs.google.com/forms/d/e/' + LEADS_FORM_ID + '/formResponse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    });
+  } catch (e) {
+    console.error('Lead log failed (non-fatal):', e.message);
+  }
+}
+
+function chicagoStamp() {
+  return new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' });
+}
+
 exports.handler = async function(event) {
   // CORS headers — allow the chatbot embedded on kashianbros.com (or any domain) to call this function
   const corsHeaders = {
@@ -80,6 +121,12 @@ exports.handler = async function(event) {
 
       const leadData = await leadRes.json();
       if (!leadRes.ok) throw new Error(JSON.stringify(leadData));
+
+      // Log the lead to the Google Form -> Sheet (non-fatal if it fails)
+      await logLead({
+        date: chicagoStamp(), name: name, email: email, phone: phone,
+        source: 'Contact Form', address: addr, details: detail || notes
+      });
 
       return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ success: true }) };
     }
@@ -178,6 +225,12 @@ exports.handler = async function(event) {
 
     const resData = await res.json();
     if (!res.ok) throw new Error(JSON.stringify(resData));
+
+    // Log the lead to the Google Form -> Sheet (non-fatal if it fails)
+    await logLead({
+      date: chicagoStamp(), name: name, email: email, phone: phone,
+      source: 'Booking - ' + (lbl || ''), address: addr, details: detail
+    });
 
     return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ success: true }) };
 
