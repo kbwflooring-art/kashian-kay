@@ -703,6 +703,18 @@
   }
   // Replaces the generic time-slot step for rugs: shows the city's fixed window and
   // lets the customer pick which Tue/Thu, or routes to manual confirm if no match.
+  // Compact a long slot label ("Friday, September 25 at 2:30 PM") down to
+  // "Fri Sep 25, 2:30 PM" so it fits on one line in the narrow two-column grid.
+  // Display only — the full label is still what gets recorded on the booking.
+  function shortSlotLabel(lbl) {
+    if (!lbl) return lbl;
+    var days = { Sunday: 'Sun', Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu', Friday: 'Fri', Saturday: 'Sat' };
+    var mons = { January: 'Jan', February: 'Feb', March: 'Mar', April: 'Apr', May: 'May', June: 'Jun', July: 'Jul', August: 'Aug', September: 'Sep', October: 'Oct', November: 'Nov', December: 'Dec' };
+    var out = String(lbl);
+    Object.keys(days).forEach(function (k) { out = out.replace(k, days[k]); });
+    Object.keys(mons).forEach(function (k) { out = out.replace(k, mons[k]); });
+    return out.replace(/,/g, '').replace(' at ', ', ');
+  }
   function renderRugWindows(pfx, mid) {
     var s2Id = pfx === 'scope' ? ('kb-scs2-' + mid) : ('kb-rugscope-s2-' + mid);
     var s2 = document.getElementById(s2Id); if (!s2) return;
@@ -715,7 +727,7 @@
       html += '<div class="kb-times-grid">';
       dates.forEach(function (dLabel) {
         var full = dLabel + ' between ' + win;
-        html += '<button class="kb-time-btn" onclick="kbPickTime(\'' + mid + '\',\'' + full.replace(/'/g, "\\'") + '\',\'' + pfx + '\')">' + dLabel + '</button>';
+        html += '<button class="kb-time-btn" onclick="kbPickTime(\'' + mid + '\',\'' + full.replace(/'/g, "\\'") + '\',\'' + pfx + '\')">' + shortSlotLabel(dLabel) + '</button>';
       });
       html += '</div>';
       s2.innerHTML = html;
@@ -777,7 +789,7 @@
       var d = await r.json();
       if (d.slots && d.slots.length) {
         var html = '<div class="kb-stage-hdr">Pick a time</div><div class="kb-times-grid">';
-        d.slots.slice(0, 4).forEach(function (s) { html += '<button class="kb-time-btn" onclick="kbPickTime(\'' + mid + '\',\'' + s.label.replace(/'/g, "\\'") + '\',\'' + pfx + '\')">' + s.label + '</button>'; });
+        d.slots.slice(0, 4).forEach(function (s) { html += '<button class="kb-time-btn" onclick="kbPickTime(\'' + mid + '\',\'' + s.label.replace(/'/g, "\\'") + '\',\'' + pfx + '\')">' + shortSlotLabel(s.label) + '</button>'; });
         html += '</div><button class="kb-time-other" onclick="kbCustomTime(\'' + mid + '\',\'' + pfx + '\')">I have a different time in mind</button>';
         s2.innerHTML = html;
       } else {
