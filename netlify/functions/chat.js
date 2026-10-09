@@ -5,6 +5,8 @@ const fetch = require("node-fetch");
 const ipHistory = new Map();
 const RATE_LIMIT = 10; // max requests per IP per window
 const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+// Shown if the AI returns nothing usable (error, refusal, or empty reply).
+const FALLBACK_TEXT = "Sorry, I'm having trouble answering right now. Please call us at (847) 251-1200 or email info@kashianbros.com and we'll be glad to help.";
 function getClientIP(event) {
   // Netlify passes client IP in several headers. Try each in order of reliability.
   const h = event.headers || {};
@@ -81,11 +83,14 @@ exports.handler = async (event) => {
     // Accept BOTH messages (the conversation) and system (the rules/persona) as separate fields
     const { messages, system } = JSON.parse(event.body);
     // Build the API request body. Only include "system" if it was sent.
-    // temperature: 0 keeps Kay deterministic and on-script (minimizes made-up answers).
+    // Model: Claude Sonnet 5.5 (Sonnet 4.5 retires Nov 30, 2026).
+    // NOTE: Sonnet 5.5 rejects "temperature" (any non-default value = error), so it was removed.
+    // thinking "between_tools" = lowest setting; turns off up-front thinking so Kay replies quickly.
+    // max_tokens raised 1024 -> 2048 because Sonnet 5.5 counts the same text as ~30% more tokens.
     const apiBody = {
-      model: "claude-sonnet-4-5",
-      max_tokens: 1024,
-      temperature: 0,
+      model: "claude-sonnet-5-5",
+      max_tokens: 2048,
+      thinking: { type: "between_tools" },
       messages: messages
     };
     if (system && typeof system === "string" && system.length > 0) {
@@ -101,6 +106,21 @@ exports.handler = async (event) => {
       body: JSON.stringify(apiBody)
     });
     const data = await response.json();
+    // Log API errors so they show up in Netlify's function logs.
+    if (!response.ok || data.type === "error") {
+      console.log("Anthropic API error:", response.status, JSON.stringify(data.error || data));
+    }
+    // Sonnet 5.5 can put "thinking" blocks before the reply. The widget expects
+    // plain text blocks, so keep ONLY the text blocks before sending back.
+    const textBlocks = Array.isArray(data.content)
+      ? data.content.filter(b => b && b.type === "text" && typeof b.text === "string" && b.text.trim().length > 0)
+      : [];
+    if (textBlocks.length === 0) {
+      console.log("No text in AI reply. stop_reason:", data.stop_reason);
+      data.content = [{ type: "text", text: FALLBACK_TEXT }];
+    } else {
+      data.content = textBlocks;
+    }
     return {
       statusCode: 200,
       headers: {
