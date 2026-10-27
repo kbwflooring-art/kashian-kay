@@ -219,7 +219,18 @@
         var gb = function (px) { var el = document.getElementById(px + bmid); return el ? (el.value || '').trim() : ''; };
         var bfn = gb('kb-ifn-'), bln = gb('kb-iln-'), bph = gb('kb-iph-'), bem = gb('kb-iem-'), bad = gb('kb-iad-'), bno = gb('kb-ino-');
         if (bfn || bln || bph || bem || bad) {
-          hist.push({ role: 'user', content: 'BOOKING FORM STARTED (not completed):\nName: ' + (bfn + ' ' + bln).trim() + '\nPhone: ' + bph + '\nEmail: ' + bem + (bad ? '\nAddress: ' + bad : '') + (bno ? '\nNotes: ' + bno : '') });
+          var infoBox = document.getElementById('kb-info-' + bmid);
+          var infoAlreadyLogged = infoBox && infoBox.style.display === 'none';
+          if (infoAlreadyLogged) {
+            // Step 1 is already in the transcript above - don't repeat the details,
+            // just say where the customer stopped.
+            var stoppedAt = (flow.scope && flow.timeChoice) ? 'reviewing the request (picked a time but never clicked Send)'
+              : flow.scope ? 'picking a date and time'
+              : 'choosing what needs cleaning';
+            hist.push({ role: 'user', content: 'BOOKING NOT COMPLETED - customer left while ' + stoppedAt + '. Their contact info is in Step 1 above. Follow up by phone.' });
+          } else {
+          hist.push({ role: 'user', content: 'BOOKING NOT COMPLETED - customer started the info form but never submitted it:\nName: ' + (bfn + ' ' + bln).trim() + '\nPhone: ' + bph + '\nEmail: ' + bem + (bad ? '\nAddress: ' + bad : '') + (bno ? '\nNotes: ' + bno : '') });
+          }
           postAbandonedLead({ name: (bfn + ' ' + bln).trim(), email: bem, phone: bph, address: bad, details: bno, source: 'Abandoned - Booking' });
         }
       }
@@ -555,7 +566,7 @@
     // Capture the entered info into the transcript right away, so if the customer
     // abandons the flow before booking, Doug still sees their contact details as a
     // partial lead in the conversation-log email.
-    hist.push({ role: 'user', content: 'CUSTOMER INFO SUBMITTED (via form):\nName: ' + fn + ' ' + ln + '\nPhone: ' + ph + '\nEmail: ' + em + '\nAddress: ' + ad + '\nOn-site: ' + (sp ? 'Customer will be present' : 'Contact \u2014 ' + cn + ' ' + cp) + (no ? '\nNotes: ' + no : '') });
+    hist.push({ role: 'user', content: 'STEP 1 OF 3 - CUSTOMER INFO ENTERED:\nName: ' + fn + ' ' + ln + '\nPhone: ' + ph + '\nEmail: ' + em + '\nAddress: ' + ad + '\nOn-site: ' + (sp ? 'Customer will be present' : 'Contact \u2014 ' + cn + ' ' + cp) + (no ? '\nNotes: ' + no : '') });
     document.getElementById('kb-info-' + mid).style.display = 'none';
     flowMsg(nextType === 'RUG' ? 'Great! Now tell us about your rugs.\n[SHOW_RUG_SCOPE]' : 'Great! Now pick what needs cleaning.\n[SHOW_SCOPE]');
     setTimeout(function () { scrollNice(document.getElementById('kb-scope-' + (cnt - 1)) || document.getElementById('kb-rugscope-' + (cnt - 1))); }, 150);
@@ -927,7 +938,7 @@
       scrollNice(card);
     }
     if (ci.cardId) { var ic = document.getElementById('kb-info-' + ci.cardId); if (ic) ic.remove(); }
-    hist.push({ role: 'user', content: 'BOOKING SUBMITTED: ' + name + ' for ' + lbl + ' on ' + (flow.timeChoice || '') });
+    hist.push({ role: 'user', content: 'BOOKING COMPLETED - request sent to Adolfo: ' + name + ' for ' + lbl + ' on ' + (flow.timeChoice || '') });
     hist.push({ role: 'assistant', content: 'Booking sent! ' + timing });
     flow.scope = null; flow.customerInfo = null; flow.timeChoice = null; flow.active = false;
   };
