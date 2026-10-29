@@ -1,24 +1,13 @@
-// sms-send-confirmations.js
-// Kashian Bros SMS reminders — STEP 1: send the one-time confirmation text.
-// Version: 2026-10-29b (Adolfo name fix)
-// Separate from Kay. Reuses the existing GOOGLE_SERVICE_ACCOUNT_JSON login.
-//
-// How to run (by hand only — nothing runs automatically):
-//   Preview (sends nothing):  /.netlify/functions/sms-send-confirmations?key=YOUR_KEY&dryrun=1
-//   Send for real:            /.netlify/functions/sms-send-confirmations?key=YOUR_KEY
-//
-// AUTO-FILL: first it scans the calendar for appointments tagged TXT in the title
-// (e.g. "9:30 Jane Smith 847-555-1234 TXT") and adds a consent-log row for any
-// phone number not already in the log. The TXT tag = staff read the script and
-// the customer said yes on the phone.
-// Who gets a text: rows in the consent sheet where the customer answered "Yes"
-// and the "Text Status" column is still blank.
-// SAFETY: while SMS_TEST_MODE is anything other than "false", ONLY numbers in
-// SMS_ALLOWED_NUMBERS can be texted. Everyone else is skipped.
+// sms-incoming.js
+// Kashian Bros SMS reminders — STEP 2: handles customer replies (Twilio webhook).
+// Separate from Kay. Twilio calls this automatically when someone texts our number.
+//   YES / START / UNSTOP          -> Text Status = "Confirmed"
+//   STOP / UNSUBSCRIBE / CANCEL...-> Text Status = "Opted Out"
+// Twilio itself handles STOP/HELP/START replies and blocking. This file sends ONE
+// reply of its own: the "you're confirmed" text after a first-time YES.
+// Every request is checked against Twilio's signature, so outsiders can't fake replies.
 
 var crypto = require('crypto');
-
-var CONFIRMATION_TEXT = "Kashian Bros: Reply YES to confirm appointment reminder texts. You'll get one reminder the evening before each appointment with your arrival window, plus a notice if your appointment is rescheduled. Msg & data rates may apply. Reply HELP for help, STOP to opt out. Terms: kashianbros.com/sms-terms Privacy: kashianbros.com/privacy";
 
 // ---------- shared helpers ----------
 function b64url(str){return Buffer.from(str).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
@@ -107,118 +96,54 @@ function chicagoStamp(){return new Date().toLocaleString('en-US',{timeZone:'Amer
 function text(code,body){return{statusCode:code,headers:{'Content-Type':'text/plain; charset=utf-8'},body:body};}
 // ---------- end helpers ----------
 
+function twilioSignatureOk(event,params){
+  var tok=process.env.TWILIO_AUTH_TOKEN;
+  var sig=(event.headers||{})['x-twilio-signature'];
+  if(!tok||!sig)return false;
+  var keys=Object.keys(params).sort();
+  var urls=[process.env.SMS_WEBHOOK_URL,event.rawUrl].filter(Boolean);
+  for(var i=0;i<urls.length;i++){
+    var data=urls[i]+keys.map(function(k){return k+params[k];}).join('');
+    var expected=crypto.createHmac('sha1',tok).update(Buffer.from(data,'utf-8')).digest('base64');
+    var a=Buffer.from(expected),b=Buffer.from(sig);
+    if(a.length===b.length&&crypto.timingSafeEqual(a,b))return true;
+  }
+  return false;
+}
+function xmlEsc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function twiml(reply){return{statusCode:200,headers:{'Content-Type':'text/xml'},body:'<?xml version="1.0" encoding="UTF-8"?><Response>'+(reply?'<Message>'+xmlEsc(reply)+'</Message>':'')+'</Response>'};}
+// Sent once when a customer replies YES to the confirmation text (matches the mock exchange approved by Twilio).
+var CONFIRMED_REPLY="Kashian Bros: Thanks, you're confirmed for appointment reminder texts. Msg frequency: one reminder per appointment plus reschedule notices. Msg & data rates may apply. Reply HELP for help, STOP to opt out.";
 
-// ---------- calendar auto-fill ----------
-// Google account that created the event -> name written in the Employee Name column.
-var EMPLOYEE_NAMES={'kbwflooring@gmail.com':'Adolfo'};
-function employeeName(email,creator){
-  var keys=Object.keys(EMPLOYEE_NAMES);
-  for(var i=0;i<keys.length;i++){
-    var k=keys[i].toLowerCase();
-    if(email===k||email.split('@')[0]===k.split('@')[0])return EMPLOYEE_NAMES[keys[i]];
-  }
-  return (creator&&(creator.displayName||creator.email))||'';
-}
-function tagWord(){return String(process.env.SMS_TAG||'TXT').trim();}
-function hasTag(title){var t=tagWord().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return new RegExp('(^|[^A-Za-z0-9])'+t+'([^A-Za-z0-9]|$)','i').test(String(title||''));}
-function phoneFromText(s){var m=String(s||'').match(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g);return m?normPhone(m[m.length-1]):null;}
-function nameFromTitle(title){
-  var t=String(title||'');
-  t=t.replace(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g,' ');                 // phone
-  var tg=tagWord().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  t=t.replace(new RegExp('(^|[^A-Za-z0-9])'+tg+'(?=[^A-Za-z0-9]|$)','ig'),' '); // tag
-  t=t.replace(/^\s*\d{1,2}(:\d{2})?\s*(am|pm|a|p)?\.?\s*/i,'');                // leading time
-  t=t.replace(/^\s*\d+\s*\.\s*/,'');                                          // stop number "1."
-  return t.replace(/\s+/g,' ').trim();
-}
-function calendarIds(){
-  if(isTestMode())return [process.env.SMS_TEST_CALENDAR_ID].filter(Boolean);
-  return String(process.env.SMS_LIVE_CALENDAR_IDS||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
-}
-async function getEvents(token,calId,tMin,tMax){
-  var url='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events?singleEvents=true&orderBy=startTime&maxResults=2500&timeMin='+tMin.toISOString()+'&timeMax='+tMax.toISOString();
-  var d=await (await fetch(url,{headers:{Authorization:'Bearer '+token}})).json();
-  if(d.error)throw new Error('Calendar error ('+calId.slice(0,12)+'...): '+d.error.message);
-  return d.items||[];
-}
-function shortDate(d){return d.toLocaleDateString('en-US',{timeZone:'America/Chicago',month:'numeric',day:'numeric',year:'2-digit'});}
-function shortTime(d){return d.toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'numeric',minute:'2-digit'});}
-function findColNorm(headers,re){for(var i=0;i<headers.length;i++){if(re.test(String(headers[i]||'').replace(/\s+/g,' ').trim()))return i;}return -1;}
-async function writeRow(token,sheet,rowIdx,rowValues){
-  var range=q(sheet.title)+'!A'+(rowIdx+1)+':'+colLetter(rowValues.length-1)+(rowIdx+1);
-  var res=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheet.id+'/values/'+encodeURIComponent(range)+'?valueInputOption=USER_ENTERED',{method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[rowValues]})});
-  if(!res.ok){var d=await res.json();throw new Error('Sheet write error: '+(d.error&&d.error.message));}
-}
-async function autofillFromCalendar(token,sheet,dry,out){
-  var cals=calendarIds();
-  if(!cals.length){out.push('Calendar auto-fill skipped: no calendar set ('+(isTestMode()?'SMS_TEST_CALENDAR_ID':'SMS_LIVE_CALENDAR_IDS')+').');return;}
-  var h=sheet.headers,c=sheet.cols;
-  var col={date:findColNorm(h,/date consented/i),name:findColNorm(h,/customer name|^name$/i),appt:findColNorm(h,/appointment/i),employee:findColNorm(h,/employee|team member|staff/i),notes:findColNorm(h,/^notes?$/i)};
-  var known={};
-  for(var r=sheet.headerRow+1;r<sheet.values.length;r++){var p=normPhone((sheet.values[r]||[])[c.phone]);if(p)known[p]=true;}
-  var now=new Date(),tMax=new Date(now.getTime()+90*24*3600*1000),added=0;
-  for(var i=0;i<cals.length;i++){
-    var evs=await getEvents(token,cals[i],now,tMax);
-    for(var j=0;j<evs.length;j++){
-      var e=evs[j];
-      if(e.status==='cancelled'||!hasTag(e.summary))continue;
-      var phone=phoneFromText(e.summary);
-      if(!phone){out.push('Calendar: "'+e.summary+'" has '+tagWord()+' but no phone number — not added');continue;}
-      if(known[phone])continue; // already in the log
-      known[phone]=true;
-      var start=new Date((e.start&&(e.start.dateTime||e.start.date))||now);
-      var created=e.created?new Date(e.created):now;
-      var row=[];for(var k=0;k<h.length;k++)row.push('');
-      if(col.date>=0)row[col.date]=shortDate(created);
-      if(col.name>=0)row[col.name]=nameFromTitle(e.summary);
-      row[c.phone]=phone.replace(/^\+1(\d{3})(\d{3})(\d{4})$/,'$1-$2-$3');
-      if(col.appt>=0)row[col.appt]=shortDate(start)+' '+shortTime(start);
-      if(c.consent>=0)row[c.consent]='Yes';
-      if(c.script>=0)row[c.script]='Yes';
-      var creatorEmail=String((e.creator&&e.creator.email)||'').trim().toLowerCase();
-      if(col.employee>=0)row[col.employee]=employeeName(creatorEmail,e.creator);
-      if(col.notes>=0)row[col.notes]='Auto-added from calendar ('+tagWord()+' tag)';
-      var rowIdx=sheet.values.length;
-      if(dry){out.push('Calendar: would add consent-log row '+(rowIdx+1)+' for '+(row[col.name]||'')+' '+phone+' (event created by: '+(creatorEmail||'unknown')+' → '+(col.employee>=0?row[col.employee]:'')+')');}
-      else{await writeRow(token,sheet,rowIdx,row);out.push('Calendar: added consent-log row '+(rowIdx+1)+' for '+(row[col.name]||'')+' '+phone+' (event created by: '+(creatorEmail||'unknown')+' → '+(col.employee>=0?row[col.employee]:'')+')');}
-      sheet.values.push(row); // so the confirmation step below sees it
-      added++;
-    }
-  }
-  if(!added)out.push('Calendar: no new '+tagWord()+'-tagged appointments to add.');
-  out.push('');
-}
+var YES_WORDS=['YES','Y','START','UNSTOP'];
+var STOP_WORDS=['STOP','STOPALL','UNSUBSCRIBE','CANCEL','END','QUIT','OPTOUT','REVOKE'];
 
 exports.handler=async function(event){
-  var params=event.queryStringParameters||{};
-  if(!process.env.SMS_ADMIN_KEY||params.key!==process.env.SMS_ADMIN_KEY)return text(403,'Not allowed.');
-  var dry=params.dryrun==='1';
-  var out=['CONFIRMATION TEXTS — '+(dry?'PREVIEW ONLY (nothing sent)':'SENDING')+' — test mode: '+(isTestMode()?'ON (only '+allowedNumbers().join(', ')+')':'OFF'),''];
+  if(event.httpMethod!=='POST')return text(405,'POST only');
+  var raw=event.isBase64Encoded?Buffer.from(event.body||'','base64').toString('utf-8'):(event.body||'');
+  var params={};new URLSearchParams(raw).forEach(function(v,k){params[k]=v;});
+  if(!twilioSignatureOk(event,params))return text(403,'Bad signature');
   try{
-    var token=await getGoogleToken('https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/spreadsheets');
+    var from=normPhone(params.From);
+    var word=String(params.Body||'').trim().toUpperCase().replace(/[^A-Z]/g,' ').trim().split(/\s+/)[0]||'';
+    var newStatus=YES_WORDS.indexOf(word)!==-1?'Confirmed':(STOP_WORDS.indexOf(word)!==-1?'Opted Out':null);
+    if(!from||!newStatus){console.log('Incoming ignored:',from,word);return twiml();}
+    var token=await getGoogleToken('https://www.googleapis.com/auth/spreadsheets');
     var sheet=await loadSheet(token);
-    var c=sheet.cols,count=0;
-    await autofillFromCalendar(token,sheet,dry,out);
-    if(c.consent<0)out.push('Note: no consent/answer column found, so every row with a phone number counts as "Yes".');
+    var c=sheet.cols,updated=0,sendConfirmedReply=false;
     for(var r=sheet.headerRow+1;r<sheet.values.length;r++){
       var row=sheet.values[r]||[];
-      var phone=normPhone(row[c.phone]);
-      if(!phone)continue;
-      var consent=c.consent<0?'yes':String(row[c.consent]||'');
-      if(!/^\s*y(es)?\b/i.test(consent))continue;
-      if(c.script>=0&&!/^\s*y(es)?\b/i.test(String(row[c.script]||''))){out.push('Row '+(r+1)+' '+phone+': SKIPPED — Script Read? is not Yes');continue;}
-      if(String(row[c.status]||'').trim())continue; // already handled
-      count++;
-      if(!canSendTo(phone)){out.push('Row '+(r+1)+' '+phone+': SKIPPED — blocked by test mode');continue;}
-      if(dry){out.push('Row '+(r+1)+' '+phone+': would send confirmation text');continue;}
-      try{
-        await sendSms(phone,CONFIRMATION_TEXT);
-        await setCell(token,sheet,r,c.status,'Confirmation Sent');
-        await setCell(token,sheet,r,c.confirmSent,chicagoStamp());
-        out.push('Row '+(r+1)+' '+phone+': SENT');
-      }catch(e){out.push('Row '+(r+1)+' '+phone+': ERROR — '+e.message);}
+      if(normPhone(row[c.phone])!==from)continue;
+      var cur=String(row[c.status]||'').trim();
+      // Only confirm people who were actually sent the confirmation text (or re-joining after STOP).
+      if(newStatus==='Confirmed'&&cur!=='Confirmation Sent'&&cur!=='Opted Out')continue;
+      await setCell(token,sheet,r,c.status,newStatus);
+      updated++;
+      if(newStatus==='Confirmed'&&cur==='Confirmation Sent'&&(word==='YES'||word==='Y'))sendConfirmedReply=true;
     }
-    if(!count)out.push('Nobody new to confirm (rows need "Yes" and a blank Text Status).');
-    return text(200,out.join('\n'));
-  }catch(e){out.push('ERROR: '+e.message);return text(500,out.join('\n'));}
+    console.log('Incoming',word,'from',from,'-> rows updated:',updated);
+    // Only reply to a first-time YES (START already gets Twilio's own reply), and respect test mode.
+    if(sendConfirmedReply&&canSendTo(from))return twiml(CONFIRMED_REPLY);
+  }catch(e){console.log('Incoming error:',e.message);}
+  return twiml();
 };
