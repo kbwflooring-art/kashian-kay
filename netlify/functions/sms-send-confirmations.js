@@ -1,5 +1,6 @@
 // sms-send-confirmations.js
 // Kashian Bros SMS reminders — STEP 1: send the one-time confirmation text.
+// Version: 2026-10-29b (Adolfo name fix)
 // Separate from Kay. Reuses the existing GOOGLE_SERVICE_ACCOUNT_JSON login.
 //
 // How to run (by hand only — nothing runs automatically):
@@ -108,6 +109,16 @@ function text(code,body){return{statusCode:code,headers:{'Content-Type':'text/pl
 
 
 // ---------- calendar auto-fill ----------
+// Google account that created the event -> name written in the Employee Name column.
+var EMPLOYEE_NAMES={'kbwflooring@gmail.com':'Adolfo'};
+function employeeName(email,creator){
+  var keys=Object.keys(EMPLOYEE_NAMES);
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i].toLowerCase();
+    if(email===k||email.split('@')[0]===k.split('@')[0])return EMPLOYEE_NAMES[keys[i]];
+  }
+  return (creator&&(creator.displayName||creator.email))||'';
+}
 function tagWord(){return String(process.env.SMS_TAG||'TXT').trim();}
 function hasTag(title){var t=tagWord().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return new RegExp('(^|[^A-Za-z0-9])'+t+'([^A-Za-z0-9]|$)','i').test(String(title||''));}
 function phoneFromText(s){var m=String(s||'').match(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g);return m?normPhone(m[m.length-1]):null;}
@@ -164,11 +175,12 @@ async function autofillFromCalendar(token,sheet,dry,out){
       if(col.appt>=0)row[col.appt]=shortDate(start)+' '+shortTime(start);
       if(c.consent>=0)row[c.consent]='Yes';
       if(c.script>=0)row[c.script]='Yes';
-      if(col.employee>=0)row[col.employee]=(e.creator&&(e.creator.displayName||e.creator.email))||'';
+      var creatorEmail=String((e.creator&&e.creator.email)||'').trim().toLowerCase();
+      if(col.employee>=0)row[col.employee]=employeeName(creatorEmail,e.creator);
       if(col.notes>=0)row[col.notes]='Auto-added from calendar ('+tagWord()+' tag)';
       var rowIdx=sheet.values.length;
-      if(dry){out.push('Calendar: would add consent-log row '+(rowIdx+1)+' for '+(row[col.name]||'')+' '+phone);}
-      else{await writeRow(token,sheet,rowIdx,row);out.push('Calendar: added consent-log row '+(rowIdx+1)+' for '+(row[col.name]||'')+' '+phone);}
+      if(dry){out.push('Calendar: would add consent-log row '+(rowIdx+1)+' for '+(row[col.name]||'')+' '+phone+' (event created by: '+(creatorEmail||'unknown')+' → '+(col.employee>=0?row[col.employee]:'')+')');}
+      else{await writeRow(token,sheet,rowIdx,row);out.push('Calendar: added consent-log row '+(rowIdx+1)+' for '+(row[col.name]||'')+' '+phone+' (event created by: '+(creatorEmail||'unknown')+' → '+(col.employee>=0?row[col.employee]:'')+')');}
       sheet.values.push(row); // so the confirmation step below sees it
       added++;
     }
