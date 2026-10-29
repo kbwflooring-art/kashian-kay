@@ -1,18 +1,23 @@
-// sms-send-reminders.js
-// Kashian Bros SMS reminders — STEP 3: the evening-before reminder.
-// Separate from Kay. Reads TOMORROW's appointments from the calendar, pulls the
-// phone number from the end of each event title (e.g. "9:30 Jane Smith 847-555-1234"),
-// and texts the arrival window (the event's start–end time on the calendar).
+// sms-send-confirmations.js
+// Kashian Bros SMS reminders — STEP 1: send the one-time confirmation text.
+// Separate from Kay. Reuses the existing GOOGLE_SERVICE_ACCOUNT_JSON login.
 //
-// How to run (by hand only — no automatic schedule yet):
-//   Preview (sends nothing):  /.netlify/functions/sms-send-reminders?key=YOUR_KEY&dryrun=1
-//   Send for real:            /.netlify/functions/sms-send-reminders?key=YOUR_KEY
+// How to run (by hand only — nothing runs automatically):
+//   Preview (sends nothing):  /.netlify/functions/sms-send-confirmations?key=YOUR_KEY&dryrun=1
+//   Send for real:            /.netlify/functions/sms-send-confirmations?key=YOUR_KEY
 //
-// Only texts customers whose Text Status is "Confirmed" (they replied YES).
-// SAFETY: in test mode it reads ONLY the SMS_TEST_CALENDAR_ID calendar and can
-// ONLY text numbers in SMS_ALLOWED_NUMBERS.
+// AUTO-FILL: first it scans the calendar for appointments tagged TXT in the title
+// (e.g. "9:30 Jane Smith 847-555-1234 TXT") and adds a consent-log row for any
+// phone number not already in the log. The TXT tag = staff read the script and
+// the customer said yes on the phone.
+// Who gets a text: rows in the consent sheet where the customer answered "Yes"
+// and the "Text Status" column is still blank.
+// SAFETY: while SMS_TEST_MODE is anything other than "false", ONLY numbers in
+// SMS_ALLOWED_NUMBERS can be texted. Everyone else is skipped.
 
 var crypto = require('crypto');
+
+var CONFIRMATION_TEXT = "Kashian Bros: Reply YES to confirm appointment reminder texts. You'll get one reminder the evening before each appointment with your arrival window, plus a notice if your appointment is rescheduled. Msg & data rates may apply. Reply HELP for help, STOP to opt out. Terms: kashianbros.com/sms-terms Privacy: kashianbros.com/privacy";
 
 // ---------- shared helpers ----------
 function b64url(str){return Buffer.from(str).toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
@@ -101,71 +106,109 @@ function chicagoStamp(){return new Date().toLocaleString('en-US',{timeZone:'Amer
 function text(code,body){return{statusCode:code,headers:{'Content-Type':'text/plain; charset=utf-8'},body:body};}
 // ---------- end helpers ----------
 
-function chicagoDateStr(d){return d.toLocaleDateString('en-US',{timeZone:'America/Chicago'});}
-function tomorrowChicago(){
-  var p=new Date().toLocaleDateString('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).split('/');
-  return new Date(Date.UTC(parseInt(p[2]),parseInt(p[0])-1,parseInt(p[1])+1,17,0,0));
-}
-function fmtTime(d){return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'});}
-function fmtDay(d){return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'America/Chicago'});}
-function phoneFromText(s){
-  var m=String(s||'').match(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g);
-  return m?normPhone(m[m.length-1]):null; // last phone number in the text
+
+// ---------- calendar auto-fill ----------
+// Google account that created the event -> name written in the Employee Name column.
+var EMPLOYEE_NAMES={'kbwflooring@gmail.com':'Adolfo'};
+function tagWord(){return String(process.env.SMS_TAG||'TXT').trim();}
+function hasTag(title){var t=tagWord().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return new RegExp('(^|[^A-Za-z0-9])'+t+'([^A-Za-z0-9]|$)','i').test(String(title||''));}
+function phoneFromText(s){var m=String(s||'').match(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g);return m?normPhone(m[m.length-1]):null;}
+function nameFromTitle(title){
+  var t=String(title||'');
+  t=t.replace(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g,' ');                 // phone
+  var tg=tagWord().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  t=t.replace(new RegExp('(^|[^A-Za-z0-9])'+tg+'(?=[^A-Za-z0-9]|$)','ig'),' '); // tag
+  t=t.replace(/^\s*\d{1,2}(:\d{2})?\s*(am|pm|a|p)?\.?\s*/i,'');                // leading time
+  t=t.replace(/^\s*\d+\s*\.\s*/,'');                                          // stop number "1."
+  return t.replace(/\s+/g,' ').trim();
 }
 function calendarIds(){
   if(isTestMode())return [process.env.SMS_TEST_CALENDAR_ID].filter(Boolean);
   return String(process.env.SMS_LIVE_CALENDAR_IDS||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
 }
 async function getEvents(token,calId,tMin,tMax){
-  var url='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events?singleEvents=true&orderBy=startTime&timeMin='+tMin.toISOString()+'&timeMax='+tMax.toISOString();
+  var url='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events?singleEvents=true&orderBy=startTime&maxResults=2500&timeMin='+tMin.toISOString()+'&timeMax='+tMax.toISOString();
   var d=await (await fetch(url,{headers:{Authorization:'Bearer '+token}})).json();
   if(d.error)throw new Error('Calendar error ('+calId.slice(0,12)+'...): '+d.error.message);
   return d.items||[];
+}
+function shortDate(d){return d.toLocaleDateString('en-US',{timeZone:'America/Chicago',month:'numeric',day:'numeric',year:'2-digit'});}
+function shortTime(d){return d.toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'numeric',minute:'2-digit'});}
+function findColNorm(headers,re){for(var i=0;i<headers.length;i++){if(re.test(String(headers[i]||'').replace(/\s+/g,' ').trim()))return i;}return -1;}
+async function writeRow(token,sheet,rowIdx,rowValues){
+  var range=q(sheet.title)+'!A'+(rowIdx+1)+':'+colLetter(rowValues.length-1)+(rowIdx+1);
+  var res=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheet.id+'/values/'+encodeURIComponent(range)+'?valueInputOption=USER_ENTERED',{method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[rowValues]})});
+  if(!res.ok){var d=await res.json();throw new Error('Sheet write error: '+(d.error&&d.error.message));}
+}
+async function autofillFromCalendar(token,sheet,dry,out){
+  var cals=calendarIds();
+  if(!cals.length){out.push('Calendar auto-fill skipped: no calendar set ('+(isTestMode()?'SMS_TEST_CALENDAR_ID':'SMS_LIVE_CALENDAR_IDS')+').');return;}
+  var h=sheet.headers,c=sheet.cols;
+  var col={date:findColNorm(h,/date consented/i),name:findColNorm(h,/customer name|^name$/i),appt:findColNorm(h,/appointment/i),employee:findColNorm(h,/employee|team member|staff/i),notes:findColNorm(h,/^notes?$/i)};
+  var known={};
+  for(var r=sheet.headerRow+1;r<sheet.values.length;r++){var p=normPhone((sheet.values[r]||[])[c.phone]);if(p)known[p]=true;}
+  var now=new Date(),tMax=new Date(now.getTime()+90*24*3600*1000),added=0;
+  for(var i=0;i<cals.length;i++){
+    var evs=await getEvents(token,cals[i],now,tMax);
+    for(var j=0;j<evs.length;j++){
+      var e=evs[j];
+      if(e.status==='cancelled'||!hasTag(e.summary))continue;
+      var phone=phoneFromText(e.summary);
+      if(!phone){out.push('Calendar: "'+e.summary+'" has '+tagWord()+' but no phone number — not added');continue;}
+      if(known[phone])continue; // already in the log
+      known[phone]=true;
+      var start=new Date((e.start&&(e.start.dateTime||e.start.date))||now);
+      var created=e.created?new Date(e.created):now;
+      var row=[];for(var k=0;k<h.length;k++)row.push('');
+      if(col.date>=0)row[col.date]=shortDate(created);
+      if(col.name>=0)row[col.name]=nameFromTitle(e.summary);
+      row[c.phone]=phone.replace(/^\+1(\d{3})(\d{3})(\d{4})$/,'$1-$2-$3');
+      if(col.appt>=0)row[col.appt]=shortDate(start)+' '+shortTime(start);
+      if(c.consent>=0)row[c.consent]='Yes';
+      if(c.script>=0)row[c.script]='Yes';
+      if(col.employee>=0){var ce=e.creator&&String(e.creator.email||'').toLowerCase();row[col.employee]=EMPLOYEE_NAMES[ce]||(e.creator&&(e.creator.displayName||e.creator.email))||'';}
+      if(col.notes>=0)row[col.notes]='Auto-added from calendar ('+tagWord()+' tag)';
+      var rowIdx=sheet.values.length;
+      if(dry){out.push('Calendar: would add consent-log row '+(rowIdx+1)+' for '+(row[col.name]||'')+' '+phone);}
+      else{await writeRow(token,sheet,rowIdx,row);out.push('Calendar: added consent-log row '+(rowIdx+1)+' for '+(row[col.name]||'')+' '+phone);}
+      sheet.values.push(row); // so the confirmation step below sees it
+      added++;
+    }
+  }
+  if(!added)out.push('Calendar: no new '+tagWord()+'-tagged appointments to add.');
+  out.push('');
 }
 
 exports.handler=async function(event){
   var params=event.queryStringParameters||{};
   if(!process.env.SMS_ADMIN_KEY||params.key!==process.env.SMS_ADMIN_KEY)return text(403,'Not allowed.');
   var dry=params.dryrun==='1';
-  var tom=tomorrowChicago(),tomStr=chicagoDateStr(tom);
-  var out=['REMINDER TEXTS for '+fmtDay(tom)+' — '+(dry?'PREVIEW ONLY (nothing sent)':'SENDING')+' — test mode: '+(isTestMode()?'ON (only '+allowedNumbers().join(', ')+')':'OFF'),''];
+  var out=['CONFIRMATION TEXTS — '+(dry?'PREVIEW ONLY (nothing sent)':'SENDING')+' — test mode: '+(isTestMode()?'ON (only '+allowedNumbers().join(', ')+')':'OFF'),''];
   try{
-    var cals=calendarIds();
-    if(!cals.length)throw new Error(isTestMode()?'Missing SMS_TEST_CALENDAR_ID':'Missing SMS_LIVE_CALENDAR_IDS');
     var token=await getGoogleToken('https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/spreadsheets');
-    var sheet=await loadSheet(token),c=sheet.cols;
-    var now=new Date(),tMax=new Date(now.getTime()+60*3600*1000);
-    var events=[];
-    for(var i=0;i<cals.length;i++){events=events.concat(await getEvents(token,cals[i],now,tMax));}
-    var done={},count=0;
-    for(var j=0;j<events.length;j++){
-      var e=events[j];
-      if(e.status==='cancelled'||!e.start||!e.start.dateTime)continue;
-      var start=new Date(e.start.dateTime),end=new Date(e.end.dateTime);
-      if(chicagoDateStr(start)!==tomStr)continue;
+    var sheet=await loadSheet(token);
+    var c=sheet.cols,count=0;
+    await autofillFromCalendar(token,sheet,dry,out);
+    if(c.consent<0)out.push('Note: no consent/answer column found, so every row with a phone number counts as "Yes".');
+    for(var r=sheet.headerRow+1;r<sheet.values.length;r++){
+      var row=sheet.values[r]||[];
+      var phone=normPhone(row[c.phone]);
+      if(!phone)continue;
+      var consent=c.consent<0?'yes':String(row[c.consent]||'');
+      if(!/^\s*y(es)?\b/i.test(consent))continue;
+      if(c.script>=0&&!/^\s*y(es)?\b/i.test(String(row[c.script]||''))){out.push('Row '+(r+1)+' '+phone+': SKIPPED — Script Read? is not Yes');continue;}
+      if(String(row[c.status]||'').trim())continue; // already handled
       count++;
-      var label='"'+(e.summary||'(no title)')+'" '+fmtTime(start)+'–'+fmtTime(end);
-      var phone=phoneFromText(e.summary)||phoneFromText(e.description);
-      if(!phone){out.push(label+': SKIPPED — no phone number found in title');continue;}
-      if(done[phone]){out.push(label+': SKIPPED — already handled this number for tomorrow');continue;}
-      done[phone]=true;
-      var rowIdx=-1;
-      for(var r=sheet.headerRow+1;r<sheet.values.length;r++){if(normPhone((sheet.values[r]||[])[c.phone])===phone){rowIdx=r;}}
-      if(rowIdx<0){out.push(label+' '+phone+': SKIPPED — not in consent log');continue;}
-      var row=sheet.values[rowIdx]||[];
-      var status=String(row[c.status]||'').trim();
-      if(status!=='Confirmed'){out.push(label+' '+phone+': SKIPPED — Text Status is "'+(status||'blank')+'", not Confirmed');continue;}
-      if(String(row[c.lastReminder]||'').trim()===tomStr){out.push(label+' '+phone+': SKIPPED — reminder already sent for '+tomStr);continue;}
-      if(!canSendTo(phone)){out.push(label+' '+phone+': SKIPPED — blocked by test mode');continue;}
-      var msg='Kashian Bros: Reminder – your cleaning is scheduled for tomorrow, '+fmtDay(start)+', between '+fmtTime(start)+' and '+fmtTime(end)+'. Questions? Call (847) 251-1200. Reply STOP to opt out, HELP for help.';
-      if(dry){out.push(label+' '+phone+': would send →\n   '+msg);continue;}
+      if(!canSendTo(phone)){out.push('Row '+(r+1)+' '+phone+': SKIPPED — blocked by test mode');continue;}
+      if(dry){out.push('Row '+(r+1)+' '+phone+': would send confirmation text');continue;}
       try{
-        await sendSms(phone,msg);
-        await setCell(token,sheet,rowIdx,c.lastReminder,tomStr);
-        out.push(label+' '+phone+': SENT');
-      }catch(err){out.push(label+' '+phone+': ERROR — '+err.message);}
+        await sendSms(phone,CONFIRMATION_TEXT);
+        await setCell(token,sheet,r,c.status,'Confirmation Sent');
+        await setCell(token,sheet,r,c.confirmSent,chicagoStamp());
+        out.push('Row '+(r+1)+' '+phone+': SENT');
+      }catch(e){out.push('Row '+(r+1)+' '+phone+': ERROR — '+e.message);}
     }
-    if(!count)out.push('No timed appointments found for tomorrow on the calendar(s) checked.');
+    if(!count)out.push('Nobody new to confirm (rows need "Yes" and a blank Text Status).');
     return text(200,out.join('\n'));
   }catch(e){out.push('ERROR: '+e.message);return text(500,out.join('\n'));}
 };
