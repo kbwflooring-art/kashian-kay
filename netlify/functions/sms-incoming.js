@@ -3,8 +3,8 @@
 // Separate from Kay. Twilio calls this automatically when someone texts our number.
 //   YES / START / UNSTOP          -> Text Status = "Confirmed"
 //   STOP / UNSUBSCRIBE / CANCEL...-> Text Status = "Opted Out"
-// Twilio itself also handles STOP/HELP replies and blocking, so this file
-// does NOT send any reply text — it only updates the consent sheet.
+// Twilio itself handles STOP/HELP/START replies and blocking. This file sends ONE
+// reply of its own: the "you're confirmed" text after a first-time YES.
 // Every request is checked against Twilio's signature, so outsiders can't fake replies.
 
 var crypto = require('crypto');
@@ -110,7 +110,10 @@ function twilioSignatureOk(event,params){
   }
   return false;
 }
-function twiml(){return{statusCode:200,headers:{'Content-Type':'text/xml'},body:'<?xml version="1.0" encoding="UTF-8"?><Response></Response>'};}
+function xmlEsc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function twiml(reply){return{statusCode:200,headers:{'Content-Type':'text/xml'},body:'<?xml version="1.0" encoding="UTF-8"?><Response>'+(reply?'<Message>'+xmlEsc(reply)+'</Message>':'')+'</Response>'};}
+// Sent once when a customer replies YES to the confirmation text (matches the mock exchange approved by Twilio).
+var CONFIRMED_REPLY="Kashian Bros: Thanks, you're confirmed for appointment reminder texts. Msg frequency: one reminder per appointment plus reschedule notices. Msg & data rates may apply. Reply HELP for help, STOP to opt out.";
 
 var YES_WORDS=['YES','Y','START','UNSTOP'];
 var STOP_WORDS=['STOP','STOPALL','UNSUBSCRIBE','CANCEL','END','QUIT','OPTOUT','REVOKE'];
@@ -127,7 +130,7 @@ exports.handler=async function(event){
     if(!from||!newStatus){console.log('Incoming ignored:',from,word);return twiml();}
     var token=await getGoogleToken('https://www.googleapis.com/auth/spreadsheets');
     var sheet=await loadSheet(token);
-    var c=sheet.cols,updated=0;
+    var c=sheet.cols,updated=0,sendConfirmedReply=false;
     for(var r=sheet.headerRow+1;r<sheet.values.length;r++){
       var row=sheet.values[r]||[];
       if(normPhone(row[c.phone])!==from)continue;
@@ -136,8 +139,11 @@ exports.handler=async function(event){
       if(newStatus==='Confirmed'&&cur!=='Confirmation Sent'&&cur!=='Opted Out')continue;
       await setCell(token,sheet,r,c.status,newStatus);
       updated++;
+      if(newStatus==='Confirmed'&&cur==='Confirmation Sent'&&(word==='YES'||word==='Y'))sendConfirmedReply=true;
     }
     console.log('Incoming',word,'from',from,'-> rows updated:',updated);
+    // Only reply to a first-time YES (START already gets Twilio's own reply), and respect test mode.
+    if(sendConfirmedReply&&canSendTo(from))return twiml(CONFIRMED_REPLY);
   }catch(e){console.log('Incoming error:',e.message);}
   return twiml();
 };
