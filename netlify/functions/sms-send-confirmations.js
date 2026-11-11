@@ -123,13 +123,19 @@ function tagWord(){return String(process.env.SMS_TAG||'TXT').trim();}
 function hasTag(title){var t=tagWord().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return new RegExp('(^|[^A-Za-z0-9])'+t+'([^A-Za-z0-9]|$)','i').test(String(title||''));}
 function phoneFromText(s){var m=String(s||'').match(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g);return m?normPhone(m[m.length-1]):null;}
 function nameFromTitle(title){
+  // Name = the words BEFORE the phone number, minus the stop number ("1."), any
+  // leading time, the TXT tag, and anything in parentheses or after it.
+  // e.g. "Christin Hunter 847-363-1373 Call 30 Mins B4 To Meet TXT" -> "Christin Hunter"
+  //      "1.Michael Peregrine ( Pam 847-732-9448 Call To Meet ) TXT" -> "Michael Peregrine"
   var t=String(title||'');
-  t=t.replace(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g,' ');                 // phone
+  var m=t.match(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/);
+  if(m)t=t.slice(0,m.index);
+  t=t.split('(')[0];
   var tg=tagWord().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  t=t.replace(new RegExp('(^|[^A-Za-z0-9])'+tg+'(?=[^A-Za-z0-9]|$)','ig'),' '); // tag
-  t=t.replace(/^\s*\d{1,2}(:\d{2})?\s*(am|pm|a|p)?\.?\s*/i,'');                // leading time
-  t=t.replace(/^\s*\d+\s*\.\s*/,'');                                          // stop number "1."
-  return t.replace(/\s+/g,' ').trim();
+  t=t.replace(new RegExp('(^|[^A-Za-z0-9])'+tg+'(?=[^A-Za-z0-9]|$)','ig'),' ');
+  t=t.replace(/^\s*\d{1,2}(:\d{2})?\s*(am|pm|a|p)?\.?\s*/i,'');
+  t=t.replace(/^\s*\d+\s*\.\s*/,'');
+  return t.replace(/\s+/g,' ').replace(/^[\s\-\u2013,:;]+|[\s\-\u2013,:;]+$/g,'').trim();
 }
 function calendarIds(){
   if(isTestMode())return [process.env.SMS_TEST_CALENDAR_ID].filter(Boolean);
