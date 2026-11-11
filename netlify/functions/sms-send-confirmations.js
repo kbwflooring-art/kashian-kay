@@ -110,7 +110,7 @@ function text(code,body){return{statusCode:code,headers:{'Content-Type':'text/pl
 
 // ---------- calendar auto-fill ----------
 // Google account that created the event -> name written in the Employee Name column.
-var EMPLOYEE_NAMES={'kbwflooring@gmail.com':'Adolfo'};
+var EMPLOYEE_NAMES={'kbwflooring@gmail.com':'Adolfo','radolfo1910@gmail.com':'Adolfo'};
 function employeeName(email,creator){
   var keys=Object.keys(EMPLOYEE_NAMES);
   for(var i=0;i<keys.length;i++){
