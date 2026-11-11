@@ -117,6 +117,28 @@ function phoneFromText(s){
   var m=String(s||'').match(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g);
   return m?normPhone(m[m.length-1]):null; // last phone number in the text
 }
+
+// ---------- appointment type (carpet vs rug) ----------
+// Rug pickup/delivery appointments live on the Pick Up & Delivery calendar; their
+// calendar time IS the arrival window. Carpet/upholstery jobs (Truck 1/Truck 2) are
+// scheduled by job length, so customers get the START time +/- 30 minutes instead.
+var RUG_CALENDAR_IDS=['a19e4f2968fbefb546c8e0177788a8a3d6efcf2ce2eb251444197b4a84379e4a@group.calendar.google.com'];
+var CARPET_WINDOW_MIN=30;
+function apptInfo(e,calId){
+  var desc=String(e.description||'').replace(/<[^>]*>/g,' ').trim(); // event body, e.g. "P/U 1 Rug…", "Paid Del 1 Rug…"
+  // First "P/U" (or "pick up") vs first "Del" (or "delivery") anywhere in the body wins,
+  // so extra words like "Paid Del 1 Rug" or "Rush P/U" still work.
+  var mPU=desc.search(/(^|[^a-z0-9])(p\s*\/\s*u|pick\s*-?\s*up)([^a-z0-9]|$)/i), mDel=desc.search(/(^|[^a-z0-9])del(ivery|iver)?([^a-z0-9]|$)/i);
+  var isPU=mPU!==-1&&(mDel===-1||mPU<mDel), isDel=mDel!==-1&&!isPU;
+  var rug=RUG_CALENDAR_IDS.indexOf(calId)!==-1||isPU||isDel;
+  var start=new Date(e.start.dateTime),end=new Date(e.end.dateTime);
+  if(rug){
+    return {kind:'rug',what:isPU?'rug pickup':(isDel?'rug delivery':'rug pickup/delivery'),winStart:start,winEnd:end};
+  }
+  return {kind:'carpet',what:'cleaning appointment',winStart:new Date(start.getTime()-CARPET_WINDOW_MIN*60000),winEnd:new Date(start.getTime()+CARPET_WINDOW_MIN*60000)};
+}
+// ---------- end appointment type ----------
+
 function calendarIds(){
   if(isTestMode())return [process.env.SMS_TEST_CALENDAR_ID].filter(Boolean);
   return String(process.env.SMS_LIVE_CALENDAR_IDS||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
@@ -172,7 +194,7 @@ exports.handler=async function(event){
     var track=await loadTracking(token,sheet.id,dry);
     var now=new Date(),tMax=new Date(now.getTime()+90*24*3600*1000);
     var events=[];
-    for(var i=0;i<cals.length;i++){events=events.concat(await getEvents(token,cals[i],now,tMax));}
+    for(var i=0;i<cals.length;i++){var evs=await getEvents(token,cals[i],now,tMax);evs.forEach(function(x){x._cal=cals[i];});events=events.concat(evs);}
     var tracked=0,changed=0;
     for(var j=0;j<events.length;j++){
       var e=events[j];
@@ -191,10 +213,14 @@ exports.handler=async function(event){
         continue;
       }
       var old=track.rows[idx];
-      if(old[2]===start&&old[3]===end)continue; // no change
+      var ai=apptInfo(e,e._cal);
+      // Carpet: only a new START time matters (end = job length). Rug: start or end (the arrival window).
+      if(old[2]===start&&(ai.kind==='carpet'||old[3]===end)){if(old[3]!==end&&!dry)await putRow(token,sheet.id,idx,[e.id,phone,start,end,old[4]||'']);continue;}
       changed++;
       var s=new Date(start),en=new Date(end);
-      var msg='Kashian Bros: Your cleaning appointment has been rescheduled to '+fmtDay(s)+' between '+fmtTime(s)+' and '+fmtTime(en)+'. Questions? Call (847) 251-1200. Reply STOP to opt out, HELP for help.';
+      var msg=ai.kind==='carpet'
+        ?'Kashian Bros: Your cleaning appointment has been rescheduled to '+fmtDay(s)+'. Our crew will arrive between '+fmtTime(ai.winStart)+' and '+fmtTime(ai.winEnd)+'. Questions? Call (847) 251-1200. Reply STOP to opt out, HELP for help.'
+        :'Kashian Bros: Your '+ai.what+' has been rescheduled to '+fmtDay(s)+' between '+fmtTime(ai.winStart)+' and '+fmtTime(ai.winEnd)+'. Questions? Call (847) 251-1200. Reply STOP to opt out, HELP for help.';
       var was=fmtDay(new Date(old[2]))+' '+fmtTime(new Date(old[2]))+'–'+fmtTime(new Date(old[3]));
       if(!canSendTo(phone)){out.push(label+' '+phone+': CHANGED (was '+was+') — SKIPPED, blocked by test mode');if(!dry)await putRow(token,sheet.id,idx,[e.id,phone,start,end,old[4]||'']);continue;}
       if(quiet){out.push(label+' '+phone+': CHANGED (was '+was+') — held for quiet hours, will send after 8 AM');continue;}
