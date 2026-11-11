@@ -2,7 +2,8 @@
 // Kashian Bros SMS reminders — STEP 3: the evening-before reminder.
 // Separate from Kay. Reads TOMORROW's appointments from the calendar, pulls the
 // phone number from the end of each event title (e.g. "9:30 Jane Smith 847-555-1234"),
-// and texts the arrival window (the event's start–end time on the calendar).
+// and texts the arrival window: carpet/upholstery = start time +/- 30 min;
+// rug pickup/delivery = the event's start–end time on the calendar.
 //
 // How to run (by hand only — no automatic schedule yet):
 //   Preview (sends nothing):  /.netlify/functions/sms-send-reminders?key=YOUR_KEY&dryrun=1
@@ -112,6 +113,28 @@ function phoneFromText(s){
   var m=String(s||'').match(/\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/g);
   return m?normPhone(m[m.length-1]):null; // last phone number in the text
 }
+
+// ---------- appointment type (carpet vs rug) ----------
+// Rug pickup/delivery appointments live on the Pick Up & Delivery calendar; their
+// calendar time IS the arrival window. Carpet/upholstery jobs (Truck 1/Truck 2) are
+// scheduled by job length, so customers get the START time +/- 30 minutes instead.
+var RUG_CALENDAR_IDS=['a19e4f2968fbefb546c8e0177788a8a3d6efcf2ce2eb251444197b4a84379e4a@group.calendar.google.com'];
+var CARPET_WINDOW_MIN=30;
+function apptInfo(e,calId){
+  var desc=String(e.description||'').replace(/<[^>]*>/g,' ').trim(); // event body, e.g. "P/U 1 Rug…", "Paid Del 1 Rug…"
+  // First "P/U" (or "pick up") vs first "Del" (or "delivery") anywhere in the body wins,
+  // so extra words like "Paid Del 1 Rug" or "Rush P/U" still work.
+  var mPU=desc.search(/(^|[^a-z0-9])(p\s*\/\s*u|pick\s*-?\s*up)([^a-z0-9]|$)/i), mDel=desc.search(/(^|[^a-z0-9])del(ivery|iver)?([^a-z0-9]|$)/i);
+  var isPU=mPU!==-1&&(mDel===-1||mPU<mDel), isDel=mDel!==-1&&!isPU;
+  var rug=RUG_CALENDAR_IDS.indexOf(calId)!==-1||isPU||isDel;
+  var start=new Date(e.start.dateTime),end=new Date(e.end.dateTime);
+  if(rug){
+    return {kind:'rug',what:isPU?'rug pickup':(isDel?'rug delivery':'rug pickup/delivery'),winStart:start,winEnd:end};
+  }
+  return {kind:'carpet',what:'cleaning appointment',winStart:new Date(start.getTime()-CARPET_WINDOW_MIN*60000),winEnd:new Date(start.getTime()+CARPET_WINDOW_MIN*60000)};
+}
+// ---------- end appointment type ----------
+
 function calendarIds(){
   if(isTestMode())return [process.env.SMS_TEST_CALENDAR_ID].filter(Boolean);
   return String(process.env.SMS_LIVE_CALENDAR_IDS||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
@@ -136,7 +159,7 @@ exports.handler=async function(event){
     var sheet=await loadSheet(token),c=sheet.cols;
     var now=new Date(),tMax=new Date(now.getTime()+60*3600*1000);
     var events=[];
-    for(var i=0;i<cals.length;i++){events=events.concat(await getEvents(token,cals[i],now,tMax));}
+    for(var i=0;i<cals.length;i++){var evs=await getEvents(token,cals[i],now,tMax);evs.forEach(function(x){x._cal=cals[i];});events=events.concat(evs);}
     var done={},count=0;
     for(var j=0;j<events.length;j++){
       var e=events[j];
@@ -157,7 +180,10 @@ exports.handler=async function(event){
       if(status!=='Confirmed'){out.push(label+' '+phone+': SKIPPED — Text Status is "'+(status||'blank')+'", not Confirmed');continue;}
       if(String(row[c.lastReminder]||'').trim()===tomStr){out.push(label+' '+phone+': SKIPPED — reminder already sent for '+tomStr);continue;}
       if(!canSendTo(phone)){out.push(label+' '+phone+': SKIPPED — blocked by test mode');continue;}
-      var msg='Kashian Bros: Reminder – your cleaning is scheduled for tomorrow, '+fmtDay(start)+', between '+fmtTime(start)+' and '+fmtTime(end)+'. Questions? Call (847) 251-1200. Reply STOP to opt out, HELP for help.';
+      var ai=apptInfo(e,e._cal);
+      var msg=ai.kind==='carpet'
+        ?'Kashian Bros: Reminder – your cleaning appointment is tomorrow, '+fmtDay(start)+'. Our crew will arrive between '+fmtTime(ai.winStart)+' and '+fmtTime(ai.winEnd)+'. Questions? Call (847) 251-1200. Reply STOP to opt out, HELP for help.'
+        :'Kashian Bros: Reminder – your '+ai.what+' is tomorrow, '+fmtDay(start)+', between '+fmtTime(ai.winStart)+' and '+fmtTime(ai.winEnd)+'. Questions? Call (847) 251-1200. Reply STOP to opt out, HELP for help.';
       if(dry){out.push(label+' '+phone+': would send →\n   '+msg);continue;}
       try{
         await sendSms(phone,msg);
