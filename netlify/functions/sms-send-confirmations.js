@@ -173,9 +173,8 @@ async function autofillFromCalendar(token,sheet,dry,out){
       if(known[phone])continue; // already in the log
       known[phone]=true;
       var start=new Date((e.start&&(e.start.dateTime||e.start.date))||now);
-      var created=e.created?new Date(e.created):now;
       var row=[];for(var k=0;k<h.length;k++)row.push('');
-      if(col.date>=0)row[col.date]=shortDate(created);
+      if(col.date>=0)row[col.date]=shortDate(now); // date the TXT tag was found (within ~30 min of Adolfo adding it)
       if(col.name>=0)row[col.name]=nameFromTitle(e.summary);
       row[c.phone]=phone.replace(/^\+1(\d{3})(\d{3})(\d{4})$/,'$1-$2-$3');
       if(col.appt>=0)row[col.appt]=shortDate(start)+' '+shortTime(start);
